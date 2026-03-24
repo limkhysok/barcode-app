@@ -94,17 +94,126 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+## Folder structure 
 
-To learn more about Next.js, take a look at the following resources:
+```
+my-app/
+│
+├── app/                                        # App Router — pages + API route handlers
+│   ├── (auth)/                                 # Route group (no layout impact)
+│   │   ├── login/
+│   │   │   └── page.tsx                        # /login
+│   │   └── register/
+│   │       └── page.tsx                        # /register
+│   │
+│   ├── (dashboard)/                            # Route group — protected pages
+│   │   ├── layout.tsx                          # Auth guard, redirect if unauthenticated
+│   │   ├── dashboard/
+│   │   │   ├── page.tsx
+│   │   │   └── actions.ts                      # Server Actions scoped to this page
+│   │   └── settings/
+│   │       ├── page.tsx
+│   │       └── actions.ts
+│   │
+│   ├── api/                                    # ← BACKEND REST API
+│   │   ├── auth/
+│   │   │   └── [...nextauth]/
+│   │   │       └── route.ts                    # POST /api/auth/*  (NextAuth handler)
+│   │   ├── users/
+│   │   │   ├── route.ts                        # GET /api/users   POST /api/users
+│   │   │   └── [id]/
+│   │   │       └── route.ts                    # GET PUT DELETE   /api/users/:id
+│   │   ├── posts/
+│   │   │   ├── route.ts                        # GET /api/posts   POST /api/posts
+│   │   │   └── [id]/
+│   │   │       └── route.ts                    # GET PUT DELETE   /api/posts/:id
+│   │   └── proxy/
+│   │       └── route.ts                        # Proxy entry point — forwards to external APIs
+│   │
+│   ├── layout.tsx                              # Root layout (html, body, providers)
+│   ├── page.tsx                                # / home page
+│   ├── error.tsx                               # Global error boundary
+│   ├── not-found.tsx
+│   └── globals.css
+│
+├── components/
+│   ├── ui/                                     # Generic primitives (no domain knowledge)
+│   │   ├── Button.tsx
+│   │   ├── Input.tsx
+│   │   ├── Modal.tsx
+│   │   ├── Badge.tsx
+│   │   └── index.ts                            # Barrel export
+│   ├── features/                               # Domain-aware components
+│   │   ├── users/
+│   │   │   ├── UserCard.tsx
+│   │   │   └── UserList.tsx
+│   │   └── posts/
+│   │       ├── PostCard.tsx
+│   │       └── PostForm.tsx
+│   └── layouts/
+│       ├── Navbar.tsx
+│       ├── Sidebar.tsx
+│       └── Footer.tsx
+│
+├── server/                                     # ← SERVER-ONLY (never imported by client)
+│   ├── db/
+│   │   ├── index.ts                            # Prisma/Drizzle singleton client
+│   │   └── schema.ts                           # Drizzle schema (skip if using Prisma)
+│   ├── services/                               # Business logic layer
+│   │   ├── user.service.ts                     # createUser, getUser, updateUser, deleteUser
+│   │   ├── post.service.ts
+│   │   └── auth.service.ts
+│   ├── repositories/                           # Data access layer — DB queries only
+│   │   ├── user.repo.ts                        # findById, findAll, insert, update, delete
+│   │   └── post.repo.ts
+│   ├── lib/                                    # Server-side utilities
+│   │   ├── auth.ts                             # NextAuth v5 config
+│   │   ├── email.ts                            # Resend / nodemailer setup
+│   │   └── session.ts                          # Session helpers
+│   └── proxy/                                  # ← PROXY LAYER
+│       ├── proxy.ts                            # Core forwarding engine
+│       └── proxy.config.ts                     # Allowed hosts, rewrite rules, injected headers
+│
+├── lib/                                        # Isomorphic utilities (safe for client + server)
+│   ├── utils.ts                                # cn(), formatDate(), slugify()
+│   ├── constants.ts                            # APP_NAME, ROUTES, LIMITS
+│   ├── api-client.ts                           # Typed fetch wrapper for browser usage
+│   └── validations/                            # Zod schemas — single source of truth
+│       ├── user.schema.ts
+│       └── post.schema.ts
+│
+├── hooks/                                      # Custom React hooks
+│   ├── useUser.ts
+│   ├── useDebounce.ts
+│   └── useLocalStorage.ts
+│
+├── store/                                      # Zustand global client state
+│   ├── auth.store.ts
+│   └── ui.store.ts                             # Sidebar open, theme, modals
+│
+├── types/
+│   ├── index.d.ts                              # Global TypeScript types
+│   └── api.types.ts                            # Request/response shape types
+│
+├── middleware.ts                               # Edge middleware — auth guard, CORS, rate-limit
+│
+├── prisma/
+│   ├── schema.prisma
+│   ├── seed.ts
+│   └── migrations/
+│
+├── tests/
+│   ├── unit/                                   # Vitest — services, utils
+│   ├── integration/                            # Vitest — API routes with DB
+│   └── e2e/                                    # Playwright — full browser flows
+│
+├── public/                                     # Static assets
+│
+├── .env.local                                  # DATABASE_URL, NEXTAUTH_SECRET, API keys
+├── .env.example
+├── next.config.ts                              # Rewrites, proxy headers, CSP, image domains
+├── tailwind.config.ts
+├── tsconfig.json
+└── vitest.config.ts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
