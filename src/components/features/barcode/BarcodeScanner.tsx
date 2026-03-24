@@ -185,8 +185,8 @@ export default function BarcodeScanner() {
                 </button>
             </div>
 
-            {/* Camera viewport — 9:16 portrait */}
-            <div className="relative bg-black aspect-9/16 w-full">
+            {/* Camera viewport — 4:3 */}
+            <div className="relative bg-black aspect-4/3 w-full">
                 {/* Library injects video here — styled via global override below */}
                 <div id="reader" className="absolute inset-0 w-full h-full" />
 

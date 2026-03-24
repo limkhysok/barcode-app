@@ -99,8 +99,8 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 ```
 my-app/
 │
-├── app/                                        # App Router — pages + API route handlers
-│   ├── (auth)/                                 # Route group (no layout impact)
+├── app/                                        # App Router — pages only (no API routes)
+│   ├── (auth)/                                 # Route group — auth pages
 │   │   ├── login/
 │   │   │   └── page.tsx                        # /login
 │   │   └── register/
@@ -109,26 +109,11 @@ my-app/
 │   ├── (dashboard)/                            # Route group — protected pages
 │   │   ├── layout.tsx                          # Auth guard, redirect if unauthenticated
 │   │   ├── dashboard/
-│   │   │   ├── page.tsx
-│   │   │   └── actions.ts                      # Server Actions scoped to this page
+│   │   │   └── page.tsx
+│   │   ├── profile/
+│   │   │   └── page.tsx
 │   │   └── settings/
-│   │       ├── page.tsx
-│   │       └── actions.ts
-│   │
-│   ├── api/                                    # ← BACKEND REST API
-│   │   ├── auth/
-│   │   │   └── [...nextauth]/
-│   │   │       └── route.ts                    # POST /api/auth/*  (NextAuth handler)
-│   │   ├── users/
-│   │   │   ├── route.ts                        # GET /api/users   POST /api/users
-│   │   │   └── [id]/
-│   │   │       └── route.ts                    # GET PUT DELETE   /api/users/:id
-│   │   ├── posts/
-│   │   │   ├── route.ts                        # GET /api/posts   POST /api/posts
-│   │   │   └── [id]/
-│   │   │       └── route.ts                    # GET PUT DELETE   /api/posts/:id
-│   │   └── proxy/
-│   │       └── route.ts                        # Proxy entry point — forwards to external APIs
+│   │       └── page.tsx
 │   │
 │   ├── layout.tsx                              # Root layout (html, body, providers)
 │   ├── page.tsx                                # / home page
@@ -142,8 +127,12 @@ my-app/
 │   │   ├── Input.tsx
 │   │   ├── Modal.tsx
 │   │   ├── Badge.tsx
+│   │   ├── Spinner.tsx
 │   │   └── index.ts                            # Barrel export
 │   ├── features/                               # Domain-aware components
+│   │   ├── auth/
+│   │   │   ├── LoginForm.tsx
+│   │   │   └── RegisterForm.tsx
 │   │   ├── users/
 │   │   │   ├── UserCard.tsx
 │   │   │   └── UserList.tsx
@@ -155,63 +144,48 @@ my-app/
 │       ├── Sidebar.tsx
 │       └── Footer.tsx
 │
-├── server/                                     # ← SERVER-ONLY (never imported by client)
-│   ├── db/
-│   │   ├── index.ts                            # Prisma/Drizzle singleton client
-│   │   └── schema.ts                           # Drizzle schema (skip if using Prisma)
-│   ├── services/                               # Business logic layer
-│   │   ├── user.service.ts                     # createUser, getUser, updateUser, deleteUser
-│   │   ├── post.service.ts
-│   │   └── auth.service.ts
-│   ├── repositories/                           # Data access layer — DB queries only
-│   │   ├── user.repo.ts                        # findById, findAll, insert, update, delete
-│   │   └── post.repo.ts
-│   ├── lib/                                    # Server-side utilities
-│   │   ├── auth.ts                             # NextAuth v5 config
-│   │   ├── email.ts                            # Resend / nodemailer setup
-│   │   └── session.ts                          # Session helpers
-│   └── proxy/                                  # ← PROXY LAYER
-│       ├── proxy.ts                            # Core forwarding engine
-│       └── proxy.config.ts                     # Allowed hosts, rewrite rules, injected headers
+├── services/                                   # ← ALL API CALLS TO DJANGO DRF
+│   ├── api.ts                                  # Base fetch/axios instance (baseURL, interceptors)
+│   ├── auth.service.ts                         # login(), register(), logout(), refreshToken()
+│   ├── user.service.ts                         # getUser(), updateUser(), deleteUser()
+│   └── post.service.ts                         # getPosts(), createPost(), updatePost()
 │
-├── lib/                                        # Isomorphic utilities (safe for client + server)
+├── lib/                                        # Shared utilities
 │   ├── utils.ts                                # cn(), formatDate(), slugify()
-│   ├── constants.ts                            # APP_NAME, ROUTES, LIMITS
-│   ├── api-client.ts                           # Typed fetch wrapper for browser usage
-│   └── validations/                            # Zod schemas — single source of truth
+│   ├── constants.ts                            # API_BASE_URL, ROUTES, APP_NAME
+│   └── validations/                            # Zod schemas — client-side form validation
+│       ├── auth.schema.ts
 │       ├── user.schema.ts
 │       └── post.schema.ts
 │
 ├── hooks/                                      # Custom React hooks
+│   ├── useAuth.ts                              # Login state, token refresh
 │   ├── useUser.ts
 │   ├── useDebounce.ts
 │   └── useLocalStorage.ts
 │
 ├── store/                                      # Zustand global client state
-│   ├── auth.store.ts
-│   └── ui.store.ts                             # Sidebar open, theme, modals
+│   ├── auth.store.ts                           # accessToken, user, isAuthenticated
+│   └── ui.store.ts                             # Sidebar open, theme, toast
 │
-├── types/
-│   ├── index.d.ts                              # Global TypeScript types
-│   └── api.types.ts                            # Request/response shape types
+├── types/                                      # TypeScript types (mirror Django models)
+│   ├── index.d.ts
+│   ├── auth.types.ts                           # LoginPayload, TokenResponse
+│   ├── user.types.ts                           # User, UserProfile
+│   └── api.types.ts                            # PaginatedResponse<T>, ApiError
 │
-├── middleware.ts                               # Edge middleware — auth guard, CORS, rate-limit
-│
-├── prisma/
-│   ├── schema.prisma
-│   ├── seed.ts
-│   └── migrations/
+├── middleware.ts                               # Route protection at edge (reads cookie/token)
 │
 ├── tests/
-│   ├── unit/                                   # Vitest — services, utils
-│   ├── integration/                            # Vitest — API routes with DB
+│   ├── unit/                                   # Vitest — hooks, utils, stores
 │   └── e2e/                                    # Playwright — full browser flows
 │
 ├── public/                                     # Static assets
+│   └── images/
 │
-├── .env.local                                  # DATABASE_URL, NEXTAUTH_SECRET, API keys
+├── .env.local                                  # NEXT_PUBLIC_API_URL=http://localhost:8000
 ├── .env.example
-├── next.config.ts                              # Rewrites, proxy headers, CSP, image domains
+├── next.config.ts                              # CORS headers, image domains (Django media)
 ├── tailwind.config.ts
 ├── tsconfig.json
 └── vitest.config.ts
