@@ -12,6 +12,7 @@ export default function RegisterPage() {
             <Image src="/ctk.svg" alt="CTK Logo" width={56} height={78} className="rounded-lg shadow" priority />
           </div>
           <h1 className="text-xl font-bold text-gray-900">Create your account</h1>
+          <p className="text-xs font-normal italic text-gray-400 mt-1">Join CTK — it only takes a minute</p>
         </div>
 
         {/* Card */}
