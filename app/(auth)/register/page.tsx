@@ -1,8 +1,42 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Navbar from "@/src/components/layouts/Navbar";
+import { useAuth } from "@/src/context/AuthContext";
 
 export default function RegisterPage() {
+  const { register } = useAuth();
+  const router = useRouter();
+
+  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.SyntheticEvent) {
+    e.preventDefault();
+    setError("");
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await register({ name, username, email, password });
+      router.push("/login");
+    } catch {
+      setError("Registration failed. Username or email may already be taken.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <>
       <Navbar />
@@ -24,7 +58,6 @@ export default function RegisterPage() {
               <p className="text-sm font-normal text-white/65 leading-relaxed">
                 Join thousands of customers who trust CTK for quality spare parts.
               </p>
-
               <ul className="space-y-2 pt-1">
                 {[
                   "10,000+ parts in catalog",
@@ -58,7 +91,7 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            <div className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label htmlFor="name" className="text-xs font-bold tracking-widest uppercase text-gray-500">
@@ -68,23 +101,45 @@ export default function RegisterPage() {
                     id="name"
                     type="text"
                     placeholder="John Doe"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition"
                     style={{ "--tw-ring-color": "#FA4900" } as React.CSSProperties}
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="email" className="text-xs font-bold tracking-widest uppercase text-gray-500">
-                    Email
+                  <label htmlFor="username" className="text-xs font-bold tracking-widest uppercase text-gray-500">
+                    Username
                   </label>
                   <input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
+                    id="username"
+                    type="text"
+                    placeholder="your_username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition"
                     style={{ "--tw-ring-color": "#FA4900" } as React.CSSProperties}
                   />
                 </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label htmlFor="email" className="text-xs font-bold tracking-widest uppercase text-gray-500">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition"
+                  style={{ "--tw-ring-color": "#FA4900" } as React.CSSProperties}
+                />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -96,6 +151,9 @@ export default function RegisterPage() {
                     id="password"
                     type="password"
                     placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition"
                     style={{ "--tw-ring-color": "#FA4900" } as React.CSSProperties}
                   />
@@ -109,23 +167,35 @@ export default function RegisterPage() {
                     id="confirm-password"
                     type="password"
                     placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition"
                     style={{ "--tw-ring-color": "#FA4900" } as React.CSSProperties}
                   />
                 </div>
               </div>
 
+              {error && (
+                <p className="text-xs font-medium text-red-500 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5">
+                  {error}
+                </p>
+              )}
+
               <button
                 type="submit"
-                className="w-full py-3.5 rounded-xl text-xs font-bold tracking-[0.2em] uppercase text-white flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition shadow-md"
+                disabled={loading}
+                className="w-full py-3.5 rounded-xl text-xs font-bold tracking-[0.2em] uppercase text-white flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{ background: "linear-gradient(to right, #FA4900, #b91c1c)" }}
               >
-                Create Account
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                </svg>
+                {loading ? "Creating account…" : "Create Account"}
+                {!loading && (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
+                )}
               </button>
-            </div>
+            </form>
 
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-gray-100" />

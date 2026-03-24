@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { fontSans, fontMono } from "@/src/fonts";
+import { AuthProvider } from "@/src/context/AuthContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,7 +21,9 @@ export default function RootLayout({
       lang="en"
       className={`${fontSans.variable} ${fontMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }
