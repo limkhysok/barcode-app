@@ -1,3 +1,77 @@
+# Barcode / Product ID Scanner
+
+Next.js barcode scanning app using `html5-qrcode` and Axios.
+
+---
+
+## Camera Scanning Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      CAMERA (html5-qrcode)                  │
+│           Continuously detects barcodes at 10 fps           │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ barcode detected
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│              FRONTEND DEDUP GUARD (in-memory Set)           │
+│                                                             │
+│   scannedSetRef.has(barcode)?                               │
+│   YES → ignore silently, show "Already queued"             │
+│   NO  → add to Set + push to queue array                   │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ new barcode
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   SCAN QUEUE (React state)                  │
+│                                                             │
+│   [ HK10127, HK10128, HK10130, ... ]                       │
+│                                                             │
+│   - Lives in memory only (cleared on page refresh)         │
+│   - Prevents same product from being queued twice           │
+│   - User reviews the list before submitting                 │
+│   - "Clear" button to discard and start over               │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ user clicks "Submit"
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│           BACKEND  POST /api/process-barcode                │
+│                                                             │
+│   Receives: { barcodes: string[], timestamp: string }       │
+│                                                             │
+│   1. Load current data from simple.json                     │
+│   2. Build a Set of barcodes saved in the last 10 seconds   │
+│   3. For each barcode in the batch:                         │
+│      - Already in recent Set? → skipped[]                  │
+│      - New? → saved[], add to recent Set (intra-batch dedup)│
+│   4. Write saved items to simple.json                       │
+│   5. Return { saved[], skipped[] }                          │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ response
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   FRONTEND (post-submit)                    │
+│                                                             │
+│   - Append saved[] to scan history table                    │
+│   - Show "Saved X, skipped Y duplicate(s)"                  │
+│   - Clear queue + reset dedup Set                           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Why two layers of dedup?
+
+| Layer | Guards against |
+|---|---|
+| Frontend `Set` | Camera scanning the same barcode 10x while it's in frame |
+| Backend 10s window | Network retries, page refresh mid-session, second device scanning the same product |
+
+### Camera switch
+The **BACK / FRONT** button toggles `facingMode` between `"environment"` (rear camera, default) and `"user"` (selfie camera). Switching tears down and re-initializes the scanner automatically.
+
+---
+
+## Getting Started
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
