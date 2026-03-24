@@ -1,13 +1,8 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
-import axios from "axios";
-
-interface ScanRecord {
-    id: string;
-    barcode: string;
-    timestamp: string;
-}
+import { getHistory, submitBarcodes } from "@/src/services/barcode.service";
+import type { ScanRecord } from "@/src/types/barcode.types";
 
 type StatusKind = "idle" | "queued" | "duplicate" | "error" | "submitting" | "done";
 
@@ -32,8 +27,8 @@ export default function BarcodeScanner() {
     const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
 
     useEffect(() => {
-        axios.get("/api/process-barcode")
-            .then(res => setHistory(res.data))
+        getHistory()
+            .then(data => setHistory(data))
             .catch(err => console.error("Failed to fetch history:", err));
     }, []);
 
@@ -110,17 +105,14 @@ export default function BarcodeScanner() {
             setStatusKind("submitting");
             setStatusMsg("Sending to database...");
 
-            const response = await axios.post("/api/process-barcode", {
-                barcodes: queue,
-                timestamp: new Date().toISOString(),
-            });
+            const response = await submitBarcodes(queue);
 
-            if (response.data.success) {
-                setHistory(prev => [...prev, ...response.data.saved]);
-                const skipped = response.data.skipped.length;
+            if (response.success) {
+                setHistory(prev => [...prev, ...response.saved]);
+                const skipped = response.skipped.length;
                 setStatusKind("done");
                 setStatusMsg(
-                    `Saved ${response.data.saved.length} product(s)` +
+                    `Saved ${response.saved.length} product(s)` +
                     (skipped > 0 ? `, skipped ${skipped} duplicate(s)` : "")
                 );
                 setQueue([]);

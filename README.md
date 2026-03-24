@@ -94,100 +94,60 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Folder structure 
+## Folder structure
+
+Frontend-only Next.js app. All data comes from an external backend API (`NEXT_PUBLIC_API_URL`).
 
 ```
-my-app/
+barcode-app/
 │
-├── app/                                        # App Router — pages only (no API routes)
-│   ├── (auth)/                                 # Route group — auth pages
-│   │   ├── login/
-│   │   │   └── page.tsx                        # /login
-│   │   └── register/
-│   │       └── page.tsx                        # /register
-│   │
-│   ├── (dashboard)/                            # Route group — protected pages
-│   │   ├── layout.tsx                          # Auth guard, redirect if unauthenticated
-│   │   ├── dashboard/
-│   │   │   └── page.tsx
-│   │   ├── profile/
-│   │   │   └── page.tsx
-│   │   └── settings/
-│   │       └── page.tsx
-│   │
+├── app/                                        # App Router — pages only, no API routes
 │   ├── layout.tsx                              # Root layout (html, body, providers)
-│   ├── page.tsx                                # / home page
+│   ├── page.tsx                                # / home — renders BarcodeScanner
 │   ├── error.tsx                               # Global error boundary
 │   ├── not-found.tsx
 │   └── globals.css
 │
-├── components/
-│   ├── ui/                                     # Generic primitives (no domain knowledge)
-│   │   ├── Button.tsx
-│   │   ├── Input.tsx
-│   │   ├── Modal.tsx
-│   │   ├── Badge.tsx
-│   │   ├── Spinner.tsx
-│   │   └── index.ts                            # Barrel export
-│   ├── features/                               # Domain-aware components
-│   │   ├── auth/
-│   │   │   ├── LoginForm.tsx
-│   │   │   └── RegisterForm.tsx
-│   │   ├── users/
-│   │   │   ├── UserCard.tsx
-│   │   │   └── UserList.tsx
-│   │   └── posts/
-│   │       ├── PostCard.tsx
-│   │       └── PostForm.tsx
-│   └── layouts/
-│       ├── Navbar.tsx
-│       ├── Sidebar.tsx
-│       └── Footer.tsx
-│
-├── services/                                   # ← ALL API CALLS TO DJANGO DRF
-│   ├── api.ts                                  # Base fetch/axios instance (baseURL, interceptors)
-│   ├── auth.service.ts                         # login(), register(), logout(), refreshToken()
-│   ├── user.service.ts                         # getUser(), updateUser(), deleteUser()
-│   └── post.service.ts                         # getPosts(), createPost(), updatePost()
-│
-├── lib/                                        # Shared utilities
-│   ├── utils.ts                                # cn(), formatDate(), slugify()
-│   ├── constants.ts                            # API_BASE_URL, ROUTES, APP_NAME
-│   └── validations/                            # Zod schemas — client-side form validation
-│       ├── auth.schema.ts
-│       ├── user.schema.ts
-│       └── post.schema.ts
-│
-├── hooks/                                      # Custom React hooks
-│   ├── useAuth.ts                              # Login state, token refresh
-│   ├── useUser.ts
-│   ├── useDebounce.ts
-│   └── useLocalStorage.ts
-│
-├── store/                                      # Zustand global client state
-│   ├── auth.store.ts                           # accessToken, user, isAuthenticated
-│   └── ui.store.ts                             # Sidebar open, theme, toast
-│
-├── types/                                      # TypeScript types (mirror Django models)
-│   ├── index.d.ts
-│   ├── auth.types.ts                           # LoginPayload, TokenResponse
-│   ├── user.types.ts                           # User, UserProfile
-│   └── api.types.ts                            # PaginatedResponse<T>, ApiError
-│
-├── middleware.ts                               # Route protection at edge (reads cookie/token)
-│
-├── tests/
-│   ├── unit/                                   # Vitest — hooks, utils, stores
-│   └── e2e/                                    # Playwright — full browser flows
+├── src/
+│   ├── components/
+│   │   ├── ui/                                 # Generic primitives (no domain knowledge)
+│   │   │   ├── Button.tsx
+│   │   │   ├── Badge.tsx
+│   │   │   ├── Spinner.tsx
+│   │   │   └── index.ts                        # Barrel export
+│   │   ├── features/                           # Domain-aware components
+│   │   │   └── barcode/
+│   │   │       └── BarcodeScanner.tsx          # Camera + queue + history UI
+│   │   └── layouts/
+│   │       ├── Navbar.tsx
+│   │       └── Footer.tsx
+│   │
+│   ├── services/                               # ← ALL API CALLS TO BACKEND
+│   │   ├── api.ts                              # Axios instance (baseURL, interceptors)
+│   │   └── barcode.service.ts                  # submitBarcodes(), getHistory()
+│   │
+│   ├── hooks/                                  # Custom React hooks
+│   │   ├── useBarcodeScanner.ts                # Scanner state + camera logic
+│   │   └── useLocalStorage.ts
+│   │
+│   ├── store/                                  # Zustand global client state (if needed)
+│   │   └── ui.store.ts                         # Theme, toasts
+│   │
+│   ├── types/                                  # TypeScript types (mirror backend models)
+│   │   ├── barcode.types.ts                    # ScanRecord, SubmitPayload, SubmitResponse
+│   │   └── api.types.ts                        # ApiError, PaginatedResponse<T>
+│   │
+│   └── lib/                                    # Shared utilities
+│       ├── utils.ts                            # cn(), formatDate()
+│       └── constants.ts                        # ROUTES, APP_NAME
 │
 ├── public/                                     # Static assets
-│   └── images/
 │
 ├── .env.local                                  # NEXT_PUBLIC_API_URL=http://localhost:8000
 ├── .env.example
-├── next.config.ts                              # CORS headers, image domains (Django media)
+├── next.config.ts                              # CORS headers, image domains
 ├── tailwind.config.ts
 ├── tsconfig.json
-└── vitest.config.ts
+└── package.json
 
 ```
