@@ -207,8 +207,8 @@ function ProductTable({ loading, error, displayed, products, sortKey, sortDir, o
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
-          {displayed.map((p) => (
-            <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+          {displayed.map((p, idx) => (
+            <tr key={p.id ?? idx} className="hover:bg-gray-50 transition-colors">
               <td className="px-5 py-3.5 text-xs font-bold text-gray-400">#{p.id}</td>
               <td className="px-5 py-3.5">
                 <span className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold text-gray-600 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-lg">
@@ -229,7 +229,7 @@ function ProductTable({ loading, error, displayed, products, sortKey, sortDir, o
               <td className="px-5 py-3.5 text-gray-500">{p.supplier}</td>
               <td className="px-5 py-3.5">
                 <div className="flex items-center gap-2">
-                  <button onClick={() => onEdit(p)}
+                  <button onClick={() => { console.log("onEdit called with row:", p); onEdit(p); }}
                     className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition" title="Edit">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round"
@@ -323,6 +323,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
   }
 
   function openEdit(product: Product) {
+    console.log("openEdit called with product:", product);
     setEditing(product);
     const isCustom = !REORDER_PRESETS.has(product.reorder_level);
     setReorderCustom(isCustom);
@@ -343,11 +344,24 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
     setSaving(true);
     setFormError("");
     try {
-      await (editing ? updateProduct(editing.id, form) : createProduct(form));
+      if (editing) {
+        if (editing.id === undefined || editing.id === null) {
+          setFormError("Cannot update: Product ID is missing or invalid.");
+          setSaving(false);
+          return;
+        }
+        await updateProduct(editing.id, form);
+      } else {
+        await createProduct(form);
+      }
       setModalOpen(false);
       fetchProducts();
-    } catch {
-      setFormError("Failed to save. Please check your inputs.");
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
+        setFormError("This product no longer exists. Please refresh the page.");
+      } else {
+        setFormError("Failed to save. Please check your inputs.");
+      }
     } finally {
       setSaving(false);
     }
@@ -360,7 +374,12 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
       await deleteProduct(deleteTarget.id);
       setDeleteTarget(null);
       fetchProducts();
-    } catch {
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
+        alert("This product was already deleted or does not exist.");
+        setDeleteTarget(null);
+        fetchProducts();
+      }
       setDeleting(false);
     }
   }
