@@ -169,10 +169,24 @@ Category choices: `Fasteners`, `Accessories`
 ---
 
 ## 6. Inventory Management
-Track stock levels across sites and locations.
+
+Track stock levels across sites and locations. **All endpoints require authentication with a JWT access token.**
 
 - **Base Endpoint:** `/api/inventory`
 - **Methods:** `GET` / `POST` / `PUT` / `PATCH` / `DELETE`
+
+> **Note:** All inventory endpoints require the following header:
+>
+> ```
+> Authorization: Bearer <access_token>
+> ```
+>
+> You must first obtain an access token via the login endpoint (`POST /api/auth/login`).
+
+#### Example using curl:
+```
+curl -H "Authorization: Bearer <access_token>" http://localhost:8000/api/inventory/
+```
 
 ### Query Parameters (GET list)
 | Param | Description |

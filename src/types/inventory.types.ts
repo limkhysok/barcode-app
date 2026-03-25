@@ -8,6 +8,7 @@ export interface InventoryProductDetails {
   reorder_level: number;
 }
 
+
 export interface InventoryRecord {
   id: number;
   product: number;
@@ -17,7 +18,7 @@ export interface InventoryRecord {
   product_description: string;
   quantity_on_hand: number;
   stock_value: string;
-  reorder_status: "yes" | "no";
+  reorder_status: "Yes" | "No";
   order_date: string;
   created_at: string;
   updated_at: string;
@@ -29,8 +30,6 @@ export interface InventoryPayload {
   location: string;
   product_description: string;
   quantity_on_hand: number;
-  stock_value: number;
-  reorder_status: "yes" | "no";
   order_date: string;
 }
 

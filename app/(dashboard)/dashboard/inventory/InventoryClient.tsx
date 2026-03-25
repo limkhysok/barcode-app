@@ -107,8 +107,6 @@ const emptyForm: InventoryPayload = {
   location: "",
   product_description: "",
   quantity_on_hand: 0,
-  stock_value: 0,
-  reorder_status: "no",
   order_date: new Date().toISOString().split("T")[0],
 };
 
@@ -156,8 +154,6 @@ export default function InventoryClient({ initialRecords, initialProducts }: Rea
       location:            record.location,
       product_description: record.product_description,
       quantity_on_hand:    record.quantity_on_hand,
-      stock_value:         Number.parseFloat(record.stock_value),
-      reorder_status:      record.reorder_status,
       order_date:          record.order_date,
     });
     setFormError("");
@@ -204,7 +200,7 @@ export default function InventoryClient({ initialRecords, initialProducts }: Rea
     const low        = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "low").length;
     const totalValue   = records.reduce((s, r) => s + Number.parseFloat(r.stock_value), 0);
     const totalQty     = records.reduce((s, r) => s + r.quantity_on_hand, 0);
-    const needsReorder = records.filter((r) => r.reorder_status === "yes").length;
+    const needsReorder = records.filter((r) => r.reorder_status === "Yes").length;
     const sites        = new Set(records.map((r) => r.site)).size;
     return { total, healthy, moderate, low, totalValue, totalQty, needsReorder, sites };
   }, [records]);
@@ -288,7 +284,7 @@ export default function InventoryClient({ initialRecords, initialProducts }: Rea
                     ${Number.parseFloat(r.stock_value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </td>
                   <td className="px-5 py-3.5">
-                    {r.reorder_status === "yes" ? (
+                    {r.reorder_status === "Yes" ? (
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-red-50 text-red-500">
                         <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />Yes
                       </span>
@@ -554,18 +550,11 @@ export default function InventoryClient({ initialRecords, initialProducts }: Rea
                 <Field label="Quantity on Hand" id="quantity_on_hand" type="number"
                   value={form.quantity_on_hand} placeholder="500"
                   onChange={(v) => setForm((f) => ({ ...f, quantity_on_hand: Number.parseInt(v) || 0 }))} />
-                <Field label="Stock Value ($)" id="stock_value" type="number"
-                  value={form.stock_value} placeholder="250.00"
-                  onChange={(v) => setForm((f) => ({ ...f, stock_value: Number.parseFloat(v) || 0 }))} />
+                <div />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <CustomSelect id="reorder_status" label="Reorder Status" value={form.reorder_status}
-                  onChange={(v) => setForm((f) => ({ ...f, reorder_status: v as "yes" | "no" }))}
-                  options={[
-                    { value: "no",  label: "No — sufficient stock" },
-                    { value: "yes", label: "Yes — needs reorder"   },
-                  ]} />
+                <div />
                 <Field label="Order Date" id="order_date" type="date"
                   value={form.order_date} placeholder=""
                   onChange={(v) => setForm((f) => ({ ...f, order_date: v }))} />
