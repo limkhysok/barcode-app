@@ -205,6 +205,7 @@ function ProductTable({ loading, error, displayed, products, sortKey, sortDir, o
         <thead className="bg-gray-50">
           <tr>
             <th className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">#</th>
+            <th className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">Barcode</th>
             {SORT_COLS.map(({ label, key }) => (
               <th key={key}
                 className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400 cursor-pointer select-none hover:text-gray-700 transition-colors"
@@ -227,6 +228,14 @@ function ProductTable({ loading, error, displayed, products, sortKey, sortDir, o
           {displayed.map((p) => (
             <tr key={p.id} className="hover:bg-gray-50 transition-colors">
               <td className="px-5 py-3.5 text-xs font-bold text-gray-400">#{p.id}</td>
+              <td className="px-5 py-3.5">
+                <span className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold text-gray-600 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-lg">
+                  <svg className="w-3 h-3 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h1.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-1.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h1.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-1.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h1.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-1.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
+                  </svg>
+                  {p.barcode}
+                </span>
+              </td>
               <td className="px-5 py-3.5 font-semibold text-gray-800">{p.product_name}</td>
               <td className="px-5 py-3.5">
                 <span className="text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-orange-50 text-orange-500">

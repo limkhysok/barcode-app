@@ -37,7 +37,7 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
   const initial = displayName.charAt(0).toUpperCase();
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
       {/* Brand accent line */}
       <div className="h-0.5 w-full" style={{ background: "linear-gradient(to right, #FA4900, #b91c1c)" }} />
 
@@ -56,9 +56,14 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
             </svg>
           </button>
 
-          {/* Logo + title */}
+          {/* Logo + title — always visible */}
           <Link href="/dashboard" className="flex items-center gap-2.5 shrink-0">
-            <Image src="/ctk.svg" alt="CTK" width={22} height={31} className="rounded-sm" priority />
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}
+            >
+              <Image src="/ctk.svg" alt="CTK" width={16} height={22} priority />
+            </div>
             <div>
               <p className="text-sm font-bold tracking-[0.2em] uppercase text-gray-900 leading-none">CTK</p>
               <p className="text-[9px] font-medium tracking-[0.15em] uppercase leading-none mt-0.5" style={{ color: "#FA4900" }}>

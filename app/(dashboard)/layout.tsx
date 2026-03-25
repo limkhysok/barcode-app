@@ -12,6 +12,30 @@ export default function DashboardLayout({ children }: Readonly<{ children: React
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  // Auto-collapse on tablet, expand on desktop
+  useEffect(() => {
+    function handleResize() {
+      const w = window.innerWidth;
+      if (w >= 1024) {
+        setSidebarCollapsed(false);
+      } else if (w >= 768) {
+        setSidebarCollapsed(true);
+      }
+    }
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Close mobile drawer on route change / resize to desktop
+  useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth >= 768) setSidebarOpen(false);
+    }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   useEffect(() => {
     if (!isLoading && !user) {
       router.replace("/login");
@@ -36,10 +60,7 @@ export default function DashboardLayout({ children }: Readonly<{ children: React
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
-      {/* Navbar spans full width */}
       <DashboardNavbar onMenuClick={() => setSidebarOpen((v) => !v)} />
-
-      {/* Sidebar + content row */}
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
           isOpen={sidebarOpen}

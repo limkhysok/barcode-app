@@ -177,24 +177,6 @@ export default function TransactionsPage() {
     return list;
   }, [transactions, typeFilter, debouncedSearch]);
 
-  const cards = [
-    {
-      label: "Total Transactions", value: loading ? "—" : stats.total, sub: "all time", accent: "#FA4900",
-      icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>,
-    },
-    {
-      label: "Stock In (Receive)", value: loading ? "—" : stats.receives, sub: "receive transactions", accent: "#16a34a",
-      icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>,
-    },
-    {
-      label: "Stock Out (Sale)", value: loading ? "—" : stats.sales, sub: "sale transactions", accent: "#dc2626",
-      icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>,
-    },
-    {
-      label: "Today", value: loading ? "—" : stats.todayCount, sub: "transactions today", accent: "#7c3aed",
-      icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>,
-    },
-  ];
 
   let tableContent: React.ReactNode;
   if (loading) {
@@ -289,20 +271,136 @@ export default function TransactionsPage() {
         </button>
       </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {cards.map(({ label, value, sub, icon, accent }) => (
-          <div key={label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-start gap-4">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white"
-              style={{ backgroundColor: accent }}>{icon}</div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900 leading-none">{value}</p>
-              <p className="text-xs font-bold text-gray-700 mt-1">{label}</p>
-              <p className="text-[10px] text-gray-400 mt-0.5">{sub}</p>
+      {/* Overview */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+        {/* Featured: Today */}
+        <div className="relative overflow-hidden rounded-2xl p-6 text-white"
+          style={{ background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%)" }}>
+          <div className="absolute -left-4 -top-4 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
+          <div className="absolute right-2 -bottom-3 w-20 h-20 rounded-full bg-white/5 pointer-events-none" />
+          <div className="relative z-10">
+            <div className="flex items-start justify-between mb-5">
+              <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                </svg>
+              </div>
+              <span className="flex items-center gap-1.5 text-[9px] font-bold tracking-widest uppercase bg-white/15 px-2.5 py-1 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                TODAY
+              </span>
+            </div>
+            <p className="text-[30px] font-black tracking-tight leading-none tabular-nums">
+              {loading ? "—" : stats.todayCount}
+            </p>
+            <p className="text-xs text-white/60 mt-2">Transactions today</p>
+          </div>
+        </div>
+
+        {/* Total Transactions */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="h-1 w-full" style={{ background: "linear-gradient(90deg, #FA4900, #b91c1c)" }} />
+          <div className="p-5 flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center shrink-0 text-orange-500">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <p className="text-2xl font-black text-gray-900 leading-none tabular-nums">
+                {loading ? "—" : stats.total}
+              </p>
+              <p className="text-xs font-bold text-gray-700 mt-1.5">Total Transactions</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">all time</p>
             </div>
           </div>
-        ))}
+        </div>
+
+        {/* Stock In */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="h-1 w-full bg-green-500" />
+          <div className="p-5 flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center shrink-0 text-green-600">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-baseline gap-2">
+                <p className="text-2xl font-black text-gray-900 leading-none tabular-nums">
+                  {loading ? "—" : stats.receives}
+                </p>
+                {!loading && stats.total > 0 && (
+                  <span className="text-[10px] font-bold text-green-500 bg-green-50 px-1.5 py-0.5 rounded-md">
+                    {Math.round((stats.receives / stats.total) * 100)}%
+                  </span>
+                )}
+              </div>
+              <p className="text-xs font-bold text-gray-700 mt-1.5">Stock In (Receive)</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">receive transactions</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Stock Out */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="h-1 w-full bg-red-500" />
+          <div className="p-5 flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center shrink-0 text-red-500">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-baseline gap-2">
+                <p className="text-2xl font-black text-gray-900 leading-none tabular-nums">
+                  {loading ? "—" : stats.sales}
+                </p>
+                {!loading && stats.total > 0 && (
+                  <span className="text-[10px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-md">
+                    {Math.round((stats.sales / stats.total) * 100)}%
+                  </span>
+                )}
+              </div>
+              <p className="text-xs font-bold text-gray-700 mt-1.5">Stock Out (Sale)</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">sale transactions</p>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Transaction flow ratio */}
+      {!loading && stats.total > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Transaction Flow</p>
+            <p className="text-[10px] text-gray-400">{stats.total} total</p>
+          </div>
+          <div className="flex h-2 rounded-full overflow-hidden gap-0.5">
+            {stats.receives > 0 && (
+              <div className="bg-green-500 rounded-full transition-all"
+                style={{ width: `${(stats.receives / stats.total) * 100}%` }} />
+            )}
+            {stats.sales > 0 && (
+              <div className="bg-red-500 rounded-full transition-all"
+                style={{ width: `${(stats.sales / stats.total) * 100}%` }} />
+            )}
+          </div>
+          <div className="flex items-center gap-5 mt-3">
+            {[
+              { label: "Stock In", count: stats.receives, dot: "bg-green-500" },
+              { label: "Stock Out", count: stats.sales, dot: "bg-red-500" },
+            ].map(({ label, count, dot }) => (
+              <div key={label} className="flex items-center gap-1.5">
+                <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
+                <span className="text-[10px] text-gray-500 font-medium">{label}</span>
+                <span className="text-[10px] font-bold text-gray-700">{count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
