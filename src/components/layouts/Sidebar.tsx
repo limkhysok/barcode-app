@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const EXPANDED_W = 220;
-const COLLAPSED_W = 64;
-const MOBILE_W = 280;
+const EXPANDED_W = 210;   // enough room for "Transactions" + icon + padding
+const COLLAPSED_W = 56;   // clean icon-only rail; 56px is standard (icon 20px + 18px each side)
+const MOBILE_W    = 280;  // standard mobile drawer
 const easing = "0.3s cubic-bezier(0.4, 0, 0.2, 1)";
 
 const navItems = [
@@ -90,7 +90,7 @@ function NavItem({
         }
       `}
       style={{
-        padding: isCollapsed ? "10px 0" : "10px 12px",
+        padding: isCollapsed ? "10px 8px" : "10px 12px",
         justifyContent: isCollapsed ? "center" : "flex-start",
         gap: isCollapsed ? 0 : 11,
         background: active ? "rgba(250,73,0,0.13)" : undefined,
@@ -137,13 +137,13 @@ function SidebarInner({
 }>) {
   return (
     <aside
-      className="relative flex flex-col h-full"
+      className="relative flex flex-col h-full w-full"
       style={{ background: "#0f172a" }}
     >
       {/* Section label */}
       <div
         style={{
-          maxWidth: isCollapsed ? 0 : 220,
+          maxWidth: isCollapsed ? 0 : 240,
           opacity: isCollapsed ? 0 : 1,
           overflow: "hidden",
           whiteSpace: "nowrap",
@@ -244,8 +244,8 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
     <>
       {/* ── Desktop / Tablet sidebar (md+) ── */}
       <div
-        className="hidden md:flex h-full shrink-0"
-        style={{ width: desktopW, transition: `width ${easing}` }}
+        className="hidden md:flex h-full shrink-0 overflow-hidden"
+        style={{ width: desktopW, minWidth: desktopW, transition: `width ${easing}, min-width ${easing}` }}
       >
         <SidebarInner
           isCollapsed={isCollapsed}

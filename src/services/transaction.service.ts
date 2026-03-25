@@ -1,8 +1,13 @@
 import api from "./api";
 import type { Transaction, TransactionPayload } from "@/src/types/transaction.types";
 
-export async function getTransactions(): Promise<Transaction[]> {
-  const { data } = await api.get<Transaction[]>("/api/transactions/");
+export async function getTransactions(params?: {
+  inventory_id?: number;
+  type?: string;
+  barcode?: string;
+  search?: string;
+}): Promise<Transaction[]> {
+  const { data } = await api.get<Transaction[]>("/api/transactions/", { params });
   return data;
 }
 

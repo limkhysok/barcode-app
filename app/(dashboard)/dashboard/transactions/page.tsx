@@ -203,7 +203,7 @@ export default function TransactionsPage() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50">
             <tr>
-              {["#", "Type", "Product", "Site", "Qty", "Performed By", "Date", "Time", "Actions"].map((h) => (
+              {["#", "Barcode", "Type", "Product", "Site", "Qty", "Performed By", "Date", "Time", "Actions"].map((h) => (
                 <th key={h} className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">{h}</th>
               ))}
             </tr>
@@ -217,6 +217,11 @@ export default function TransactionsPage() {
               return (
                 <tr key={t.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-5 py-3.5 text-xs font-bold text-gray-400">#{t.id}</td>
+                  <td className="px-5 py-3.5">
+                    <span className="font-mono text-xs text-gray-500 bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-md whitespace-nowrap">
+                      {t.barcode ?? "—"}
+                    </span>
+                  </td>
                   <td className="px-5 py-3.5">
                     <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.text}`}>
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
@@ -232,8 +237,8 @@ export default function TransactionsPage() {
                     {qtySign}{t.quantity}
                   </td>
                   <td className="px-5 py-3.5 text-gray-600 text-xs">{t.performed_by_username}</td>
-                  <td className="px-5 py-3.5 text-gray-600 text-xs">{formatDate(t.transaction_date)}</td>
-                  <td className="px-5 py-3.5 text-gray-400 text-xs font-mono">{formatTime(t.transaction_date)}</td>
+                  <td className="px-5 py-3.5 text-gray-600 text-xs" suppressHydrationWarning>{formatDate(t.transaction_date)}</td>
+                  <td className="px-5 py-3.5 text-gray-400 text-xs font-mono" suppressHydrationWarning>{formatTime(t.transaction_date)}</td>
                   <td className="px-5 py-3.5">
                     <button onClick={() => setDeleteTarget(t)}
                       className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition" title="Delete">
@@ -287,8 +292,7 @@ export default function TransactionsPage() {
                 </svg>
               </div>
               <span className="flex items-center gap-1.5 text-[9px] font-bold tracking-widest uppercase bg-white/15 px-2.5 py-1 rounded-full">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                TODAY
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /><span>TODAY</span>
               </span>
             </div>
             <p className="text-[30px] font-black tracking-tight leading-none tabular-nums">

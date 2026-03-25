@@ -68,7 +68,7 @@ export default function LoginPage() {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" suppressHydrationWarning>
               <div className="space-y-1.5">
                 <label htmlFor="username" className="text-xs font-bold tracking-widest uppercase text-gray-500">
                   Username
@@ -82,6 +82,7 @@ export default function LoginPage() {
                   required
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition"
                   style={{ "--tw-ring-color": "#FA4900" } as React.CSSProperties}
+                  suppressHydrationWarning
                 />
               </div>
 
@@ -103,6 +104,7 @@ export default function LoginPage() {
                   required
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition"
                   style={{ "--tw-ring-color": "#FA4900" } as React.CSSProperties}
+                  suppressHydrationWarning
                 />
               </div>
 

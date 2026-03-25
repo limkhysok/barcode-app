@@ -1,5 +1,6 @@
 export interface InventoryProductDetails {
   id: number;
+  barcode: string;
   product_name: string;
   category: string;
   supplier: string;
@@ -31,4 +32,12 @@ export interface InventoryPayload {
   stock_value: number;
   reorder_status: "yes" | "no";
   order_date: string;
+}
+
+/** Response from GET /api/inventory/scan/?barcode=<value> */
+export interface ScanResult {
+  found: boolean;
+  product?: InventoryProductDetails;
+  inventory: InventoryRecord[];
+  detail?: string;
 }

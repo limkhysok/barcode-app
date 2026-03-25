@@ -1,8 +1,17 @@
 import api from "./api";
-import type { InventoryRecord, InventoryPayload } from "@/src/types/inventory.types";
+import type { InventoryRecord, InventoryPayload, ScanResult } from "@/src/types/inventory.types";
 
-export async function getInventory(params?: { product_id?: number; site?: string }): Promise<InventoryRecord[]> {
+export async function getInventory(params?: {
+  product_id?: number;
+  site?: string;
+  search?: string;
+}): Promise<InventoryRecord[]> {
   const { data } = await api.get<InventoryRecord[]>("/api/inventory/", { params });
+  return data;
+}
+
+export async function scanBarcode(barcode: string): Promise<ScanResult> {
+  const { data } = await api.get<ScanResult>("/api/inventory/scan/", { params: { barcode } });
   return data;
 }
 

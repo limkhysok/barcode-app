@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
 import type { User, LoginPayload, RegisterPayload } from "@/src/types/auth.types";
 import { login as apiLogin, register as apiRegister, getMe } from "@/src/services/auth.service";
 
@@ -14,7 +14,7 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: Readonly<{ children: React.ReactNode }>) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -24,9 +24,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!access) { setIsLoading(false); return; }
     getMe()
       .then(setUser)
-      .catch(() => {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
+      .catch((err: unknown) => {
+        const status = (err as { response?: { status?: number } })?.response?.status;
+        if (status === 401) {
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+        }
       })
       .finally(() => setIsLoading(false));
   }, []);
@@ -49,8 +52,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   }, []);
 
+  const value = useMemo(
+    () => ({ user, isLoading, login, register, logout }),
+    [user, isLoading, login, register, logout],
+  );
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
