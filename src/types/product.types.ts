@@ -12,6 +12,7 @@ export interface Product {
 }
 
 export interface ProductPayload {
+  barcode: string;
   product_name: string;
   category: string;
   cost_per_unit: number;

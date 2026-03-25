@@ -106,9 +106,10 @@ Perform CRUD operations on products.
 - **Header:** `Authorization: Bearer <your_access_token>`
 
 ### Create Product Example (POST)
+- **Note:** `barcode` is required.
 ```json
 {
-  "barcode": "128vj2-B8", 
+  "barcode": "128vj2-B8",
   "product_name": "Zinc Bolt M8",
   "category": "Fasteners",
   "cost_per_unit": 0.50,

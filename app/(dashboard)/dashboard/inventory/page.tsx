@@ -227,56 +227,6 @@ export default function InventoryPage() {
 
   const maxQty = useMemo(() => Math.max(...records.map((r) => r.quantity_on_hand), 1), [records]);
 
-  const cards = [
-    {
-      label: "Total Stock Value",
-      value: loading ? "—" : `$${stats.totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      sub: "combined stock value",
-      accent: "#FA4900",
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round"
-            d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
-    },
-    {
-      label: "Total Qty on Hand",
-      value: loading ? "—" : stats.totalQty.toLocaleString(),
-      sub: "units across all sites",
-      accent: "#7c3aed",
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round"
-            d="M6.429 9.75L2.25 12l4.179 2.25m0-4.5l5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0l4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0l-5.571 3-5.571-3" />
-        </svg>
-      ),
-    },
-    {
-      label: "Active Sites",
-      value: loading ? "—" : stats.sites,
-      sub: "unique store locations",
-      accent: "#0891b2",
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-        </svg>
-      ),
-    },
-    {
-      label: "Needs Reorder",
-      value: loading ? "—" : stats.needsReorder,
-      sub: "items flagged for reorder",
-      accent: "#dc2626",
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round"
-            d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-        </svg>
-      ),
-    },
-  ];
 
   let tableContent: React.ReactNode;
   if (loading) {
@@ -414,22 +364,133 @@ export default function InventoryPage() {
         </button>
       </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {cards.map(({ label, value, sub, icon, accent }) => (
-          <div key={label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-start gap-4">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white"
-              style={{ backgroundColor: accent }}>
-              {icon}
+      {/* Overview */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+        {/* Featured: Total Stock Value */}
+        <div className="relative overflow-hidden rounded-2xl p-6 text-white lg:col-span-1"
+          style={{ background: "linear-gradient(135deg, #FA4900 0%, #c2410c 55%, #991b1b 100%)" }}>
+          <div className="absolute -right-5 -top-5 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
+          <div className="absolute right-3 bottom-3 w-14 h-14 rounded-full bg-white/5 pointer-events-none" />
+          <div className="relative z-10 flex flex-col h-full">
+            <div className="flex items-start justify-between mb-5">
+              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round"
+                    d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <span className="text-[9px] font-bold tracking-widest uppercase bg-white/20 px-2.5 py-1 rounded-full">
+                STOCK VALUE
+              </span>
             </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900 leading-none">{value}</p>
-              <p className="text-xs font-bold text-gray-700 mt-1">{label}</p>
-              <p className="text-[10px] text-gray-400 mt-0.5">{sub}</p>
+            <p className="text-[30px] font-black tracking-tight leading-none">
+              {loading ? "—" : `$${stats.totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+            </p>
+            <p className="text-xs text-white/60 mt-2">Combined across all sites</p>
+          </div>
+        </div>
+
+        {/* Total Qty on Hand */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="h-1 w-full" style={{ background: "linear-gradient(90deg, #7c3aed, #a855f7)" }} />
+          <div className="p-5 flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center shrink-0 text-violet-600">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round"
+                  d="M6.429 9.75L2.25 12l4.179 2.25m0-4.5l5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0l4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0l-5.571 3-5.571-3" />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <p className="text-2xl font-black text-gray-900 leading-none tabular-nums">
+                {loading ? "—" : stats.totalQty.toLocaleString()}
+              </p>
+              <p className="text-xs font-bold text-gray-700 mt-1.5">Total Qty on Hand</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">units across all sites</p>
             </div>
           </div>
-        ))}
+        </div>
+
+        {/* Active Sites */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="h-1 w-full" style={{ background: "linear-gradient(90deg, #0891b2, #22d3ee)" }} />
+          <div className="p-5 flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-cyan-50 flex items-center justify-center shrink-0 text-cyan-600">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <p className="text-2xl font-black text-gray-900 leading-none tabular-nums">
+                {loading ? "—" : stats.sites}
+              </p>
+              <p className="text-xs font-bold text-gray-700 mt-1.5">Active Sites</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">unique store locations</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Needs Reorder */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="h-1 w-full bg-red-500" />
+          <div className="p-5 flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center shrink-0 text-red-500 relative">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round"
+                  d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+              </svg>
+              {!loading && stats.needsReorder > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-white animate-pulse" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-2xl font-black text-gray-900 leading-none tabular-nums">
+                {loading ? "—" : stats.needsReorder}
+              </p>
+              <p className="text-xs font-bold text-gray-700 mt-1.5">Needs Reorder</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">items flagged for reorder</p>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Stock health distribution */}
+      {!loading && stats.total > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Stock Health Distribution</p>
+            <p className="text-[10px] text-gray-400">{stats.total} total records</p>
+          </div>
+          <div className="flex h-2 rounded-full overflow-hidden gap-0.5">
+            {stats.healthy > 0 && (
+              <div className="bg-green-500 rounded-full transition-all"
+                style={{ width: `${(stats.healthy / stats.total) * 100}%` }} />
+            )}
+            {stats.moderate > 0 && (
+              <div className="bg-amber-400 rounded-full transition-all"
+                style={{ width: `${(stats.moderate / stats.total) * 100}%` }} />
+            )}
+            {stats.low > 0 && (
+              <div className="bg-red-500 rounded-full transition-all"
+                style={{ width: `${(stats.low / stats.total) * 100}%` }} />
+            )}
+          </div>
+          <div className="flex items-center gap-5 mt-3">
+            {[
+              { label: "Healthy", count: stats.healthy, dot: "bg-green-500" },
+              { label: "Moderate", count: stats.moderate, dot: "bg-amber-400" },
+              { label: "Low Stock", count: stats.low, dot: "bg-red-500" },
+            ].map(({ label, count, dot }) => (
+              <div key={label} className="flex items-center gap-1.5">
+                <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
+                <span className="text-[10px] text-gray-500 font-medium">{label}</span>
+                <span className="text-[10px] font-bold text-gray-700">{count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Filters row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

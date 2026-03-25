@@ -52,6 +52,7 @@ function flipDir(dir: "asc" | "desc"): "asc" | "desc" {
 }
 
 const emptyForm: ProductPayload = {
+  barcode: "",
   product_name: "",
   category: "",
   cost_per_unit: 0,
@@ -341,6 +342,7 @@ export default function ProductsPage() {
     const isCustom = !REORDER_PRESETS.has(product.reorder_level);
     setReorderCustom(isCustom);
     setForm({
+      barcode: product.barcode,
       product_name: product.product_name,
       category: product.category,
       cost_per_unit: Number.parseFloat(product.cost_per_unit),
@@ -581,6 +583,9 @@ export default function ProductsPage() {
             <form onSubmit={handleSave} className="space-y-4">
               <Field label="Product Name" id="product_name" value={form.product_name} placeholder="Engine Oil Filter"
                 onChange={(v) => setForm((f) => ({ ...f, product_name: v }))} />
+
+              <Field label="Barcode" id="barcode" value={form.barcode} placeholder="SN-ABC123"
+                onChange={(v) => setForm((f) => ({ ...f, barcode: v }))} />
 
               <div className="grid grid-cols-2 gap-4">
                 <CustomSelect
