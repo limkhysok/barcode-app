@@ -201,9 +201,7 @@ curl -H "Authorization: Bearer <access_token>" http://localhost:8000/api/invento
   "product": 1,
   "site": "Warehouse A",
   "location": "A1-Shelf-5",
-  "product_description": "Zinc Bolt M8 - 50mm",
-  "quantity_on_hand": 500,
-  "order_date": "2026-03-24"
+  "quantity_on_hand": 500
 }
 ```
 
@@ -223,11 +221,9 @@ curl -H "Authorization: Bearer <access_token>" http://localhost:8000/api/invento
   },
   "site": "Warehouse A",
   "location": "A1-Shelf-5",
-  "product_description": "Zinc Bolt M8 - 50mm",
   "quantity_on_hand": 500,
   "stock_value": "250.00",
   "reorder_status": "No",
-  "order_date": "2026-03-24",
   "created_at": "2026-03-25T08:00:00Z",
   "updated_at": "2026-03-25T08:00:00Z"
 }
