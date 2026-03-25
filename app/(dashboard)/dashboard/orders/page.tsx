@@ -1,5 +1,3 @@
-"use client";
-
 const orders = [
   { id: "#ORD-0128", part: "Brake Pad Set",     date: "Mar 23, 2026", status: "Delivered", amount: "$34.50" },
   { id: "#ORD-0127", part: "Engine Oil Filter", date: "Mar 21, 2026", status: "Pending",   amount: "$12.99" },
@@ -32,10 +30,10 @@ export default function OrdersPage() {
       {/* Summary chips */}
       <div className="flex flex-wrap gap-3">
         {[
-          { label: "Total",     value: orders.length,                                  color: "bg-gray-100 text-gray-600"       },
+          { label: "Total",     value: orders.length,                                  color: "bg-gray-100 text-gray-600"        },
           { label: "Delivered", value: orders.filter((o) => o.status === "Delivered").length, color: "bg-green-50 text-green-600" },
           { label: "Pending",   value: orders.filter((o) => o.status === "Pending").length,   color: "bg-orange-50 text-orange-500" },
-          { label: "Cancelled", value: orders.filter((o) => o.status === "Cancelled").length, color: "bg-red-50 text-red-500"     },
+          { label: "Cancelled", value: orders.filter((o) => o.status === "Cancelled").length, color: "bg-red-50 text-red-500"      },
         ].map(({ label, value, color }) => (
           <div key={label} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold ${color}`}>
             <span className="text-base font-bold">{value}</span>

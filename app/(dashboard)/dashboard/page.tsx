@@ -1,6 +1,5 @@
-"use client";
-
-import { useAuth } from "@/src/context/AuthContext";
+import { serverFetch } from "@/src/lib/server-fetch";
+import type { User } from "@/src/types/auth.types";
 
 const stats = [
   {
@@ -67,8 +66,11 @@ const statusStyle: Record<string, string> = {
   Cancelled: "bg-red-50 text-red-500",
 };
 
-export default function DashboardPage() {
-  const { user } = useAuth();
+export default async function DashboardPage() {
+  let user: User | null = null;
+  try {
+    user = await serverFetch<User>("/api/auth/me");
+  } catch { /* keep null */ }
 
   return (
     <div className="px-8 py-8 space-y-8">

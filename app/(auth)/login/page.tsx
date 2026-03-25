@@ -20,10 +20,14 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
+    console.log("submit")
     try {
+      console.log("logging in with", { username, password });
       await login({ username, password });
+      console.log("login successful, redirecting...");
       router.push("/dashboard");
-    } catch {
+    } catch (error) {
+      console.log("login failed", error);
       setError("Invalid username or password. Please try again.");
     } finally {
       setLoading(false);

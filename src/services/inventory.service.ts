@@ -6,25 +6,25 @@ export async function getInventory(params?: {
   site?: string;
   search?: string;
 }): Promise<InventoryRecord[]> {
-  const { data } = await api.get<InventoryRecord[]>("/api/inventory/", { params });
+  const { data } = await api.get<InventoryRecord[]>("/api/inventory", { params });
   return data;
 }
 
 export async function scanBarcode(barcode: string): Promise<ScanResult> {
-  const { data } = await api.get<ScanResult>("/api/inventory/scan/", { params: { barcode } });
+  const { data } = await api.get<ScanResult>("/api/inventory/scan", { params: { barcode } });
   return data;
 }
 
 export async function createInventory(payload: InventoryPayload): Promise<InventoryRecord> {
-  const { data } = await api.post<InventoryRecord>("/api/inventory/", payload);
+  const { data } = await api.post<InventoryRecord>("/api/inventory", payload);
   return data;
 }
 
 export async function updateInventory(id: number, payload: Partial<InventoryPayload>): Promise<InventoryRecord> {
-  const { data } = await api.patch<InventoryRecord>(`/api/inventory/${id}/`, payload);
+  const { data } = await api.patch<InventoryRecord>(`/api/inventory/${id}`, payload);
   return data;
 }
 
 export async function deleteInventory(id: number): Promise<void> {
-  await api.delete(`/api/inventory/${id}/`);
+  await api.delete(`/api/inventory/${id}`);
 }
