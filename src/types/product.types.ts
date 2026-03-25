@@ -1,5 +1,6 @@
 export interface Product {
   id: number;
+  barcode: string;
   product_name: string;
   category: string;
   cost_per_unit: string;

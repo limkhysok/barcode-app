@@ -10,6 +10,28 @@ const easing = "0.3s cubic-bezier(0.4, 0, 0.2, 1)";
 
 const navItems = [
   {
+    label: "Scan",
+    href: "/dashboard/scan",
+    icon: (
+      <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round"
+          d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
+        <path strokeLinecap="round" strokeLinejoin="round"
+          d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM19.5 19.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Transactions",
+    href: "/dashboard/transactions",
+    icon: (
+      <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round"
+          d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+      </svg>
+    ),
+  },
+  {
     label: "Dashboard",
     href: "/dashboard",
     icon: (
@@ -85,7 +107,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
                 active ? "text-white shadow-sm" : "rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50"
               }`}
               style={{
-                padding: isCollapsed ? "10px 0" : "15px 12px",
+                padding: isCollapsed ? "10px 0" : "13px 10px",
                 justifyContent: isCollapsed ? "center" : "flex-start",
                 gap: isCollapsed ? 0 : 12,
                 borderRadius: active ? 0 : undefined,
