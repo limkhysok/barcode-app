@@ -441,10 +441,10 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
       <div className="flex items-center justify-between">
         <div className="space-y-0.5">
           <p className="text-xs font-medium tracking-[0.25em] uppercase italic" style={{ color: "#FA4900" }}>Management</p>
-          <h1 className="text-2xl font-bold text-gray-900">Products</h1>
+          <h1 className="text-2xl font-bold text-gray-900 uppercase italic">Products</h1>
         </div>
         <button onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2.5 sm:px-5 rounded-xl text-xs font-bold tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
+          className="flex items-center gap-2 px-3 py-2 sm:px-5 rounded-sm text-xs tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
           style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -454,106 +454,96 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
         </button>
       </div>
 
-      {/* Category stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Category stat cards — stitched, shadcn style */}
+      <div className="flex flex-col sm:flex-row rounded-xl border border-black overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-black">
 
         {/* Accessories */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="h-1.5 w-full" style={{ background: "linear-gradient(to right, #FA4900, #fb923c)" }} />
-          <div className="p-4 sm:p-5 space-y-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Accessories</p>
-                <p className="text-3xl font-extrabold text-gray-900 mt-1 leading-none">{categoryStats.accessories.count}</p>
-                <p className="text-xs text-gray-400 mt-1">products</p>
-              </div>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white"
-                style={{ background: "linear-gradient(135deg, #FA4900, #fb923c)" }}>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
-                </svg>
-              </div>
+        <div className="flex-1 bg-white p-5 space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400">Accessories</p>
+              <p className="text-3xl font-bold text-slate-900 mt-1 leading-none tabular-nums">{categoryStats.accessories.count}</p>
+              <p className="text-xs text-slate-400 mt-1">products</p>
             </div>
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-500">Total cost / unit</span>
-                <span className="font-bold text-gray-800">${categoryStats.accessories.cost.toFixed(2)}</span>
-              </div>
-              <div className="h-2 w-full rounded-full bg-orange-50 overflow-hidden">
-                <div className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${Math.round((categoryStats.accessories.count / Math.max(categoryStats.total, 1)) * 100)}%`, background: "linear-gradient(to right, #FA4900, #fb923c)" }} />
-              </div>
-              <p className="text-[10px] text-gray-400 text-right">
-                {Math.round((categoryStats.accessories.count / Math.max(categoryStats.total, 1)) * 100)}% of total
-              </p>
+            <div className="w-9 h-9 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
+              <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
+              </svg>
             </div>
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-slate-500">Total cost / unit</span>
+              <span className="font-semibold text-slate-900 tabular-nums">${categoryStats.accessories.cost.toFixed(2)}</span>
+            </div>
+            <div className="h-1 w-full rounded-full bg-slate-100 overflow-hidden">
+              <div className="h-full rounded-full bg-black transition-all duration-700"
+                style={{ width: `${Math.round((categoryStats.accessories.count / Math.max(categoryStats.total, 1)) * 100)}%` }} />
+            </div>
+            <p className="text-[10px] text-slate-400 text-right">
+              {Math.round((categoryStats.accessories.count / Math.max(categoryStats.total, 1)) * 100)}% of total
+            </p>
           </div>
         </div>
 
         {/* Fasteners */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="h-1.5 w-full" style={{ background: "linear-gradient(to right, #b91c1c, #ef4444)" }} />
-          <div className="p-4 sm:p-5 space-y-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Fasteners</p>
-                <p className="text-3xl font-extrabold text-gray-900 mt-1 leading-none">{categoryStats.fasteners.count}</p>
-                <p className="text-xs text-gray-400 mt-1">products</p>
-              </div>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white"
-                style={{ background: "linear-gradient(135deg, #b91c1c, #ef4444)" }}>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 11-3.586-3.586l8.684-7.152c.833-.736.995-1.874.904-2.95a4.5 4.5 0 016.336-4.486l-3.276 3.276a3.004 3.004 0 002.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852z" />
-                </svg>
-              </div>
+        <div className="flex-1 bg-white p-5 space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400">Fasteners</p>
+              <p className="text-3xl font-bold text-slate-900 mt-1 leading-none tabular-nums">{categoryStats.fasteners.count}</p>
+              <p className="text-xs text-slate-400 mt-1">products</p>
             </div>
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-500">Total cost / unit</span>
-                <span className="font-bold text-gray-800">${categoryStats.fasteners.cost.toFixed(2)}</span>
-              </div>
-              <div className="h-2 w-full rounded-full bg-red-50 overflow-hidden">
-                <div className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${Math.round((categoryStats.fasteners.count / Math.max(categoryStats.total, 1)) * 100)}%`, background: "linear-gradient(to right, #b91c1c, #ef4444)" }} />
-              </div>
-              <p className="text-[10px] text-gray-400 text-right">
-                {Math.round((categoryStats.fasteners.count / Math.max(categoryStats.total, 1)) * 100)}% of total
+            <div className="w-9 h-9 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
+              <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 11-3.586-3.586l8.684-7.152c.833-.736.995-1.874.904-2.95a4.5 4.5 0 016.336-4.486l-3.276 3.276a3.004 3.004 0 002.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852z" />
+              </svg>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-slate-500">Total cost / unit</span>
+              <span className="font-semibold text-slate-900 tabular-nums">${categoryStats.fasteners.cost.toFixed(2)}</span>
+            </div>
+            <div className="h-1 w-full rounded-full bg-slate-100 overflow-hidden">
+              <div className="h-full rounded-full bg-black transition-all duration-700"
+                style={{ width: `${Math.round((categoryStats.fasteners.count / Math.max(categoryStats.total, 1)) * 100)}%` }} />
+            </div>
+            <p className="text-[10px] text-slate-400 text-right">
+              {Math.round((categoryStats.fasteners.count / Math.max(categoryStats.total, 1)) * 100)}% of total
+            </p>
+          </div>
+        </div>
+
+        {/* Total Value */}
+        <div className="flex-1 bg-white p-5 space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400">Total Value</p>
+              <p className="text-3xl font-bold text-slate-900 mt-1 leading-none tabular-nums">
+                ${(categoryStats.accessories.cost + categoryStats.fasteners.cost).toFixed(2)}
               </p>
+              <p className="text-xs text-slate-400 mt-1">combined cost / unit</p>
+            </div>
+            <div className="w-9 h-9 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
+              <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+          <div className="space-y-2 text-xs">
+            <div className="flex items-center justify-between text-slate-500">
+              <span>Accessories</span>
+              <span className="font-semibold text-slate-900 tabular-nums">${categoryStats.accessories.cost.toFixed(2)}</span>
+            </div>
+            <div className="h-px w-full bg-slate-100" />
+            <div className="flex items-center justify-between text-slate-500">
+              <span>Fasteners</span>
+              <span className="font-semibold text-slate-900 tabular-nums">${categoryStats.fasteners.cost.toFixed(2)}</span>
             </div>
           </div>
         </div>
 
-        {/* Total value */}
-        <div className="rounded-2xl overflow-hidden shadow-sm text-white"
-          style={{ background: "linear-gradient(135deg, #FA4900 0%, #b91c1c 100%)" }}>
-          <div className="p-4 sm:p-5 space-y-4 h-full flex flex-col justify-between">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-white/70">Total Value</p>
-                <p className="text-3xl font-extrabold mt-1 leading-none">
-                  ${(categoryStats.accessories.cost + categoryStats.fasteners.cost).toFixed(2)}
-                </p>
-                <p className="text-xs text-white/60 mt-1">combined cost / unit</p>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
-            <div className="space-y-1.5 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-white/70">Accessories</span>
-                <span className="font-bold">${categoryStats.accessories.cost.toFixed(2)}</span>
-              </div>
-              <div className="h-px w-full bg-white/20" />
-              <div className="flex items-center justify-between">
-                <span className="text-white/70">Fasteners</span>
-                <span className="font-bold">${categoryStats.fasteners.cost.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Toolbar */}

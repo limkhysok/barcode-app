@@ -469,97 +469,82 @@ export default function InventoryClient({
       </div>
 
       {/* Overview cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="flex flex-col sm:flex-row rounded-xl border border-black overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-black">
 
-        {/* Stock Value — hero card */}
-        <div
-          className="col-span-2 lg:col-span-1 relative overflow-hidden rounded-2xl p-5 sm:p-6 text-white"
-          style={{ background: "linear-gradient(135deg, #FA4900 0%, #c2410c 55%, #991b1b 100%)" }}
-        >
-          <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10 pointer-events-none" />
-          <div className="absolute -left-4 -bottom-4 w-20 h-20 rounded-full bg-white/5 pointer-events-none" />
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-                <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round"
-                    d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <span className="text-[9px] font-bold tracking-widest uppercase bg-white/20 px-2.5 py-1 rounded-full">
-                Total Value
-              </span>
+        {/* Stock Value */}
+        <div className="flex-1 bg-white p-4 sm:p-5 flex flex-col justify-between gap-3">
+          <div className="flex items-center justify-between">
+            <div className="w-8 h-8 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 text-slate-600">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round"
+                  d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
-            <p className="text-[28px] sm:text-[32px] font-black tracking-tight leading-none">
+            <span className="text-[9px] font-semibold tracking-widest uppercase border border-black px-2 py-0.5 rounded-md">
+              Total Value
+            </span>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-slate-900 leading-none tabular-nums">
               ${stats.totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-            <p className="text-[11px] text-white/60 mt-2 font-medium">Combined across {stats.sites} site{stats.sites === 1 ? "" : "s"}</p>
+            <p className="text-[11px] text-slate-400 mt-1 font-medium">Across {stats.sites} site{stats.sites === 1 ? "" : "s"}</p>
           </div>
         </div>
 
         {/* Total Qty */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5 flex flex-col justify-between gap-3">
-          <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-            <svg className="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+        <div className="flex-1 bg-white p-4 sm:p-5 flex flex-col justify-between gap-3">
+          <div className="w-8 h-8 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 text-slate-600">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
             </svg>
           </div>
           <div>
-            <p className="text-2xl font-black text-gray-900 leading-none">{stats.totalQty.toLocaleString()}</p>
-            <p className="text-[11px] font-semibold text-gray-400 mt-1 uppercase tracking-widest">Total Qty</p>
+            <p className="text-2xl font-bold text-slate-900 leading-none tabular-nums">{stats.totalQty.toLocaleString()}</p>
+            <p className="text-[10px] font-semibold text-slate-400 mt-1 uppercase tracking-widest">Total Qty</p>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">
-              {stats.total} record{stats.total === 1 ? "" : "s"}
-            </span>
-          </div>
+          <span className="text-[10px] font-semibold text-slate-500 border border-slate-200 bg-slate-50 px-2 py-0.5 rounded-md w-fit">
+            {stats.total} record{stats.total === 1 ? "" : "s"}
+          </span>
         </div>
 
         {/* Active Sites */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5 flex flex-col justify-between gap-3">
-          <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center shrink-0">
-            <svg className="w-4.5 h-4.5 text-violet-500" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+        <div className="flex-1 bg-white p-4 sm:p-5 flex flex-col justify-between gap-3">
+          <div className="w-8 h-8 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 text-slate-600">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
             </svg>
           </div>
           <div>
-            <p className="text-2xl font-black text-gray-900 leading-none">{stats.sites}</p>
-            <p className="text-[11px] font-semibold text-gray-400 mt-1 uppercase tracking-widest">Active Sites</p>
+            <p className="text-2xl font-bold text-slate-900 leading-none tabular-nums">{stats.sites}</p>
+            <p className="text-[10px] font-semibold text-slate-400 mt-1 uppercase tracking-widest">Active Sites</p>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-bold text-violet-500 bg-violet-50 px-2 py-0.5 rounded-full">
-              {stats.healthy} healthy
-            </span>
-          </div>
+          <span className="text-[10px] font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-md w-fit">
+            {stats.healthy} healthy
+          </span>
         </div>
 
         {/* Needs Reorder */}
-        <div className={`bg-white rounded-2xl border shadow-sm p-4 sm:p-5 flex flex-col justify-between gap-3 ${
-          stats.needsReorder > 0 ? "border-red-100" : "border-gray-100"
-        }`}>
-          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-            stats.needsReorder > 0 ? "bg-red-50" : "bg-gray-50"
-          }`}>
-            <svg className={`w-4.5 h-4.5 ${stats.needsReorder > 0 ? "text-red-500" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+        <div className="flex-1 bg-white p-4 sm:p-5 flex flex-col justify-between gap-3">
+          <div className="w-8 h-8 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 text-slate-600">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
             </svg>
           </div>
           <div>
-            <p className={`text-2xl font-black leading-none ${stats.needsReorder > 0 ? "text-red-500" : "text-gray-900"}`}>
+            <p className={`text-2xl font-bold leading-none tabular-nums ${stats.needsReorder > 0 ? "text-red-600" : "text-slate-900"}`}>
               {stats.needsReorder}
             </p>
-            <p className="text-[11px] font-semibold text-gray-400 mt-1 uppercase tracking-widest">Needs Reorder</p>
+            <p className="text-[10px] font-semibold text-slate-400 mt-1 uppercase tracking-widest">Needs Reorder</p>
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-              stats.needsReorder > 0
-                ? "text-red-500 bg-red-50"
-                : "text-gray-400 bg-gray-50"
-            }`}>
-              {stats.low} low stock
-            </span>
-          </div>
+          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md w-fit border ${
+            stats.needsReorder > 0
+              ? "text-red-700 bg-red-50 border-red-200"
+              : "text-slate-500 bg-slate-50 border-slate-200"
+          }`}>
+            {stats.low} low stock
+          </span>
         </div>
 
       </div>
@@ -605,7 +590,7 @@ export default function InventoryClient({
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="rounded-xl border border-black overflow-hidden bg-white">
         {tableContent}
       </div>
 

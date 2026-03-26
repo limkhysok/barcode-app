@@ -177,6 +177,44 @@ function InventoryPicker({
   );
 }
 
+// ─── PNG export helpers (module-level, no closure) ───────────────────────────
+
+function truncateCanvasText(ctx: CanvasRenderingContext2D, text: string, maxW: number): string {
+  let txt = text;
+  while (ctx.measureText(txt).width > maxW && txt.length > 3) txt = txt.slice(0, -1);
+  return txt === text ? txt : `${txt}…`;
+}
+
+function buildPngCells(t: Transaction): Array<{ text: string; color: string }> {
+  const sign    = t.transaction_type === "Receive" ? "+" : "−";
+  const accent  = t.transaction_type === "Receive" ? "#16a34a" : "#ef4444";
+  const itemTxt = `${t.items.map((i) => i.product_name).join(", ")} (${t.items.length})`;
+  return [
+    { text: `#${t.id}`,                                                              color: "#9ca3af" },
+    { text: t.transaction_type,                                                      color: accent    },
+    { text: itemTxt,                                                                 color: "#111827" },
+    { text: `${sign}$${Number.parseFloat(t.total_transaction_value).toFixed(2)}`,   color: accent    },
+    { text: t.performed_by_username,                                                 color: "#374151" },
+    { text: formatDateTime(t.transaction_date),                                      color: "#6b7280" },
+  ];
+}
+
+function drawPngRow(
+  ctx: CanvasRenderingContext2D,
+  cols: Array<{ label: string; w: number }>,
+  cells: Array<{ text: string; color: string }>,
+  rowY: number,
+  pad: number,
+) {
+  ctx.font = "10px system-ui,sans-serif";
+  let x = pad;
+  for (let ci = 0; ci < cols.length; ci++) {
+    ctx.fillStyle = cells[ci].color;
+    ctx.fillText(truncateCanvasText(ctx, cells[ci].text, cols[ci].w - 8), x, rowY + 22);
+    x += cols[ci].w;
+  }
+}
+
 // ─── TransactionsClient ───────────────────────────────────────────────────────
 
 export default function TransactionsClient({ initialTransactions, initialInventory }: Readonly<{
@@ -203,6 +241,12 @@ export default function TransactionsClient({ initialTransactions, initialInvento
 
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportPos, setExportPos] = useState({ top: 0, left: 0 });
+  const [exportFormat, setExportFormat] = useState<"pdf" | "xlsx" | "png">("pdf");
+  const [exportSize, setExportSize] = useState<"a5" | "a4" | "a3" | "letter">("a5");
+  const [exporting, setExporting] = useState(false);
 
   const [viewTarget, setViewTarget] = useState<Transaction | null>(null);
 
@@ -274,6 +318,165 @@ export default function TransactionsClient({ initialTransactions, initialInvento
       setFormError(msg);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function exportAsPNG(filename: string) {
+    const PAPER = { a5: 559, a4: 794, a3: 1123, letter: 816 };
+    const scale = 2;
+    const pageW = PAPER[exportSize];
+    const pad = 36;
+    const ROW_H = 34;
+    const HEADER_H = 38;
+    const TITLE_H = 60;
+    const totalH = TITLE_H + HEADER_H + displayed.length * ROW_H + 32;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = pageW * scale;
+    canvas.height = totalH * scale;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.scale(scale, scale);
+
+    // Background
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, pageW, totalH);
+
+    // Top accent bar
+    ctx.fillStyle = "#FA4900";
+    ctx.fillRect(0, 0, pageW, 5);
+
+    // Title
+    ctx.fillStyle = "#111827";
+    ctx.font = "bold 15px system-ui,sans-serif";
+    ctx.fillText("Transactions Report", pad, 30);
+    ctx.fillStyle = "#9ca3af";
+    ctx.font = "10px system-ui,sans-serif";
+    ctx.fillText(
+      `Generated: ${new Date().toLocaleString()}  ·  ${displayed.length} record${displayed.length === 1 ? "" : "s"}`,
+      pad,
+      47
+    );
+
+    // Column widths
+    const fixedW = 44 + 66 + 104 + 94 + 128; // #, Type, Total, By, Date
+    const itemsW = pageW - pad * 2 - fixedW;
+    const cols = [
+      { label: "#",            w: 44 },
+      { label: "TYPE",         w: 66 },
+      { label: "ITEMS",        w: itemsW },
+      { label: "TOTAL VALUE",  w: 104 },
+      { label: "PERFORMED BY", w: 94 },
+      { label: "DATE",         w: 128 },
+    ];
+
+    // Header row background
+    let y = TITLE_H;
+    ctx.fillStyle = "#f9fafb";
+    ctx.fillRect(0, y, pageW, HEADER_H);
+    ctx.fillStyle = "#6b7280";
+    ctx.font = "bold 8px system-ui,sans-serif";
+    let x = pad;
+    for (const col of cols) {
+      ctx.fillText(col.label, x, y + 24);
+      x += col.w;
+    }
+
+    // Data rows
+    y += HEADER_H;
+    for (let ri = 0; ri < displayed.length; ri++) {
+      const rowY = y + ri * ROW_H;
+      if (ri % 2 === 1) {
+        ctx.fillStyle = "#f9fafb";
+        ctx.fillRect(0, rowY, pageW, ROW_H);
+      }
+      drawPngRow(ctx, cols, buildPngCells(displayed[ri]), rowY, pad);
+      ctx.fillStyle = "#f3f4f6";
+      ctx.fillRect(0, rowY + ROW_H - 1, pageW, 1);
+    }
+
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${filename}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }, "image/png");
+  }
+
+  async function handleExport() {
+    setExporting(true);
+    const filename = `transactions-${new Date().toISOString().slice(0, 10)}`;
+    try {
+      if (exportFormat === "pdf") {
+        const { default: jsPDF }   = await import("jspdf");
+        const { default: autoTable } = await import("jspdf-autotable");
+        const doc = new jsPDF({ orientation: "portrait", format: exportSize, unit: "mm" });
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.text("Transactions Report", 14, 16);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(
+          `Generated: ${new Date().toLocaleString()}  ·  ${displayed.length} record${displayed.length === 1 ? "" : "s"}`,
+          14, 22
+        );
+        doc.setTextColor(0);
+
+        autoTable(doc, {
+          startY: 28,
+          head: [["#", "Type", "Items", "Total Value", "Performed By", "Date"]],
+          body: displayed.map((t) => {
+            const sign = t.transaction_type === "Receive" ? "+" : "-";
+            return [
+              `#${t.id}`,
+              t.transaction_type,
+              `${t.items.map((i) => i.product_name).join(", ")} (${t.items.length})`,
+              `${sign}$${Number.parseFloat(t.total_transaction_value).toFixed(2)}`,
+              t.performed_by_username,
+              formatDateTime(t.transaction_date),
+            ];
+          }),
+          headStyles: { fillColor: [250, 73, 0], textColor: 255, fontStyle: "bold", fontSize: 7 },
+          bodyStyles: { fontSize: 7, textColor: 50 },
+          alternateRowStyles: { fillColor: [250, 250, 250] },
+          columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 18 }, 5: { cellWidth: 28 } },
+          margin: { left: 14, right: 14 },
+        });
+        doc.save(`${filename}.pdf`);
+
+      } else if (exportFormat === "xlsx") {
+        const XLSX = await import("xlsx");
+        const header = ["#", "Type", "Items", "Total Value", "Performed By", "Date"];
+        const rows = displayed.map((t) => {
+          const sign = t.transaction_type === "Receive" ? "+" : "-";
+          return [
+            t.id,
+            t.transaction_type,
+            t.items.map((i) => i.product_name).join(", "),
+            `${sign}$${Number.parseFloat(t.total_transaction_value).toFixed(2)}`,
+            t.performed_by_username,
+            formatDateTime(t.transaction_date),
+          ];
+        });
+        const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Transactions");
+        XLSX.writeFile(wb, `${filename}.xlsx`);
+
+      } else {
+        await exportAsPNG(filename);
+      }
+
+      setExportOpen(false);
+    } catch (err) {
+      console.error("Export failed", err);
+    } finally {
+      setExporting(false);
     }
   }
 
@@ -513,102 +716,109 @@ export default function TransactionsClient({ initialTransactions, initialInvento
           <p className="text-xs font-medium tracking-[0.25em] uppercase italic" style={{ color: "#FA4900" }}>Stock Movement</p>
           <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
         </div>
-        <button
-          onClick={openModal}
-          className="flex items-center gap-2 px-4 py-2.5 sm:px-5 rounded-xl text-xs font-bold tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
-          style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          <span className="hidden sm:inline">New Transaction</span>
-          <span className="sm:hidden">New</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Export button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              const r = e.currentTarget.getBoundingClientRect();
+              setExportPos({ top: r.bottom + 8, left: r.right - 224 });
+              setExportOpen(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase border border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-800 active:scale-[0.97] transition bg-white"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            <span className="hidden sm:inline">Export</span>
+          </button>
+
+          {/* New Transaction button */}
+          <button
+            onClick={openModal}
+            className="flex items-center gap-2 px-4 py-2.5 sm:px-5 rounded-xl text-xs font-bold tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
+            style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            <span className="hidden sm:inline">New Transaction</span>
+            <span className="sm:hidden">New</span>
+          </button>
+        </div>
       </div>
 
       {/* Overview */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="flex flex-col sm:flex-row rounded-xl border border-black overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-black">
 
         {/* Today */}
-        <div className="col-span-2 lg:col-span-1 relative overflow-hidden rounded-2xl p-5 sm:p-6 text-white"
-          style={{ background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%)" }}>
-          <div className="absolute -left-4 -top-4 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
-          <div className="absolute right-2 -bottom-3 w-20 h-20 rounded-full bg-white/5 pointer-events-none" />
-          <div className="relative z-10">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
-                <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                </svg>
-              </div>
-              <span className="flex items-center gap-1.5 text-[9px] font-bold tracking-widest uppercase bg-white/15 px-2.5 py-1 rounded-full">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shrink-0" />Today
-              </span>
+        <div className="flex-1 bg-white p-4 sm:p-5 flex flex-col justify-between gap-3">
+          <div className="flex items-center justify-between">
+            <div className="w-8 h-8 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 text-slate-600">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+              </svg>
             </div>
-            <p className="text-[28px] sm:text-[32px] font-black tracking-tight leading-none tabular-nums">{stats.todayCount}</p>
-            <p className="text-[11px] text-white/60 mt-2 font-medium">Transactions today</p>
+            <span className="flex items-center gap-1.5 text-[9px] font-semibold tracking-widest uppercase border border-black px-2 py-0.5 rounded-md">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shrink-0" />Today
+            </span>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-slate-900 leading-none tabular-nums">{stats.todayCount}</p>
+            <p className="text-[11px] text-slate-400 mt-1 font-medium">Transactions today</p>
           </div>
         </div>
 
         {/* Total */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="h-1 w-full" style={{ background: "linear-gradient(90deg, #FA4900, #b91c1c)" }} />
-          <div className="p-4 sm:p-5 flex flex-col justify-between gap-3">
-            <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center shrink-0 text-orange-500">
-              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-2xl font-black text-gray-900 leading-none tabular-nums">{stats.total}</p>
-              <p className="text-[11px] font-semibold text-gray-400 mt-1 uppercase tracking-widest">Total</p>
-            </div>
+        <div className="flex-1 bg-white p-4 sm:p-5 flex flex-col justify-between gap-3">
+          <div className="w-8 h-8 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 text-slate-600">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-slate-900 leading-none tabular-nums">{stats.total}</p>
+            <p className="text-[10px] font-semibold text-slate-400 mt-1 uppercase tracking-widest">Total</p>
           </div>
         </div>
 
         {/* Receive */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="h-1 w-full bg-green-500" />
-          <div className="p-4 sm:p-5 flex flex-col justify-between gap-3">
-            <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center shrink-0 text-green-600">
-              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-              </svg>
+        <div className="flex-1 bg-white p-4 sm:p-5 flex flex-col justify-between gap-3">
+          <div className="w-8 h-8 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 text-slate-600">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+          </div>
+          <div>
+            <div className="flex items-baseline gap-1.5">
+              <p className="text-2xl font-bold text-slate-900 leading-none tabular-nums">{stats.receives}</p>
+              {stats.total > 0 && (
+                <span className="text-[10px] font-semibold text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded-md">
+                  {Math.round((stats.receives / stats.total) * 100)}%
+                </span>
+              )}
             </div>
-            <div>
-              <div className="flex items-baseline gap-1.5">
-                <p className="text-2xl font-black text-gray-900 leading-none tabular-nums">{stats.receives}</p>
-                {stats.total > 0 && (
-                  <span className="text-[10px] font-bold text-green-500 bg-green-50 px-1.5 py-0.5 rounded-md">
-                    {Math.round((stats.receives / stats.total) * 100)}%
-                  </span>
-                )}
-              </div>
-              <p className="text-xs font-semibold text-gray-400 mt-1 uppercase tracking-widest">Receive</p>
-            </div>
+            <p className="text-[10px] font-semibold text-slate-400 mt-1 uppercase tracking-widest">Receive</p>
           </div>
         </div>
 
         {/* Sale */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="h-1 w-full bg-red-500" />
-          <div className="p-4 sm:p-5 flex flex-col justify-between gap-3">
-            <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center shrink-0 text-red-500">
-              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-              </svg>
+        <div className="flex-1 bg-white p-4 sm:p-5 flex flex-col justify-between gap-3">
+          <div className="w-8 h-8 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 text-slate-600">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+            </svg>
+          </div>
+          <div>
+            <div className="flex items-baseline gap-1.5">
+              <p className="text-2xl font-bold text-slate-900 leading-none tabular-nums">{stats.sales}</p>
+              {stats.total > 0 && (
+                <span className="text-[10px] font-semibold text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-md">
+                  {Math.round((stats.sales / stats.total) * 100)}%
+                </span>
+              )}
             </div>
-            <div>
-              <div className="flex items-baseline gap-1.5">
-                <p className="text-2xl font-black text-gray-900 leading-none tabular-nums">{stats.sales}</p>
-                {stats.total > 0 && (
-                  <span className="text-[10px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-md">
-                    {Math.round((stats.sales / stats.total) * 100)}%
-                  </span>
-                )}
-              </div>
-              <p className="text-xs font-semibold text-gray-400 mt-1 uppercase tracking-widest">Sale</p>
-            </div>
+            <p className="text-[10px] font-semibold text-slate-400 mt-1 uppercase tracking-widest">Sale</p>
           </div>
         </div>
 
@@ -616,7 +826,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
 
       {/* Transaction flow bar */}
       {stats.total > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4">
+        <div className="rounded-xl border border-black bg-white px-5 py-4">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Transaction Flow</p>
             <p className="text-[10px] text-gray-400">{stats.total} total</p>
@@ -681,7 +891,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="rounded-xl border border-black overflow-hidden bg-white">
         {tableContent}
       </div>
 
@@ -903,13 +1113,94 @@ export default function TransactionsClient({ initialTransactions, initialInvento
         </div>
       )}
 
+      {/* Export Popover */}
+      {exportOpen && (
+        <>
+          <button type="button" aria-label="Close export panel" className="fixed inset-0 z-9998 cursor-default bg-transparent border-0 p-0" onClick={() => setExportOpen(false)} />
+          <div
+            style={{ position: "fixed", top: exportPos.top, left: exportPos.left, zIndex: 9999 }}
+            className="bg-white border border-gray-100 rounded-2xl shadow-2xl p-5 w-56 space-y-4"
+          >
+            {/* Format */}
+            <div>
+              <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Format</p>
+              <div className="grid grid-cols-3 gap-1.5">
+                {(["pdf", "xlsx", "png"] as const).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setExportFormat(f)}
+                    className={`py-1.5 rounded-lg text-[10px] font-bold uppercase border transition ${
+                      exportFormat === f ? "text-white border-transparent" : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
+                    }`}
+                    style={exportFormat === f ? { background: "linear-gradient(135deg, #FA4900, #b91c1c)" } : {}}
+                  >
+                    {f.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Paper size (PDF & PNG only) */}
+            {exportFormat !== "xlsx" && (
+              <div>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Paper Size</p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {(["a5", "a4", "a3", "letter"] as const).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setExportSize(s)}
+                      className={`py-1.5 rounded-lg text-[10px] font-bold uppercase border transition ${
+                        exportSize === s ? "text-white border-transparent" : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
+                      }`}
+                      style={exportSize === s ? { background: "linear-gradient(135deg, #FA4900, #b91c1c)" } : {}}
+                    >
+                      {s.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Record count */}
+            <p className="text-[11px] text-gray-400 text-center">
+              {displayed.length} record{displayed.length === 1 ? "" : "s"} will be exported
+            </p>
+
+            {/* Download button */}
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={exporting}
+              className="w-full py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase text-white shadow-sm active:scale-[0.97] transition disabled:opacity-60 flex items-center justify-center gap-2"
+              style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}
+            >
+              {exporting ? (
+                <>
+                  <div className="w-3.5 h-3.5 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                  Exporting…
+                </>
+              ) : (
+                <>
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                  </svg>
+                  Download
+                </>
+              )}
+            </button>
+          </div>
+        </>
+      )}
+
       {/* Floating Actions Menu */}
       {menuOpenId !== null && (() => {
         const t = transactions.find((tx) => tx.id === menuOpenId);
         if (!t) return null;
         return (
           <>
-            <div className="fixed inset-0 z-[9998]" onClick={() => setMenuOpenId(null)} />
+            <button type="button" aria-label="Close menu" className="fixed inset-0 z-9998 cursor-default bg-transparent border-0 p-0" onClick={() => setMenuOpenId(null)} />
             <div
               style={{ position: "fixed", top: menuPos.top, left: menuPos.left, zIndex: 9999 }}
               className="bg-white border border-gray-100 rounded-xl shadow-2xl py-1.5 w-32 overflow-hidden"

@@ -17,7 +17,7 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
       {/* Brand accent line */}
-      <div className="h-0.5 w-full" style={{ background: "linear-gradient(to right, #FA4900, #b91c1c)" }} />
+
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
 

@@ -37,9 +37,9 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
   const initial = displayName.charAt(0).toUpperCase();
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
-      {/* Brand accent line */}
-      <div className="h-0.5 w-full" style={{ background: "linear-gradient(to right, #FA4900, #b91c1c)" }} />
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-black-80">
+
+
 
       <div className="h-14 px-4 md:px-6 flex items-center justify-between gap-4">
 

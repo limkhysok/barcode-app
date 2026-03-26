@@ -61,9 +61,9 @@ const recentOrders = [
 ];
 
 const statusStyle: Record<string, string> = {
-  Delivered: "bg-green-50 text-green-600",
-  Pending:   "bg-orange-50 text-orange-500",
-  Cancelled: "bg-red-50 text-red-500",
+  Delivered: "bg-green-50 text-green-700 border-green-200",
+  Pending:   "bg-orange-50 text-orange-600 border-orange-200",
+  Cancelled: "bg-red-50 text-red-600 border-red-200",
 };
 
 export default async function DashboardPage() {
@@ -87,51 +87,49 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="flex flex-col sm:flex-row rounded-xl border border-black overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-black">
         {stats.map(({ label, value, sub, positive, icon }) => (
-          <div key={label} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm space-y-3">
+          <div key={label} className="flex-1 bg-white p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-bold tracking-widest uppercase text-gray-400">{label}</p>
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0"
-                style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}>
+              <p className="text-[10px] font-semibold tracking-widest uppercase text-slate-400">{label}</p>
+              <div className="w-8 h-8 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-600 shrink-0">
                 {icon}
               </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{value}</p>
-            <p className={`text-xs font-medium ${positive ? "text-green-500" : "text-orange-400"}`}>{sub}</p>
+            <p className="text-3xl font-bold text-slate-900 tabular-nums">{value}</p>
+            <p className={`text-xs font-medium ${positive ? "text-green-600" : "text-orange-500"}`}>{sub}</p>
           </div>
         ))}
       </div>
 
       {/* Recent Orders */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-gray-900">Recent Orders</h2>
+      <div className="rounded-xl border border-black overflow-hidden">
+        <div className="px-6 py-4 border-b border-black flex items-center justify-between bg-white">
+          <h2 className="text-sm font-semibold text-slate-900">Recent Orders</h2>
           <a href="/dashboard/orders"
-            className="text-xs font-bold tracking-widest uppercase hover:underline"
-            style={{ color: "#FA4900" }}>
+            className="text-[10px] font-semibold tracking-widest uppercase hover:underline text-slate-500">
             View all
           </a>
         </div>
 
         <table className="w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr>
+          <thead>
+            <tr className="border-b border-black bg-slate-50">
               {["Order ID", "Part", "Date", "Status"].map((h) => (
-                <th key={h} className="px-6 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">
+                <th key={h} className="px-6 py-3 text-left text-[10px] font-semibold tracking-widest uppercase text-slate-400">
                   {h}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-black bg-white">
             {recentOrders.map(({ id, part, date, status }) => (
-              <tr key={id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-3.5 font-bold text-gray-700 text-xs">{id}</td>
-                <td className="px-6 py-3.5 text-gray-600">{part}</td>
-                <td className="px-6 py-3.5 text-gray-400 text-xs">{date}</td>
+              <tr key={id} className="hover:bg-slate-50 transition-colors">
+                <td className="px-6 py-3.5 font-semibold text-slate-700 text-xs">{id}</td>
+                <td className="px-6 py-3.5 text-slate-600 text-sm">{part}</td>
+                <td className="px-6 py-3.5 text-slate-400 text-xs">{date}</td>
                 <td className="px-6 py-3.5">
-                  <span className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${statusStyle[status]}`}>
+                  <span className={`text-[10px] font-semibold tracking-widest uppercase px-2.5 py-1 rounded-md border ${statusStyle[status]}`}>
                     {status}
                   </span>
                 </td>
