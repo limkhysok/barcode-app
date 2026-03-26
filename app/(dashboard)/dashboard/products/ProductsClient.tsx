@@ -60,7 +60,7 @@ const inputCls =
 const ringStyle = { "--tw-ring-color": "#FA4900" } as React.CSSProperties;
 
 function CustomSelect({ id, label, value, onChange, options, placeholder }: Readonly<{
-  id: string; label: string; value: string | number;
+  id: string; label?: string; value: string | number;
   onChange: (v: string) => void;
   options: { value: string | number; label: string }[];
   placeholder?: string;
@@ -79,10 +79,12 @@ function CustomSelect({ id, label, value, onChange, options, placeholder }: Read
   const selected = options.find((o) => String(o.value) === String(value));
 
   return (
-    <div className="space-y-1.5" ref={ref}>
-      <label htmlFor={id} className="text-xs font-bold tracking-widest uppercase text-gray-500">
-        {label}
-      </label>
+    <div className={label ? "space-y-1.5" : ""} ref={ref}>
+      {label && (
+        <label htmlFor={id} className="text-xs font-bold tracking-widest uppercase text-gray-500">
+          {label}
+        </label>
+      )}
       <div className="relative">
         <button
           id={id} type="button" onClick={() => setOpen((v) => !v)}
@@ -556,7 +558,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
 
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
             fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -566,16 +568,43 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
             className="w-full pl-9 pr-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition"
             style={ringStyle} />
         </div>
-        <div className="flex items-center gap-2 flex-wrap sm:shrink-0">
-          {["", "Accessories", "Fasteners"].map((cat) => (
-            <button key={cat || "all"} onClick={() => setCategoryFilter(cat)}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase transition ${
-                categoryFilter === cat ? "text-white shadow-sm" : "bg-white border border-gray-200 text-gray-500 hover:border-gray-300"
-              }`}
-              style={categoryFilter === cat ? { background: "linear-gradient(135deg, #FA4900, #b91c1c)" } : {}}>
-              {cat || "All"}
-            </button>
-          ))}
+        <div className="grid grid-cols-3 sm:flex sm:items-center gap-2 sm:shrink-0">
+          <CustomSelect
+            id="filter-category"
+            value={categoryFilter}
+            onChange={setCategoryFilter}
+            options={[
+              { value: "",            label: "All Categories" },
+              { value: "Accessories", label: "Accessories"    },
+              { value: "Fasteners",   label: "Fasteners"      },
+            ]}
+          />
+          <CustomSelect
+            id="sort-cost"
+            value={sortKey === "cost_per_unit" ? sortDir : ""}
+            onChange={(v) => {
+              if (v === "") { if (sortKey === "cost_per_unit") setSortKey(null); }
+              else { setSortKey("cost_per_unit"); setSortDir(v as "asc" | "desc"); }
+            }}
+            options={[
+              { value: "",     label: "Cost / Unit"  },
+              { value: "asc",  label: "Low → High"   },
+              { value: "desc", label: "High → Low"   },
+            ]}
+          />
+          <CustomSelect
+            id="sort-reorder"
+            value={sortKey === "reorder_level" ? sortDir : ""}
+            onChange={(v) => {
+              if (v === "") { if (sortKey === "reorder_level") setSortKey(null); }
+              else { setSortKey("reorder_level"); setSortDir(v as "asc" | "desc"); }
+            }}
+            options={[
+              { value: "",     label: "Reorder Level" },
+              { value: "asc",  label: "Low → High"    },
+              { value: "desc", label: "High → Low"    },
+            ]}
+          />
         </div>
       </div>
 
