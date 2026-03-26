@@ -5,12 +5,12 @@ export const dynamic = "force-dynamic";
 import { useEffect, useRef, useState } from "react";
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
 import { scanBarcode } from "@/src/services/inventory.service";
-import { createTransaction, getTransactions } from "@/src/services/transaction.service";
+import { scanTransaction, getTransactions } from "@/src/services/transaction.service";
 import type { ScanResult, InventoryRecord } from "@/src/types/inventory.types";
 import type { Transaction } from "@/src/types/transaction.types";
 
 type TxType = "Receive" | "Sale";
-type SubmitStatus = { kind: "success" | "error"; msg: string } | null;
+type SubmitStatus = { kind: "success" | "error"; msg: string; totalValue?: string } | null;
 
 // ── Top-level helpers ────────────────────────────────────────────────────────
 
@@ -285,28 +285,38 @@ function SubmitStatusBanner({ status, onDismiss }: Readonly<{ status: SubmitStat
     if (!status) return null;
     const ok = status.kind === "success";
     return (
-        <div className={`rounded-2xl border p-5 flex items-start gap-3 ${ok ? "bg-green-50 border-green-100" : "bg-red-50 border-red-100"}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${ok ? "bg-green-500" : "bg-red-500"}`}>
-                {ok ? (
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                    </svg>
-                ) : (
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+        <div className={`rounded-2xl border overflow-hidden ${ok ? "bg-green-50 border-green-100" : "bg-red-50 border-red-100"}`}>
+            <div className="flex items-start gap-3 p-5">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${ok ? "bg-green-500" : "bg-red-500"}`}>
+                    {ok ? (
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                        </svg>
+                    ) : (
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    )}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-bold ${ok ? "text-green-800" : "text-red-800"}`}>
+                        {ok ? "Transaction Recorded!" : "Transaction Failed"}
+                    </p>
+                    <p className={`text-xs mt-0.5 ${ok ? "text-green-600" : "text-red-600"}`}>{status.msg}</p>
+                </div>
+                {ok && (
+                    <button onClick={onDismiss} className="shrink-0 text-xs font-bold text-green-700 hover:text-green-900 transition">
+                        Scan Next →
+                    </button>
                 )}
             </div>
-            <div className="flex-1">
-                <p className={`text-sm font-bold ${ok ? "text-green-800" : "text-red-800"}`}>
-                    {ok ? "Transaction Recorded!" : "Transaction Failed"}
-                </p>
-                <p className={`text-xs mt-0.5 ${ok ? "text-green-600" : "text-red-600"}`}>{status.msg}</p>
-            </div>
-            {ok && (
-                <button onClick={onDismiss} className="shrink-0 text-xs font-bold text-green-700 hover:text-green-900 transition">
-                    Scan Next →
-                </button>
+            {ok && status.totalValue && (
+                <div className="flex items-center justify-between px-5 py-3 bg-green-100/60 border-t border-green-100">
+                    <p className="text-[10px] font-bold tracking-widest uppercase text-green-600">Transaction Value</p>
+                    <p className="text-sm font-black text-green-700 tabular-nums">
+                        +${Number.parseFloat(status.totalValue).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                </div>
             )}
         </div>
     );
@@ -358,7 +368,7 @@ function RecentTransactionsPanel({ transactions, loading }: Readonly<{ transacti
                     <table className="w-full text-sm">
                         <thead className="bg-gray-50 border-b border-gray-100">
                             <tr>
-                                {["#", "Type", "Barcode", "Product", "Site", "Qty", "By", "Date", "Time"].map((h) => (
+                                {["#", "Type", "Barcode", "Product", "Site", "Qty", "Total Value", "By", "Date", "Time"].map((h) => (
                                     <th key={h} className="px-4 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400 whitespace-nowrap">{h}</th>
                                 ))}
                             </tr>
@@ -388,6 +398,11 @@ function RecentTransactionsPanel({ transactions, loading }: Readonly<{ transacti
                                         <td className="px-4 py-3 text-gray-600 text-xs whitespace-nowrap">{t.site ?? "—"}</td>
                                         <td className={`px-4 py-3 font-bold text-base ${qtyColor}`}>
                                             {qtySign}{t.quantity}
+                                        </td>
+                                        <td className={`px-4 py-3 font-semibold text-sm tabular-nums ${qtyColor}`}>
+                                            {t.total_value
+                                                ? `${qtySign}$${Number.parseFloat(t.total_value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                                : "—"}
                                         </td>
                                         <td className="px-4 py-3 text-gray-500 text-xs">{t.performed_by_username}</td>
                                         <td className="px-4 py-3 text-gray-600 text-xs whitespace-nowrap" suppressHydrationWarning>{fmtDate(t.transaction_date)}</td>
@@ -491,15 +506,28 @@ export default function ScanPage() {
 
     async function handleSubmit(e: React.SyntheticEvent) {
         e.preventDefault();
-        if (!selectedInventory) return;
+        if (!selectedInventory || !scannedBarcode) return;
         const qty = Number.parseInt(quantity, 10);
         if (!qty || qty <= 0) return;
         setSubmitting(true);
         setSubmitStatus(null);
         try {
             const signedQty = txType === "Sale" ? -Math.abs(qty) : Math.abs(qty);
-            await createTransaction({ inventory: selectedInventory.id, transaction_type: txType, quantity: signedQty });
-            setSubmitStatus({ kind: "success", msg: `${txType === "Receive" ? "Stock In" : "Stock Out"} ×${qty} recorded for ${selectedInventory.site}.` });
+            const result = await scanTransaction({
+                barcode: scannedBarcode,
+                transaction_type: txType,
+                quantity: signedQty,
+                inventory_id: selectedInventory.id,
+            });
+            const label = txType === "Receive" ? "Stock In" : "Stock Out";
+            const valueStr = result.total_value
+                ? ` · Value: $${Number.parseFloat(result.total_value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                : "";
+            setSubmitStatus({
+                kind: "success",
+                msg: `${label} ×${qty} recorded for ${selectedInventory.site}.${valueStr}`,
+                totalValue: result.total_value,
+            });
             handleReset();
             fetchTxs();
         } catch (err: unknown) {
