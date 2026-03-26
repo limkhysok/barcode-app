@@ -370,6 +370,7 @@ When a transaction is posted:
   "location": "A1-Shelf-5",
   "transaction_type": "Receive",
   "quantity": 25,
+  "total_value": "350.00",
   "performed_by": 2,
   "performed_by_username": "staff_user",
   "transaction_date": "2026-03-25T08:05:00Z"

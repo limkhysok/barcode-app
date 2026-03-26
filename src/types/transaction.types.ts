@@ -10,6 +10,7 @@ export interface Transaction {
   location: string;
   transaction_type: "Receive" | "Sale";
   quantity: number;
+  total_value: string;
   performed_by: number;
   performed_by_username: string;
   transaction_date: string;

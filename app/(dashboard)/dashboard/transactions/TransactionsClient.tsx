@@ -303,6 +303,11 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                   </div>
                   <div className="flex items-center gap-3 text-xs flex-wrap">
                     <span className={`text-base font-black ${qtyColor}`}>{qtySign}{t.quantity}</span>
+                    {t.total_value && (
+                      <span className={`text-xs font-bold ${qtyColor}`}>
+                        {qtySign}${Number.parseFloat(t.total_value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    )}
                     <span className="text-gray-400">by <span className="font-semibold text-gray-600">{t.performed_by_username}</span></span>
                   </div>
                   <p className="text-[11px] text-gray-400" suppressHydrationWarning>{formatDateTime(t.transaction_date)}</p>
@@ -325,7 +330,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
-                {["#", "Barcode", "Type", "Product", "Site", "Location", "Qty", "Performed By", "Date", "Actions"].map((h) => (
+                {["#", "Barcode", "Type", "Product", "Site", "Location", "Qty", "Total Value", "Performed By", "Date", "Actions"].map((h) => (
                   <th key={h} className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">{h}</th>
                 ))}
               </tr>
@@ -356,6 +361,11 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                     <td className="px-5 py-3.5 text-gray-600 text-xs">{t.site ?? "—"}</td>
                     <td className="px-5 py-3.5 text-gray-500 text-xs">{t.location ?? "—"}</td>
                     <td className={`px-5 py-3.5 font-black text-base tabular-nums ${qtyColor}`}>{qtySign}{t.quantity}</td>
+                    <td className={`px-5 py-3.5 font-semibold text-sm tabular-nums ${qtyColor}`}>
+                      {t.total_value
+                        ? `${qtySign}$${Number.parseFloat(t.total_value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                        : "—"}
+                    </td>
                     <td className="px-5 py-3.5 text-gray-600 text-xs">{t.performed_by_username}</td>
                     <td className="px-5 py-3.5 text-xs text-gray-500 whitespace-nowrap" suppressHydrationWarning>
                       {formatDateTime(t.transaction_date)}
@@ -658,6 +668,18 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                     : "Enter the number of units to receive."}
                 </p>
               </div>
+
+              {/* Live total value */}
+              {selectedInventory && form.quantity > 0 && (
+                <div className="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-xl border border-gray-100">
+                  <p className="text-xs font-bold tracking-widest uppercase text-gray-400">Transaction Value</p>
+                  <p className={`text-sm font-black tabular-nums ${form.transaction_type === "Sale" ? "text-red-500" : "text-green-600"}`}>
+                    {form.transaction_type === "Sale" ? "−" : "+"}$
+                    {(form.quantity * Number.parseFloat(selectedInventory.product_details.cost_per_unit))
+                      .toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+              )}
 
               {formError && (
                 <p className="text-xs font-medium text-red-500 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5">{formError}</p>
