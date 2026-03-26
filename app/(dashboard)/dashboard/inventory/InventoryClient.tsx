@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { InventoryRecord, InventoryPayload } from "@/src/types/inventory.types";
 import type { Product } from "@/src/types/product.types";
 import { getInventory, createInventory, updateInventory, deleteInventory } from "@/src/services/inventory.service";
@@ -21,12 +21,10 @@ export const STATUS_CONFIG: Record<
   StockStatus,
   { label: string; bg: string; text: string; dot: string }
 > = {
-  healthy: { label: "Healthy",  bg: "bg-green-50", text: "text-green-600", dot: "bg-green-500" },
-  moderate: { label: "Moderate", bg: "bg-amber-50",  text: "text-amber-600", dot: "bg-amber-400" },
-  low:      { label: "Low Stock", bg: "bg-red-50",   text: "text-red-600",   dot: "bg-red-500"   },
+  healthy:  { label: "Healthy",   bg: "bg-green-50", text: "text-green-600", dot: "bg-green-500" },
+  moderate: { label: "Moderate",  bg: "bg-amber-50",  text: "text-amber-600", dot: "bg-amber-400" },
+  low:      { label: "Low Stock", bg: "bg-red-50",    text: "text-red-600",   dot: "bg-red-500"   },
 };
-
-const ringStyle = { "--tw-ring-color": "#FA4900" } as React.CSSProperties;
 
 const emptyForm: InventoryPayload = {
   product: 0,
@@ -34,6 +32,98 @@ const emptyForm: InventoryPayload = {
   location: "",
   quantity_on_hand: 0,
 };
+
+// ─── SelectFilter ─────────────────────────────────────────────────────────────
+
+function SelectFilter({
+  value,
+  onChange,
+  options,
+}: Readonly<{
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+}>) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const isActive = value !== "";
+  const current = options.find((o) => o.value === value) ?? options[0];
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={`flex items-center gap-2 pl-3.5 pr-3 py-2.5 rounded-xl border text-sm font-medium transition focus:outline-none ${
+          isActive
+            ? "border-[#FA4900] text-[#FA4900] bg-orange-50/60 ring-2 ring-[#FA4900]/10"
+            : "border-gray-200 text-gray-500 bg-white hover:border-gray-300 hover:bg-gray-50"
+        }`}
+      >
+        <span>{current.label}</span>
+        <svg
+          className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : "rotate-0"} ${isActive ? "text-[#FA4900]" : "text-gray-400"}`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2.5}
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+
+      {open && (
+        <ul className="absolute z-50 mt-1.5 min-w-full w-max bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden py-1">
+          {options.map((o) => {
+            const active = o.value === value;
+            return (
+              <li key={o.value}>
+                <button
+                  type="button"
+                  onClick={() => { onChange(o.value); setOpen(false); }}
+                  className={`w-full text-left px-4 py-2.5 text-sm flex items-center justify-between gap-6 transition ${
+                    active ? "font-bold text-white" : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                  style={active ? { background: "linear-gradient(135deg, #FA4900, #b91c1c)" } : {}}
+                >
+                  {o.label}
+                  {active && (
+                    <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                  )}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatDateTime(dateStr: string): string {
+  const d = new Date(dateStr);
+  const day   = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year  = d.getFullYear();
+  const h24   = d.getHours();
+  const mins  = d.getMinutes();
+  const ampm  = h24 >= 12 ? "PM" : "AM";
+  const h12   = h24 % 12 || 12;
+  const time  = mins === 0 ? `${h12}${ampm}` : `${h12}:${String(mins).padStart(2, "0")}${ampm}`;
+  return `${day}/${month}/${year} ${time}`;
+}
 
 // ─── InventoryClient ──────────────────────────────────────────────────────────
 
@@ -50,9 +140,11 @@ export default function InventoryClient({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ── Filter state ────────────────────────────────────────────────────────────
-  const [statusFilter, setStatusFilter] = useState<StockStatus | "">("");
-  const [siteSearch, setSiteSearch] = useState("");
+  // ── Filter / sort state ──────────────────────────────────────────────────────
+  const [siteFilter, setSiteFilter] = useState("");
+  const [quantitySort, setQuantitySort] = useState<"" | "asc" | "desc">("");
+  const [stockValueMode, setStockValueMode] = useState<"" | "asc" | "desc" | "low_only" | "high_only">("");
+  const [dateSort, setDateSort] = useState<"" | "asc">("");
 
   // ── Create / edit modal state ───────────────────────────────────────────────
   const [modalOpen, setModalOpen] = useState(false);
@@ -131,30 +223,54 @@ export default function InventoryClient({
   // ── Derived values ───────────────────────────────────────────────────────────
 
   const stats = useMemo(() => {
-    const total       = records.length;
-    const healthy     = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "healthy").length;
-    const moderate    = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "moderate").length;
-    const low         = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "low").length;
-    const totalValue  = records.reduce((s, r) => s + r.quantity_on_hand * Number.parseFloat(r.product_details.cost_per_unit), 0);
-    const totalQty    = records.reduce((s, r) => s + r.quantity_on_hand, 0);
+    const total        = records.length;
+    const healthy      = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "healthy").length;
+    const moderate     = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "moderate").length;
+    const low          = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "low").length;
+    const totalValue   = records.reduce((s, r) => s + r.quantity_on_hand * Number.parseFloat(r.product_details.cost_per_unit), 0);
+    const totalQty     = records.reduce((s, r) => s + r.quantity_on_hand, 0);
     const needsReorder = records.filter((r) => r.reorder_status === "Yes").length;
-    const sites       = new Set(records.map((r) => r.site)).size;
+    const sites        = new Set(records.map((r) => r.site)).size;
     return { total, healthy, moderate, low, totalValue, totalQty, needsReorder, sites };
   }, [records]);
 
+  const siteOptions = useMemo(
+    () => Array.from(new Set(records.map((r) => r.site))).sort((a, b) => a.localeCompare(b)),
+    [records]
+  );
+
   const displayed = useMemo(() => {
     let list = [...records];
-    if (statusFilter)
-      list = list.filter(
-        (r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === statusFilter
+
+    if (siteFilter)
+      list = list.filter((r) => r.site === siteFilter);
+
+    if (stockValueMode === "low_only")
+      list = list.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "low");
+    else if (stockValueMode === "high_only")
+      list = list.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "healthy");
+
+    if (quantitySort) {
+      list.sort((a, b) =>
+        quantitySort === "asc"
+          ? a.quantity_on_hand - b.quantity_on_hand
+          : b.quantity_on_hand - a.quantity_on_hand
       );
-    if (siteSearch.trim()) {
-      const q = siteSearch.trim().toLowerCase();
-      list = list.filter((r) => r.site.toLowerCase().includes(q));
+    } else if (stockValueMode === "asc" || stockValueMode === "desc") {
+      list.sort((a, b) => {
+        const av = a.quantity_on_hand * Number.parseFloat(a.product_details.cost_per_unit);
+        const bv = b.quantity_on_hand * Number.parseFloat(b.product_details.cost_per_unit);
+        return stockValueMode === "asc" ? av - bv : bv - av;
+      });
+    } else {
+      list.sort((a, b) =>
+        dateSort === "asc"
+          ? new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          : new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
     }
     return list;
-  }, [records, statusFilter, siteSearch]);
-
+  }, [records, siteFilter, quantitySort, stockValueMode, dateSort]);
 
   // ── Table content ────────────────────────────────────────────────────────────
 
@@ -214,9 +330,7 @@ export default function InventoryClient({
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-gray-400">
-                    {new Date(r.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
-                  </p>
+                  <p className="text-[11px] text-gray-400">{formatDateTime(r.created_at)}</p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0 mt-0.5">
                   <button onClick={() => openEdit(r)}
@@ -246,7 +360,7 @@ export default function InventoryClient({
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
-                {["#", "Product", "Category", "Site", "Location", "Cost / Unit", "Qty on Hand", "Stock Value", "Reorder", "Status", "Order Date", "Actions"].map((h) => (
+                {["#", "Product", "Site", "Location", "Cost / Unit", "Quantity", "Stock Value", "Reorder", "Status", "Order Date", "Actions"].map((h) => (
                   <th key={h} className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">
                     {h}
                   </th>
@@ -257,7 +371,6 @@ export default function InventoryClient({
               {displayed.map((r) => {
                 const status = getStatus(r.quantity_on_hand, r.product_details.reorder_level);
                 const cfg    = STATUS_CONFIG[status];
-
                 return (
                   <tr key={r.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-3.5 text-xs font-bold text-gray-400">#{r.id}</td>
@@ -266,11 +379,6 @@ export default function InventoryClient({
                       {r.product_description && (
                         <p className="text-[11px] text-gray-400 truncate max-w-40">{r.product_description}</p>
                       )}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className="text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-orange-50 text-orange-500">
-                        {r.product_details.category}
-                      </span>
                     </td>
                     <td className="px-5 py-3.5 text-gray-600">{r.site}</td>
                     <td className="px-5 py-3.5 text-gray-500 text-xs">{r.location}</td>
@@ -302,7 +410,7 @@ export default function InventoryClient({
                       </span>
                     </td>
                     <td className="px-5 py-3.5 text-xs text-gray-500 whitespace-nowrap">
-                      {new Date(r.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                      {formatDateTime(r.created_at)}
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2">
@@ -361,77 +469,138 @@ export default function InventoryClient({
       </div>
 
       {/* Overview cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+
+        {/* Stock Value — hero card */}
         <div
-          className="relative overflow-hidden rounded-2xl p-4 sm:p-6 text-white lg:col-span-1"
+          className="col-span-2 lg:col-span-1 relative overflow-hidden rounded-2xl p-5 sm:p-6 text-white"
           style={{ background: "linear-gradient(135deg, #FA4900 0%, #c2410c 55%, #991b1b 100%)" }}
         >
-          <div className="absolute -right-5 -top-5 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
-          <div className="absolute right-3 bottom-3 w-14 h-14 rounded-full bg-white/5 pointer-events-none" />
-          <div className="relative z-10 flex flex-col h-full">
-            <div className="flex items-start justify-between mb-5">
-              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+          <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10 pointer-events-none" />
+          <div className="absolute -left-4 -bottom-4 w-20 h-20 rounded-full bg-white/5 pointer-events-none" />
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round"
                     d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <span className="text-[9px] font-bold tracking-widest uppercase bg-white/20 px-2.5 py-1 rounded-full">
-                STOCK VALUE
+                Total Value
               </span>
             </div>
-            <p className="text-[30px] font-black tracking-tight leading-none">
+            <p className="text-[28px] sm:text-[32px] font-black tracking-tight leading-none">
               ${stats.totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-            <p className="text-xs text-white/60 mt-2">Combined across all sites</p>
+            <p className="text-[11px] text-white/60 mt-2 font-medium">Combined across {stats.sites} site{stats.sites === 1 ? "" : "s"}</p>
           </div>
         </div>
 
-        {[
-          { value: stats.totalQty.toLocaleString(), label: "Total Qty on Hand" },
-          { value: stats.sites,                     label: "Active Sites"      },
-          { value: stats.needsReorder,              label: "Needs Reorder"     },
-        ].map(({ value, label }) => (
-          <div key={label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5 flex items-start gap-4">
-            <div className="min-w-0">
-              <p className="text-2xl font-black text-gray-900 leading-none">{value}</p>
-              <p className="text-xs font-bold text-gray-700 mt-1.5">{label}</p>
-            </div>
+        {/* Total Qty */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5 flex flex-col justify-between gap-3">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+            <svg className="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+            </svg>
           </div>
-        ))}
+          <div>
+            <p className="text-2xl font-black text-gray-900 leading-none">{stats.totalQty.toLocaleString()}</p>
+            <p className="text-[11px] font-semibold text-gray-400 mt-1 uppercase tracking-widest">Total Qty</p>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">
+              {stats.total} record{stats.total === 1 ? "" : "s"}
+            </span>
+          </div>
+        </div>
+
+        {/* Active Sites */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5 flex flex-col justify-between gap-3">
+          <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center shrink-0">
+            <svg className="w-4.5 h-4.5 text-violet-500" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-2xl font-black text-gray-900 leading-none">{stats.sites}</p>
+            <p className="text-[11px] font-semibold text-gray-400 mt-1 uppercase tracking-widest">Active Sites</p>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-bold text-violet-500 bg-violet-50 px-2 py-0.5 rounded-full">
+              {stats.healthy} healthy
+            </span>
+          </div>
+        </div>
+
+        {/* Needs Reorder */}
+        <div className={`bg-white rounded-2xl border shadow-sm p-4 sm:p-5 flex flex-col justify-between gap-3 ${
+          stats.needsReorder > 0 ? "border-red-100" : "border-gray-100"
+        }`}>
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+            stats.needsReorder > 0 ? "bg-red-50" : "bg-gray-50"
+          }`}>
+            <svg className={`w-4.5 h-4.5 ${stats.needsReorder > 0 ? "text-red-500" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+          </div>
+          <div>
+            <p className={`text-2xl font-black leading-none ${stats.needsReorder > 0 ? "text-red-500" : "text-gray-900"}`}>
+              {stats.needsReorder}
+            </p>
+            <p className="text-[11px] font-semibold text-gray-400 mt-1 uppercase tracking-widest">Needs Reorder</p>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+              stats.needsReorder > 0
+                ? "text-red-500 bg-red-50"
+                : "text-gray-400 bg-gray-50"
+            }`}>
+              {stats.low} low stock
+            </span>
+          </div>
+        </div>
+
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="overflow-x-auto pb-1 -mb-1">
-          <div className="flex items-center gap-2 w-max">
-            {(["", "healthy", "moderate", "low"] as (StockStatus | "")[]).map((s) => {
-              const cfg    = s ? STATUS_CONFIG[s] : null;
-              const active = statusFilter === s;
-              return (
-                <button
-                  key={s || "all"}
-                  onClick={() => setStatusFilter(s)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold tracking-widest uppercase transition ${
-                    active
-                      ? "text-white shadow-sm"
-                      : "bg-white border border-gray-200 text-gray-500 hover:border-gray-300"
-                  }`}
-                  style={active ? { background: "linear-gradient(135deg, #FA4900, #b91c1c)" } : {}}
-                >
-                  {cfg ? cfg.label : "All"}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        <input
-          type="text"
-          placeholder="Search site…"
-          value={siteSearch}
-          onChange={(e) => setSiteSearch(e.target.value)}
-          className="pl-4 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none w-full sm:w-44"
-          style={ringStyle}
+      <div className="flex flex-wrap items-center gap-2">
+        <SelectFilter
+          value={siteFilter}
+          onChange={setSiteFilter}
+          options={[
+            { value: "", label: "All Sites" },
+            ...siteOptions.map((s) => ({ value: s, label: s })),
+          ]}
+        />
+        <SelectFilter
+          value={quantitySort}
+          onChange={(v) => setQuantitySort(v as "" | "asc" | "desc")}
+          options={[
+            { value: "",     label: "Quantity"        },
+            { value: "asc",  label: "Qty: Low → High" },
+            { value: "desc", label: "Qty: High → Low" },
+          ]}
+        />
+        <SelectFilter
+          value={stockValueMode}
+          onChange={(v) => setStockValueMode(v as typeof stockValueMode)}
+          options={[
+            { value: "",          label: "Stock Value"       },
+            { value: "asc",       label: "Value: Low → High" },
+            { value: "desc",      label: "Value: High → Low" },
+            { value: "low_only",  label: "Low Stock Only"    },
+            { value: "high_only", label: "High Stock Only"   },
+          ]}
+        />
+        <SelectFilter
+          value={dateSort}
+          onChange={(v) => setDateSort(v as "" | "asc")}
+          options={[
+            { value: "",    label: "Newest → Oldest" },
+            { value: "asc", label: "Oldest → Newest" },
+          ]}
         />
       </div>
 
