@@ -453,7 +453,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
           </div>
         </div>
 
-        {/* Stock In */}
+        {/* Receive */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="h-1 w-full bg-green-500" />
           <div className="p-4 sm:p-5 flex flex-col justify-between gap-3">
@@ -471,12 +471,12 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                   </span>
                 )}
               </div>
-              <p className="text-[11px] font-semibold text-gray-400 mt-1 uppercase tracking-widest">Stock In</p>
+              <p className="text-xs font-semibold text-gray-400 mt-1 uppercase tracking-widest">Receive</p>
             </div>
           </div>
         </div>
 
-        {/* Stock Out */}
+        {/* Sale */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="h-1 w-full bg-red-500" />
           <div className="p-4 sm:p-5 flex flex-col justify-between gap-3">
@@ -494,7 +494,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                   </span>
                 )}
               </div>
-              <p className="text-[11px] font-semibold text-gray-400 mt-1 uppercase tracking-widest">Stock Out</p>
+              <p className="text-xs font-semibold text-gray-400 mt-1 uppercase tracking-widest">Sale</p>
             </div>
           </div>
         </div>
@@ -518,8 +518,8 @@ export default function TransactionsClient({ initialTransactions, initialInvento
           </div>
           <div className="flex items-center gap-5 mt-3">
             {[
-              { label: "Stock In",  count: stats.receives, dot: "bg-green-500" },
-              { label: "Stock Out", count: stats.sales,    dot: "bg-red-500"   },
+              { label: "Receive", count: stats.receives, dot: "bg-green-500" },
+              { label: "Sale",    count: stats.sales,    dot: "bg-red-500"   },
             ].map(({ label, count, dot }) => (
               <div key={label} className="flex items-center gap-1.5">
                 <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
@@ -637,14 +637,11 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                         key={t}
                         type="button"
                         onClick={() => setForm((f) => ({ ...f, transaction_type: t }))}
-                        className={`py-3 rounded-xl text-sm font-bold border transition ${
+                        className={`py-3 rounded-xl text-base font-bold border transition ${
                           active ? activeCls : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
                         }`}
                       >
-                        {t === "Receive" ? "▼ Stock In" : "▲ Stock Out"}
-                        <span className={`block text-[10px] font-semibold mt-0.5 ${active ? "text-white/70" : "text-gray-400"}`}>
-                          {t === "Receive" ? "Receive (+)" : "Sale (−)"}
-                        </span>
+                        {t === "Receive" ? "Receive (+)" : "Sale (−)"}
                       </button>
                     );
                   })}
