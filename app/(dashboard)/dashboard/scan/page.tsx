@@ -22,8 +22,9 @@ function parseLookupError(err: unknown): string {
 }
 
 function extractApiError(err: unknown): string {
-    const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-    return detail ?? "Failed to create transaction. Please try again.";
+    type ApiErr = { response?: { data?: { detail?: string; items?: Array<{ quantity?: string }> } } };
+    const data = (err as ApiErr)?.response?.data;
+    return data?.detail ?? data?.items?.[0]?.quantity ?? "Failed to create transaction. Please try again.";
 }
 
 // ── Sub-components ───────────────────────────────────────────────────────────
@@ -325,16 +326,18 @@ function RecentTransactionsPanel({ transactions, loading }: Readonly<{ transacti
                     <table className="w-full text-sm">
                         <thead className="bg-gray-50 border-b border-gray-100">
                             <tr>
-                                {["#", "Type", "Barcode", "Product", "Site", "Qty", "Total Value", "By", "Date", "Time"].map((h) => (
+                                {["#", "Type", "Product", "Items", "Total Value", "By", "Date", "Time"].map((h) => (
                                     <th key={h} className="px-4 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400 whitespace-nowrap">{h}</th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                             {transactions.map((t) => {
-                                const cfg = TYPE_CFG[t.transaction_type];
-                                const qtyColor = t.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
-                                const qtySign  = t.transaction_type === "Receive" ? "+" : "";
+                                const cfg    = TYPE_CFG[t.transaction_type];
+                                const valCol = t.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
+                                const sign   = t.transaction_type === "Receive" ? "+" : "−";
+                                const first  = t.items[0];
+                                const more   = t.items.length - 1;
                                 return (
                                     <tr key={t.id} className="hover:bg-gray-50 transition-colors">
                                         <td className="px-4 py-3 text-xs font-bold text-gray-400">#{t.id}</td>
@@ -345,20 +348,15 @@ function RecentTransactionsPanel({ transactions, loading }: Readonly<{ transacti
                                             </span>
                                         </td>
                                         <td className="px-4 py-3">
-                                            <span className="font-mono text-xs text-gray-500 bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-md whitespace-nowrap">
-                                                {t.barcode ?? "—"}
-                                            </span>
+                                            <p className="font-semibold text-gray-800 whitespace-nowrap">
+                                                {first?.product_name ?? "—"}
+                                                {more > 0 && <span className="text-gray-400 font-normal text-xs"> & {more} more</span>}
+                                            </p>
                                         </td>
-                                        <td className="px-4 py-3">
-                                            <p className="font-semibold text-gray-800 whitespace-nowrap">{t.product_name ?? "—"}</p>
-                                        </td>
-                                        <td className="px-4 py-3 text-gray-600 text-xs whitespace-nowrap">{t.site ?? "—"}</td>
-                                        <td className={`px-4 py-3 font-bold text-base ${qtyColor}`}>
-                                            {qtySign}{t.quantity}
-                                        </td>
-                                        <td className={`px-4 py-3 font-semibold text-sm tabular-nums ${qtyColor}`}>
-                                            {t.total_value
-                                                ? `${qtySign}$${Number.parseFloat(t.total_value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                        <td className="px-4 py-3 text-gray-500 text-xs">{t.items.length} item{t.items.length === 1 ? "" : "s"}</td>
+                                        <td className={`px-4 py-3 font-bold text-sm tabular-nums ${valCol}`}>
+                                            {t.total_transaction_value
+                                                ? `${sign}$${Number.parseFloat(t.total_transaction_value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                                                 : "—"}
                                         </td>
                                         <td className="px-4 py-3 text-gray-500 text-xs">{t.performed_by_username}</td>
@@ -433,14 +431,14 @@ export default function ScanPage() {
                 quantity: signedQty,
                 inventory_id: selectedInventory.id,
             });
-            const label = txType === "Receive" ? "Stock In" : "Stock Out";
-            const valueStr = result.total_value
-                ? ` · Value: $${Number.parseFloat(result.total_value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            const label = txType === "Receive" ? "Receive" : "Sale";
+            const valueStr = result.total_transaction_value
+                ? ` · Value: $${Number.parseFloat(result.total_transaction_value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                 : "";
             setSubmitStatus({
                 kind: "success",
                 msg: `${label} ×${qty} recorded for ${selectedInventory.site}.${valueStr}`,
-                totalValue: result.total_value,
+                totalValue: result.total_transaction_value,
             });
             handleReset();
             fetchTxs();

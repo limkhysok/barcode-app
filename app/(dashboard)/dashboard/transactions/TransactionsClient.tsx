@@ -27,27 +27,40 @@ function isToday(ts: string): boolean {
   return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate();
 }
 
+function fmtValue(v: string, sign: string) {
+  return `${sign}$${Number.parseFloat(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const ringStyle = { "--tw-ring-color": "#FA4900" } as React.CSSProperties;
 
 const TYPE_CONFIG = {
-  Receive: { label: "Receive", bg: "bg-green-50", text: "text-green-600", dot: "bg-green-500", badge: "text-green-600 bg-green-50" },
-  Sale:    { label: "Sale",    bg: "bg-red-50",   text: "text-red-600",   dot: "bg-red-500",   badge: "text-red-500 bg-red-50"     },
+  Receive: { label: "Receive", bg: "bg-green-50", text: "text-green-600", dot: "bg-green-500" },
+  Sale:    { label: "Sale",    bg: "bg-red-50",   text: "text-red-600",   dot: "bg-red-500"   },
 };
 
-const emptyForm: TransactionPayload = { inventory: 0, transaction_type: "Receive", quantity: 0 };
+type ItemDraft = { id: number; inventory: number; quantity: number };
+let itemIdCounter = 0;
+const emptyItem = (): ItemDraft => ({ id: ++itemIdCounter, inventory: 0, quantity: 0 });
 
-// ─── FilterableInventorySelect ────────────────────────────────────────────────
+function submitLabel(items: ItemDraft[]): string {
+  const count = items.filter((i) => i.inventory > 0 && i.quantity > 0).length;
+  return `Submit ${count} item${count === 1 ? "" : "s"}`;
+}
 
-function FilterableInventorySelect({
+// ─── InventoryPicker ─────────────────────────────────────────────────────────
+
+function InventoryPicker({
   inventory,
   value,
   onChange,
+  excludeIds,
 }: Readonly<{
   inventory: InventoryRecord[];
   value: number;
   onChange: (id: number) => void;
+  excludeIds: number[];
 }>) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -63,83 +76,81 @@ function FilterableInventorySelect({
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return inventory;
     return inventory.filter(
       (r) =>
+        !excludeIds.includes(r.id) || r.id === value
+    ).filter((r) => {
+      if (!q) return true;
+      return (
         r.product_details.product_name.toLowerCase().includes(q) ||
         r.site.toLowerCase().includes(q) ||
         r.location.toLowerCase().includes(q) ||
         r.product_details.barcode.toLowerCase().includes(q)
-    );
-  }, [inventory, search]);
+      );
+    });
+  }, [inventory, search, excludeIds, value]);
 
   const selected = inventory.find((r) => r.id === value);
 
   return (
-    <div className="space-y-1.5" ref={ref}>
-      <label htmlFor="inventory-select" className="text-xs font-bold tracking-widest uppercase text-gray-500">Inventory Record</label>
-      <div className="relative">
-        <button id="inventory-select"
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className={`w-full px-4 py-3 rounded-xl border text-sm text-left flex items-center justify-between gap-2 transition focus:outline-none ${
-            open ? "border-[#FA4900] ring-2 ring-[#FA4900]/20" : "border-gray-200 hover:border-gray-300"
-          } ${selected ? "text-gray-900" : "text-gray-400"}`}
-        >
-          <span className="truncate">
-            {selected
-              ? `${selected.product_details.product_name} — ${selected.site} (${selected.location})`
-              : "Select inventory record…"}
-          </span>
-          <svg
-            className="w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200"
-            style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
-            fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-          </svg>
-        </button>
+    <div className="relative flex-1 min-w-0" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={`w-full px-3 py-2.5 rounded-xl border text-sm text-left flex items-center justify-between gap-2 transition focus:outline-none ${
+          open ? "border-[#FA4900] ring-2 ring-[#FA4900]/20" : "border-gray-200 hover:border-gray-300"
+        } ${selected ? "text-gray-900" : "text-gray-400"}`}
+      >
+        <span className="truncate text-sm">
+          {selected
+            ? `${selected.product_details.product_name} — ${selected.site}`
+            : "Select product…"}
+        </span>
+        <svg className="w-4 h-4 text-gray-400 shrink-0" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+          fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
 
-        {open && (
-          <div className="absolute z-50 mt-1.5 w-full bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden py-1">
-            <div className="px-3 py-2">
-              <input
-                type="text"
-                placeholder="Search by product, site, location…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent"
-                style={ringStyle}
-                autoFocus
-              />
-            </div>
-            <ul className="max-h-56 overflow-y-auto">
-              {filtered.length === 0 && (
-                <li className="px-4 py-2.5 text-sm text-gray-400">No records found.</li>
-              )}
-              {filtered.map((r) => (
-                <li key={r.id}>
-                  <button
-                    type="button"
-                    onClick={() => { onChange(r.id); setOpen(false); setSearch(""); }}
-                    className={`w-full text-left px-4 py-2.5 text-sm flex items-start gap-3 transition ${
-                      value === r.id ? "font-bold text-white" : "text-gray-700 hover:bg-gray-50"
-                    }`}
-                    style={value === r.id ? { background: "linear-gradient(135deg, #FA4900, #b91c1c)" } : {}}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-semibold">{r.product_details.product_name}</p>
-                      <p className={`text-[11px] truncate ${value === r.id ? "text-white/70" : "text-gray-400"}`}>
-                        {r.site} · {r.location} · Qty: {r.quantity_on_hand}
-                      </p>
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
+      {open && (
+        <div className="absolute z-50 mt-1.5 w-full min-w-65 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden py-1">
+          <div className="px-3 py-2">
+            <input
+              type="text"
+              placeholder="Search product, site, location…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent"
+              style={ringStyle}
+              autoFocus
+            />
           </div>
-        )}
-      </div>
+          <ul className="max-h-52 overflow-y-auto">
+            {filtered.length === 0 && (
+              <li className="px-4 py-2.5 text-sm text-gray-400">No records found.</li>
+            )}
+            {filtered.map((r) => (
+              <li key={r.id}>
+                <button
+                  type="button"
+                  onClick={() => { onChange(r.id); setOpen(false); setSearch(""); }}
+                  className={`w-full text-left px-4 py-2.5 text-sm flex items-start gap-3 transition ${
+                    value === r.id ? "font-bold text-white" : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                  style={value === r.id ? { background: "linear-gradient(135deg, #FA4900, #b91c1c)" } : {}}
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold">{r.product_details.product_name}</p>
+                    <p className={`text-[11px] truncate ${value === r.id ? "text-white/70" : "text-gray-400"}`}>
+                      {r.site} · {r.location} · Qty: {r.quantity_on_hand}
+                    </p>
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
@@ -160,7 +171,8 @@ export default function TransactionsClient({ initialTransactions, initialInvento
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [form, setForm] = useState<TransactionPayload>(emptyForm);
+  const [txType, setTxType] = useState<"Receive" | "Sale">("Receive");
+  const [items, setItems] = useState<ItemDraft[]>([emptyItem()]);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
@@ -182,34 +194,42 @@ export default function TransactionsClient({ initialTransactions, initialInvento
   }
 
   function openModal() {
-    setForm(emptyForm);
+    setTxType("Receive");
+    setItems([emptyItem()]);
     setFormError("");
     setModalOpen(true);
   }
 
+  function addItem() { setItems((prev) => [...prev, emptyItem()]); }
+  function removeItem(idx: number) { setItems((prev) => prev.filter((_, i) => i !== idx)); }
+  function updateItem(idx: number, patch: Partial<ItemDraft>) {
+    setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, ...patch } : item)));
+  }
+
   async function handleSave(e: React.SyntheticEvent) {
     e.preventDefault();
-    if (!form.inventory) { setFormError("Please select an inventory record."); return; }
-    if (!form.quantity)   { setFormError("Please enter a quantity."); return; }
+    const valid = items.filter((i) => i.inventory > 0 && i.quantity > 0);
+    if (valid.length === 0) { setFormError("Add at least one item with a product and quantity."); return; }
     setSaving(true);
     setFormError("");
     try {
-      const payload = {
-        ...form,
-        quantity: form.transaction_type === "Sale"
-          ? -Math.abs(form.quantity)
-          : Math.abs(form.quantity),
+      const payload: TransactionPayload = {
+        transaction_type: txType,
+        items: valid.map((i) => ({
+          inventory: i.inventory,
+          quantity: txType === "Sale" ? -Math.abs(i.quantity) : Math.abs(i.quantity),
+        })),
       };
       await createTransaction(payload);
       setModalOpen(false);
       fetchAll();
       getInventory().then(setInventory).catch(() => {});
     } catch (err: unknown) {
+      type ApiErr = { response?: { data?: { detail?: string; items?: Array<{ quantity?: string }> } } };
+      const data = (err as ApiErr)?.response?.data;
       const msg =
-        (err as { response?: { data?: { detail?: string; non_field_errors?: string[] } } })
-          ?.response?.data?.detail ??
-        (err as { response?: { data?: { non_field_errors?: string[] } } })
-          ?.response?.data?.non_field_errors?.[0] ??
+        data?.detail ??
+        data?.items?.[0]?.quantity ??
         "Failed to create transaction.";
       setFormError(msg);
     } finally {
@@ -245,16 +265,14 @@ export default function TransactionsClient({ initialTransactions, initialInvento
     if (debouncedSearch) {
       const q = debouncedSearch.toLowerCase();
       list = list.filter((t) =>
-        t.product_name?.toLowerCase().includes(q) ||
-        t.barcode?.toLowerCase().includes(q) ||
-        t.site?.toLowerCase().includes(q) ||
+        t.items.some((item) => item.product_name?.toLowerCase().includes(q)) ||
         t.performed_by_username?.toLowerCase().includes(q)
       );
     }
     return list;
   }, [transactions, typeFilter, debouncedSearch]);
 
-  const selectedInventory = inventory.find((r) => r.id === form.inventory);
+  const selectedInvIds = items.map((i) => i.inventory).filter(Boolean);
 
   // ── Table / card content ─────────────────────────────────────────────────────
 
@@ -283,31 +301,31 @@ export default function TransactionsClient({ initialTransactions, initialInvento
         {/* Mobile cards */}
         <div className="sm:hidden divide-y divide-gray-50">
           {displayed.map((t) => {
-            const cfg      = TYPE_CONFIG[t.transaction_type];
-            const qtyColor = t.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
-            const qtySign  = t.transaction_type === "Receive" ? "+" : "";
+            const cfg     = TYPE_CONFIG[t.transaction_type];
+            const sign    = t.transaction_type === "Receive" ? "+" : "−";
+            const valCol  = t.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
+            const first   = t.items[0];
+            const more    = t.items.length - 1;
             return (
               <div key={t.id} className="px-4 py-4 flex items-start gap-3 active:bg-gray-50 transition-colors">
                 <div className="flex-1 min-w-0 space-y-1.5">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-gray-800 text-sm">{t.product_name ?? "—"}</span>
+                    <span className="font-semibold text-gray-800 text-sm">
+                      {first?.product_name ?? "—"}
+                      {more > 0 && <span className="text-gray-400 font-normal"> & {more} more</span>}
+                    </span>
                     <span className={`inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.text}`}>
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
                       {cfg.label}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1.5 flex-wrap text-xs text-gray-500">
-                    <span className="font-mono text-[11px] bg-gray-50 border border-gray-100 px-1.5 py-0.5 rounded">{t.barcode ?? "—"}</span>
-                    <span className="text-gray-300">·</span>
-                    <span>{t.site ?? "—"}</span>
-                  </div>
+                  <p className="text-xs text-gray-400">
+                    {t.items.length} item{t.items.length === 1 ? "" : "s"}
+                  </p>
                   <div className="flex items-center gap-3 text-xs flex-wrap">
-                    <span className={`text-base font-black ${qtyColor}`}>{qtySign}{t.quantity}</span>
-                    {t.total_value && (
-                      <span className={`text-xs font-bold ${qtyColor}`}>
-                        {qtySign}${Number.parseFloat(t.total_value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </span>
-                    )}
+                    <span className={`text-sm font-black tabular-nums ${valCol}`}>
+                      {fmtValue(t.total_transaction_value, sign)}
+                    </span>
                     <span className="text-gray-400">by <span className="font-semibold text-gray-600">{t.performed_by_username}</span></span>
                   </div>
                   <p className="text-[11px] text-gray-400" suppressHydrationWarning>{formatDateTime(t.transaction_date)}</p>
@@ -330,24 +348,21 @@ export default function TransactionsClient({ initialTransactions, initialInvento
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
-                {["#", "Barcode", "Type", "Product", "Site", "Location", "Qty", "Total Value", "Performed By", "Date", "Actions"].map((h) => (
+                {["#", "Type", "Items", "Total Value", "Performed By", "Date", "Actions"].map((h) => (
                   <th key={h} className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {displayed.map((t) => {
-                const cfg      = TYPE_CONFIG[t.transaction_type];
-                const qtyColor = t.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
-                const qtySign  = t.transaction_type === "Receive" ? "+" : "";
+                const cfg    = TYPE_CONFIG[t.transaction_type];
+                const sign   = t.transaction_type === "Receive" ? "+" : "−";
+                const valCol = t.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
+                const first  = t.items[0];
+                const more   = t.items.length - 1;
                 return (
                   <tr key={t.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-3.5 text-xs font-bold text-gray-400">#{t.id}</td>
-                    <td className="px-5 py-3.5">
-                      <span className="font-mono text-xs text-gray-500 bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-md whitespace-nowrap">
-                        {t.barcode ?? "—"}
-                      </span>
-                    </td>
                     <td className="px-5 py-3.5">
                       <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.text}`}>
                         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
@@ -355,16 +370,14 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
-                      <p className="font-semibold text-gray-800">{t.product_name ?? "—"}</p>
-                      <p className="text-[11px] text-gray-400">{t.inventory_details?.product_details?.category ?? ""}</p>
+                      <p className="font-semibold text-gray-800">
+                        {first?.product_name ?? "—"}
+                        {more > 0 && <span className="text-gray-400 font-normal text-xs"> & {more} more</span>}
+                      </p>
+                      <p className="text-[11px] text-gray-400 mt-0.5">{t.items.length} item{t.items.length === 1 ? "" : "s"}</p>
                     </td>
-                    <td className="px-5 py-3.5 text-gray-600 text-xs">{t.site ?? "—"}</td>
-                    <td className="px-5 py-3.5 text-gray-500 text-xs">{t.location ?? "—"}</td>
-                    <td className={`px-5 py-3.5 font-black text-base tabular-nums ${qtyColor}`}>{qtySign}{t.quantity}</td>
-                    <td className={`px-5 py-3.5 font-semibold text-sm tabular-nums ${qtyColor}`}>
-                      {t.total_value
-                        ? `${qtySign}$${Number.parseFloat(t.total_value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                        : "—"}
+                    <td className={`px-5 py-3.5 font-bold text-sm tabular-nums ${valCol}`}>
+                      {fmtValue(t.total_transaction_value, sign)}
                     </td>
                     <td className="px-5 py-3.5 text-gray-600 text-xs">{t.performed_by_username}</td>
                     <td className="px-5 py-3.5 text-xs text-gray-500 whitespace-nowrap" suppressHydrationWarning>
@@ -559,7 +572,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
           </svg>
           <input
-            type="text" placeholder="Search product, barcode, user…"
+            type="text" placeholder="Search product or user…"
             value={search} onChange={(e) => setSearch(e.target.value)}
             className="pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition w-full sm:w-60"
             style={ringStyle}
@@ -579,12 +592,11 @@ export default function TransactionsClient({ initialTransactions, initialInvento
         </p>
       )}
 
-      {/* New Transaction Modal — bottom sheet on mobile */}
+      {/* New Transaction Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
           <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg px-5 pt-4 pb-8 sm:p-7 space-y-5 max-h-[95vh] overflow-y-auto">
 
-            {/* Mobile drag handle */}
             <div className="flex justify-center sm:hidden mb-1">
               <div className="w-10 h-1 rounded-full bg-gray-200" />
             </div>
@@ -598,37 +610,14 @@ export default function TransactionsClient({ initialTransactions, initialInvento
               </button>
             </div>
 
-            <form onSubmit={handleSave} className="space-y-4">
+            <form onSubmit={handleSave} className="space-y-5">
 
-              <FilterableInventorySelect
-                inventory={inventory}
-                value={form.inventory}
-                onChange={(id) => setForm((f) => ({ ...f, inventory: id }))}
-              />
-
-              {/* Selected inventory info */}
-              {selectedInventory && (
-                <div className="grid grid-cols-2 gap-3 px-4 py-3.5 bg-gray-50 rounded-xl border border-gray-100">
-                  <div>
-                    <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-1">Current Stock</p>
-                    <p className="text-sm font-bold text-gray-800">{selectedInventory.quantity_on_hand.toLocaleString()} units</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-1">Stock Value</p>
-                    <p className="text-sm font-semibold text-gray-800">
-                      ${(selectedInventory.quantity_on_hand * Number.parseFloat(selectedInventory.product_details.cost_per_unit))
-                        .toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Transaction type */}
+              {/* Transaction type — locked for all items */}
               <div className="space-y-1.5">
                 <p className="text-xs font-bold tracking-widest uppercase text-gray-500">Type</p>
                 <div className="grid grid-cols-2 gap-2">
                   {(["Receive", "Sale"] as const).map((t) => {
-                    const active = form.transaction_type === t;
+                    const active = txType === t;
                     const activeCls = t === "Receive"
                       ? "bg-green-500 border-green-500 text-white"
                       : "bg-red-500 border-red-500 text-white";
@@ -636,7 +625,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                       <button
                         key={t}
                         type="button"
-                        onClick={() => setForm((f) => ({ ...f, transaction_type: t }))}
+                        onClick={() => setTxType(t)}
                         className={`py-3 rounded-xl text-base font-bold border transition ${
                           active ? activeCls : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
                         }`}
@@ -648,35 +637,79 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                 </div>
               </div>
 
-              {/* Quantity */}
-              <div className="space-y-1.5">
-                <label htmlFor="quantity" className="text-xs font-bold tracking-widest uppercase text-gray-500">Quantity</label>
-                <input
-                  id="quantity" type="number" min={1} required
-                  placeholder={form.transaction_type === "Receive" ? "e.g. 25" : "e.g. 10"}
-                  value={form.quantity || ""}
-                  onChange={(e) => setForm((f) => ({ ...f, quantity: Math.abs(Number.parseInt(e.target.value) || 0) }))}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition"
-                  style={ringStyle}
-                />
-                <p className="text-[11px] text-gray-400">
-                  {form.transaction_type === "Sale"
-                    ? "Enter a positive number — automatically applied as negative."
-                    : "Enter the number of units to receive."}
+              {/* Items list */}
+              <div className="space-y-3">
+                <p className="text-xs font-bold tracking-widest uppercase text-gray-500">
+                  Items <span className="normal-case text-gray-400 font-normal">({items.length})</span>
                 </p>
-              </div>
 
-              {/* Live total value */}
-              {selectedInventory && form.quantity > 0 && (
-                <div className="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-xl border border-gray-100">
-                  <p className="text-xs font-bold tracking-widest uppercase text-gray-400">Transaction Value</p>
-                  <p className={`text-sm font-black tabular-nums ${form.transaction_type === "Sale" ? "text-red-500" : "text-green-600"}`}>
-                    {form.transaction_type === "Sale" ? "−" : "+"}$
-                    {(form.quantity * Number.parseFloat(selectedInventory.product_details.cost_per_unit))
-                      .toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-                </div>
-              )}
+                {items.map((item, idx) => {
+                  const rec = inventory.find((r) => r.id === item.inventory);
+                  const lineTotal = rec && item.quantity > 0
+                    ? item.quantity * Number.parseFloat(rec.product_details.cost_per_unit)
+                    : null;
+                  const sign = txType === "Receive" ? "+" : "−";
+                  const valCol = txType === "Receive" ? "text-green-600" : "text-red-500";
+
+                  return (
+                    <div key={item.id} className="rounded-xl border border-gray-200 p-3 space-y-2.5 bg-gray-50/50">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-gray-400 w-5 shrink-0">#{idx + 1}</span>
+                        <InventoryPicker
+                          inventory={inventory}
+                          value={item.inventory}
+                          onChange={(id) => updateItem(idx, { inventory: id })}
+                          excludeIds={selectedInvIds}
+                        />
+                        {items.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeItem(idx)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition shrink-0"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2 pl-7">
+                        <input
+                          type="number"
+                          min={1}
+                          placeholder="Qty"
+                          value={item.quantity || ""}
+                          onChange={(e) => updateItem(idx, { quantity: Math.abs(Number.parseInt(e.target.value) || 0) })}
+                          className="w-24 px-3 py-2 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition text-center font-bold"
+                          style={ringStyle}
+                        />
+                        {rec && (
+                          <span className="text-xs text-gray-400">
+                            on hand: <span className="font-semibold text-gray-600">{rec.quantity_on_hand}</span>
+                          </span>
+                        )}
+                        {lineTotal !== null && (
+                          <span className={`ml-auto text-sm font-black tabular-nums ${valCol}`}>
+                            {sign}${lineTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                <button
+                  type="button"
+                  onClick={addItem}
+                  className="w-full py-2.5 rounded-xl border border-dashed border-gray-300 text-sm text-gray-400 font-medium hover:border-[#FA4900] hover:text-[#FA4900] transition flex items-center justify-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                  Add another item
+                </button>
+              </div>
 
               {formError && (
                 <p className="text-xs font-medium text-red-500 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5">{formError}</p>
@@ -690,7 +723,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                 <button type="submit" disabled={saving}
                   className="flex-1 py-3 rounded-xl text-sm font-bold text-white shadow-sm active:scale-[0.97] transition disabled:opacity-60"
                   style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}>
-                  {saving ? "Saving…" : "Submit"}
+                  {saving ? "Saving…" : submitLabel(items)}
                 </button>
               </div>
             </form>
@@ -715,10 +748,10 @@ export default function TransactionsClient({ initialTransactions, initialInvento
               <h2 className="text-base font-bold text-gray-900">Delete Transaction?</h2>
               <p className="text-sm text-gray-500">
                 <span className="font-semibold">{deleteTarget.transaction_type}</span>
-                {" of "}
-                <span className="font-semibold">{Math.abs(deleteTarget.quantity)} units</span>
-                {" of "}
-                <span className="font-semibold text-gray-700">{deleteTarget.product_name}</span>
+                {" · "}
+                <span className="font-semibold">{deleteTarget.items.length} item{deleteTarget.items.length === 1 ? "" : "s"}</span>
+                {" · "}
+                <span className="font-semibold">{fmtValue(deleteTarget.total_transaction_value, "")}</span>
                 {" will be permanently removed."}
               </p>
             </div>

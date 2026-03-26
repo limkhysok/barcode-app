@@ -1,23 +1,28 @@
-import type { InventoryRecord } from "./inventory.types";
+export interface TransactionItem {
+  id: number;
+  inventory: number;
+  product_name: string;
+  quantity: number;
+  cost_per_unit: string;
+  line_total: string;
+}
 
 export interface Transaction {
   id: number;
-  inventory: number;
-  inventory_details: InventoryRecord;
-  product_name: string;
-  barcode: string;
-  site: string;
-  location: string;
   transaction_type: "Receive" | "Sale";
-  quantity: number;
-  total_value: string;
   performed_by: number;
   performed_by_username: string;
+  total_transaction_value: string;
+  items: TransactionItem[];
   transaction_date: string;
 }
 
-export interface TransactionPayload {
+export interface TransactionItemPayload {
   inventory: number;
-  transaction_type: "Receive" | "Sale";
   quantity: number;
+}
+
+export interface TransactionPayload {
+  transaction_type: "Receive" | "Sale";
+  items: TransactionItemPayload[];
 }

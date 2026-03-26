@@ -2,7 +2,6 @@ import api from "./api";
 import type { Transaction, TransactionPayload } from "@/src/types/transaction.types";
 
 export async function getTransactions(params?: {
-  inventory_id?: number;
   type?: string;
   barcode?: string;
   search?: string;
