@@ -713,8 +713,8 @@ export default function TransactionsClient({ initialTransactions, initialInvento
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-0.5">
-          <p className="text-xs font-medium tracking-[0.25em] uppercase italic" style={{ color: "#FA4900" }}>Stock Movement</p>
-          <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
+          <p className="text-xs font-medium tracking-[0.25em] uppercase italic" style={{ color: "#FA4900" }}>Transaction</p>
+          <h1 className="text-2xl font-bold text-gray-900 uppercase italic">Movement</h1>
         </div>
         <div className="flex items-center gap-2">
           {/* Export button */}
@@ -725,18 +725,18 @@ export default function TransactionsClient({ initialTransactions, initialInvento
               setExportPos({ top: r.bottom + 8, left: r.right - 224 });
               setExportOpen(true);
             }}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase border border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-800 active:scale-[0.97] transition bg-white"
+            className="flex items-center gap-2 px-4 py-2  text-xs font-bold tracking-widest uppercase  text-black hover:border-gray-300 hover:text-gray-800 active:scale-[0.97] transition bg-white rounded-sm border border-black"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
             </svg>
-            <span className="hidden sm:inline">Export</span>
+            <span className="hidden sm:inline ">Export</span>
           </button>
 
           {/* New Transaction button */}
           <button
             onClick={openModal}
-            className="flex items-center gap-2 px-4 py-2.5 sm:px-5 rounded-xl text-xs font-bold tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 sm:px-5 rounded-sm text-xs font-bold tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
             style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">

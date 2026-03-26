@@ -186,13 +186,13 @@ function ProductTable({ loading, error, displayed, products, sortKey, sortDir, o
   return (
     <>
       {/* Mobile cards - shown on mobile only */}
-      <div className="sm:hidden divide-y divide-gray-50">
+      <div className="sm:hidden divide-y divide-black">
         {displayed.map((p, idx) => (
           <div key={p.id ?? idx} className="px-4 py-4 flex items-start gap-3 active:bg-gray-50 transition-colors">
             <div className="flex-1 min-w-0 space-y-1.5">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-semibold text-gray-800 text-sm leading-snug">{p.product_name}</span>
-                <span className="text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-orange-50 text-orange-500 shrink-0">{p.category}</span>
+                <span className="text-[10px] font-semibold tracking-widest uppercase px-2 py-0.5 rounded-md border border-orange-200 bg-orange-50 text-orange-600 shrink-0">{p.category}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="inline-flex items-center gap-1 text-xs font-mono text-gray-500 bg-gray-50 border border-gray-100 px-1.5 py-0.5 rounded-md">
@@ -231,7 +231,7 @@ function ProductTable({ loading, error, displayed, products, sortKey, sortDir, o
       {/* Desktop table - hidden on mobile */}
       <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50">
+          <thead className="bg-slate-50 border-b border-black">
             <tr>
               <th className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">#</th>
               <th className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">Barcode</th>
@@ -253,7 +253,7 @@ function ProductTable({ loading, error, displayed, products, sortKey, sortDir, o
               <th className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-black bg-white">
             {displayed.map((p, idx) => (
               <tr key={p.id ?? idx} className="hover:bg-gray-50 transition-colors">
                 <td className="px-5 py-3.5 text-xs font-bold text-gray-400">#{p.id}</td>
@@ -267,7 +267,7 @@ function ProductTable({ loading, error, displayed, products, sortKey, sortDir, o
                 </td>
                 <td className="px-5 py-3.5 font-semibold text-gray-800">{p.product_name}</td>
                 <td className="px-5 py-3.5">
-                  <span className="text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-orange-50 text-orange-500">
+                  <span className="text-[10px] font-semibold tracking-widest uppercase px-2.5 py-1 rounded-md border border-orange-200 bg-orange-50 text-orange-600">
                     {p.category}
                   </span>
                 </td>
@@ -440,8 +440,8 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-0.5">
-          <p className="text-xs font-medium tracking-[0.25em] uppercase italic" style={{ color: "#FA4900" }}>Management</p>
-          <h1 className="text-2xl font-bold text-gray-900 uppercase italic">Products</h1>
+          <p className="text-xs font-medium tracking-[0.25em] uppercase italic" style={{ color: "#FA4900" }}>Product</p>
+          <h1 className="text-2xl font-bold text-gray-900 uppercase italic">Management</h1>
         </div>
         <button onClick={openCreate}
           className="flex items-center gap-2 px-3 py-2 sm:px-5 rounded-sm text-xs tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
@@ -599,7 +599,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="rounded-xl border border-black overflow-hidden bg-white">
         <ProductTable
           loading={loading} error={error}
           displayed={displayed} products={products}
