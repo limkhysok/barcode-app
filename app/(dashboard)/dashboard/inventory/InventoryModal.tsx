@@ -330,6 +330,33 @@ export function InventoryModal({
             onChange={(v) => setForm((f) => ({ ...f, quantity_on_hand: Number.parseInt(v) || 0 }))}
           />
 
+          {(() => {
+            const selectedProduct = products.find((p) => p.id === form.product);
+            if (!selectedProduct) return null;
+            const costPerUnit = Number.parseFloat(selectedProduct.cost_per_unit);
+            const stockValue = form.quantity_on_hand * costPerUnit;
+            const needsReorder = form.quantity_on_hand <= selectedProduct.reorder_level;
+            return (
+              <div className="grid grid-cols-2 gap-3 px-4 py-3.5 bg-gray-50 rounded-xl border border-gray-100">
+                <div>
+                  <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-1">Stock Value</p>
+                  <p className="text-sm font-semibold text-gray-800">
+                    ${stockValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-1">Reorder Status</p>
+                  <span className={`inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2 py-1 rounded-full ${
+                    needsReorder ? "bg-red-50 text-red-500" : "bg-gray-100 text-gray-500"
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${needsReorder ? "bg-red-500" : "bg-gray-300"}`} />
+                    {needsReorder ? "Needs Reorder" : "OK"}
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
+
           {formError && <p className="text-xs text-red-500">{formError}</p>}
 
           <div className="flex gap-3 pt-2">

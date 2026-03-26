@@ -135,7 +135,7 @@ export default function InventoryClient({
     const healthy     = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "healthy").length;
     const moderate    = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "moderate").length;
     const low         = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "low").length;
-    const totalValue  = records.reduce((s, r) => s + Number.parseFloat(r.stock_value), 0);
+    const totalValue  = records.reduce((s, r) => s + r.quantity_on_hand * Number.parseFloat(r.product_details.cost_per_unit), 0);
     const totalQty    = records.reduce((s, r) => s + r.quantity_on_hand, 0);
     const needsReorder = records.filter((r) => r.reorder_status === "Yes").length;
     const sites       = new Set(records.map((r) => r.site)).size;
@@ -155,10 +155,6 @@ export default function InventoryClient({
     return list;
   }, [records, statusFilter, siteSearch]);
 
-  const maxQty = useMemo(
-    () => Math.max(...records.map((r) => r.quantity_on_hand), 1),
-    [records]
-  );
 
   // ── Table content ────────────────────────────────────────────────────────────
 
@@ -209,14 +205,18 @@ export default function InventoryClient({
                     <span>{r.location}</span>
                   </div>
                   <div className="flex items-center gap-3 flex-wrap text-xs">
+                    <span><span className="text-gray-400">Cost: </span><span className="font-semibold text-gray-700">${Number.parseFloat(r.product_details.cost_per_unit).toFixed(2)}</span></span>
                     <span><span className="text-gray-400">Qty: </span><span className="font-bold text-gray-700">{r.quantity_on_hand.toLocaleString()}</span></span>
-                    <span><span className="text-gray-400">Value: </span><span className="font-semibold text-gray-700">${Number.parseFloat(r.stock_value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></span>
+                    <span><span className="text-gray-400">Value: </span><span className="font-semibold text-gray-700">${(r.quantity_on_hand * Number.parseFloat(r.product_details.cost_per_unit)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></span>
                     {r.reorder_status === "Yes" && (
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-red-50 text-red-500">
                         <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />Reorder
                       </span>
                     )}
                   </div>
+                  <p className="text-[11px] text-gray-400">
+                    {new Date(r.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                  </p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0 mt-0.5">
                   <button onClick={() => openEdit(r)}
@@ -246,7 +246,7 @@ export default function InventoryClient({
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
-                {["#", "Product", "Category", "Site", "Location", "Qty on Hand", "Stock Bar", "Stock Value", "Reorder", "Status", "Actions"].map((h) => (
+                {["#", "Product", "Category", "Site", "Location", "Cost / Unit", "Qty on Hand", "Stock Value", "Reorder", "Status", "Order Date", "Actions"].map((h) => (
                   <th key={h} className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">
                     {h}
                   </th>
@@ -257,13 +257,6 @@ export default function InventoryClient({
               {displayed.map((r) => {
                 const status = getStatus(r.quantity_on_hand, r.product_details.reorder_level);
                 const cfg    = STATUS_CONFIG[status];
-                const pct    = Math.round((r.quantity_on_hand / maxQty) * 100);
-                const BAR_COLORS: Record<StockStatus, string> = {
-                  healthy: "#16a34a",
-                  moderate: "#d97706",
-                  low: "#dc2626",
-                };
-                const barColor = BAR_COLORS[status];
 
                 return (
                   <tr key={r.id} className="hover:bg-gray-50 transition-colors">
@@ -281,15 +274,12 @@ export default function InventoryClient({
                     </td>
                     <td className="px-5 py-3.5 text-gray-600">{r.site}</td>
                     <td className="px-5 py-3.5 text-gray-500 text-xs">{r.location}</td>
-                    <td className="px-5 py-3.5 font-bold text-gray-700">{r.quantity_on_hand.toLocaleString()}</td>
-                    <td className="px-5 py-3.5">
-                      <div className="w-24 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                        <div className="h-full rounded-full transition-all"
-                          style={{ width: `${pct}%`, backgroundColor: barColor }} />
-                      </div>
-                    </td>
                     <td className="px-5 py-3.5 font-semibold text-gray-700">
-                      ${Number.parseFloat(r.stock_value).toLocaleString("en-US", {
+                      ${Number.parseFloat(r.product_details.cost_per_unit).toFixed(2)}
+                    </td>
+                    <td className="px-5 py-3.5 font-bold text-gray-700">{r.quantity_on_hand.toLocaleString()}</td>
+                    <td className="px-5 py-3.5 font-semibold text-gray-700">
+                      ${(r.quantity_on_hand * Number.parseFloat(r.product_details.cost_per_unit)).toLocaleString("en-US", {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })}
@@ -310,6 +300,9 @@ export default function InventoryClient({
                         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
                         {cfg.label}
                       </span>
+                    </td>
+                    <td className="px-5 py-3.5 text-xs text-gray-500 whitespace-nowrap">
+                      {new Date(r.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2">
