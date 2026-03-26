@@ -187,105 +187,164 @@ export default function InventoryClient({
     );
   } else {
     tableContent = (
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              {["#", "Product", "Category", "Site", "Location", "Qty on Hand", "Stock Bar", "Stock Value", "Reorder", "Status", "Actions"].map((h) => (
-                <th key={h} className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {displayed.map((r) => {
-              const status = getStatus(r.quantity_on_hand, r.product_details.reorder_level);
-              const cfg    = STATUS_CONFIG[status];
-              const pct    = Math.round((r.quantity_on_hand / maxQty) * 100);
-              const barColor =
-                status === "healthy" ? "#16a34a" :
-                status === "moderate" ? "#d97706" : "#dc2626";
-
-              return (
-                <tr key={r.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-5 py-3.5 text-xs font-bold text-gray-400">#{r.id}</td>
-                  <td className="px-5 py-3.5">
-                    <p className="font-semibold text-gray-800">{r.product_details.product_name}</p>
-                    {r.product_description && (
-                      <p className="text-[11px] text-gray-400 truncate max-w-40">{r.product_description}</p>
-                    )}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <span className="text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-orange-50 text-orange-500">
-                      {r.product_details.category}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5 text-gray-600">{r.site}</td>
-                  <td className="px-5 py-3.5 text-gray-500 text-xs">{r.location}</td>
-                  <td className="px-5 py-3.5 font-bold text-gray-700">{r.quantity_on_hand.toLocaleString()}</td>
-                  <td className="px-5 py-3.5">
-                    <div className="w-24 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                      <div className="h-full rounded-full transition-all"
-                        style={{ width: `${pct}%`, backgroundColor: barColor }} />
-                    </div>
-                  </td>
-                  <td className="px-5 py-3.5 font-semibold text-gray-700">
-                    ${Number.parseFloat(r.stock_value).toLocaleString("en-US", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    {r.reorder_status === "Yes" ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-red-50 text-red-500">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />Yes
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-gray-50 text-gray-400">
-                        <span className="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />No
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.text}`}>
+      <>
+        {/* Mobile cards */}
+        <div className="sm:hidden divide-y divide-gray-50">
+          {displayed.map((r) => {
+            const status = getStatus(r.quantity_on_hand, r.product_details.reorder_level);
+            const cfg = STATUS_CONFIG[status];
+            return (
+              <div key={r.id} className="px-4 py-4 flex items-start gap-3 active:bg-gray-50 transition-colors">
+                <div className="flex-1 min-w-0 space-y-1.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-gray-800 text-sm leading-snug">{r.product_details.product_name}</span>
+                    <span className={`inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.text}`}>
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
                       {cfg.label}
                     </span>
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => openEdit(r)}
-                        className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition"
-                        title="Edit">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round"
-                            d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                        </svg>
-                      </button>
-                      <button onClick={() => setDeleteTarget(r)}
-                        className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition"
-                        title="Delete">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round"
-                            d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap text-xs text-gray-500">
+                    <span className="font-medium text-gray-600">{r.site}</span>
+                    <span className="text-gray-300">·</span>
+                    <span>{r.location}</span>
+                  </div>
+                  <div className="flex items-center gap-3 flex-wrap text-xs">
+                    <span><span className="text-gray-400">Qty: </span><span className="font-bold text-gray-700">{r.quantity_on_hand.toLocaleString()}</span></span>
+                    <span><span className="text-gray-400">Value: </span><span className="font-semibold text-gray-700">${Number.parseFloat(r.stock_value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></span>
+                    {r.reorder_status === "Yes" && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-red-50 text-red-500">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />Reorder
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0 mt-0.5">
+                  <button onClick={() => openEdit(r)}
+                    className="p-2.5 rounded-xl text-gray-400 hover:text-blue-500 hover:bg-blue-50 active:scale-95 transition"
+                    title="Edit">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round"
+                        d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                    </svg>
+                  </button>
+                  <button onClick={() => setDeleteTarget(r)}
+                    className="p-2.5 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 active:scale-95 transition"
+                    title="Delete">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round"
+                        d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden sm:block overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                {["#", "Product", "Category", "Site", "Location", "Qty on Hand", "Stock Bar", "Stock Value", "Reorder", "Status", "Actions"].map((h) => (
+                  <th key={h} className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {displayed.map((r) => {
+                const status = getStatus(r.quantity_on_hand, r.product_details.reorder_level);
+                const cfg    = STATUS_CONFIG[status];
+                const pct    = Math.round((r.quantity_on_hand / maxQty) * 100);
+                const BAR_COLORS: Record<StockStatus, string> = {
+                  healthy: "#16a34a",
+                  moderate: "#d97706",
+                  low: "#dc2626",
+                };
+                const barColor = BAR_COLORS[status];
+
+                return (
+                  <tr key={r.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-5 py-3.5 text-xs font-bold text-gray-400">#{r.id}</td>
+                    <td className="px-5 py-3.5">
+                      <p className="font-semibold text-gray-800">{r.product_details.product_name}</p>
+                      {r.product_description && (
+                        <p className="text-[11px] text-gray-400 truncate max-w-40">{r.product_description}</p>
+                      )}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span className="text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-orange-50 text-orange-500">
+                        {r.product_details.category}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 text-gray-600">{r.site}</td>
+                    <td className="px-5 py-3.5 text-gray-500 text-xs">{r.location}</td>
+                    <td className="px-5 py-3.5 font-bold text-gray-700">{r.quantity_on_hand.toLocaleString()}</td>
+                    <td className="px-5 py-3.5">
+                      <div className="w-24 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                        <div className="h-full rounded-full transition-all"
+                          style={{ width: `${pct}%`, backgroundColor: barColor }} />
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5 font-semibold text-gray-700">
+                      ${Number.parseFloat(r.stock_value).toLocaleString("en-US", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      {r.reorder_status === "Yes" ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-red-50 text-red-500">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />Yes
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-gray-50 text-gray-400">
+                          <span className="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />No
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.text}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
+                        {cfg.label}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => openEdit(r)}
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition"
+                          title="Edit">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round"
+                              d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                          </svg>
+                        </button>
+                        <button onClick={() => setDeleteTarget(r)}
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition"
+                          title="Delete">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round"
+                              d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </>
     );
   }
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <div className="px-8 py-8 space-y-6">
+    <div className="px-4 py-5 sm:px-8 sm:py-8 space-y-6">
 
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -297,20 +356,21 @@ export default function InventoryClient({
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
+          className="flex items-center gap-2 px-4 py-2.5 sm:px-5 rounded-xl text-xs font-bold tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
           style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          Create Inventory
+          <span className="hidden sm:inline">Create Inventory</span>
+          <span className="sm:hidden">Create</span>
         </button>
       </div>
 
       {/* Overview cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div
-          className="relative overflow-hidden rounded-2xl p-6 text-white lg:col-span-1"
+          className="relative overflow-hidden rounded-2xl p-4 sm:p-6 text-white lg:col-span-1"
           style={{ background: "linear-gradient(135deg, #FA4900 0%, #c2410c 55%, #991b1b 100%)" }}
         >
           <div className="absolute -right-5 -top-5 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
@@ -339,7 +399,7 @@ export default function InventoryClient({
           { value: stats.sites,                     label: "Active Sites"      },
           { value: stats.needsReorder,              label: "Needs Reorder"     },
         ].map(({ value, label }) => (
-          <div key={label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-start gap-4">
+          <div key={label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5 flex items-start gap-4">
             <div className="min-w-0">
               <p className="text-2xl font-black text-gray-900 leading-none">{value}</p>
               <p className="text-xs font-bold text-gray-700 mt-1.5">{label}</p>
@@ -350,32 +410,34 @@ export default function InventoryClient({
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          {(["", "healthy", "moderate", "low"] as (StockStatus | "")[]).map((s) => {
-            const cfg    = s ? STATUS_CONFIG[s] : null;
-            const active = statusFilter === s;
-            return (
-              <button
-                key={s || "all"}
-                onClick={() => setStatusFilter(s)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold tracking-widest uppercase transition ${
-                  active
-                    ? "text-white shadow-sm"
-                    : "bg-white border border-gray-200 text-gray-500 hover:border-gray-300"
-                }`}
-                style={active ? { background: "linear-gradient(135deg, #FA4900, #b91c1c)" } : {}}
-              >
-                {cfg ? cfg.label : "All"}
-              </button>
-            );
-          })}
+        <div className="overflow-x-auto pb-1 -mb-1">
+          <div className="flex items-center gap-2 w-max">
+            {(["", "healthy", "moderate", "low"] as (StockStatus | "")[]).map((s) => {
+              const cfg    = s ? STATUS_CONFIG[s] : null;
+              const active = statusFilter === s;
+              return (
+                <button
+                  key={s || "all"}
+                  onClick={() => setStatusFilter(s)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold tracking-widest uppercase transition ${
+                    active
+                      ? "text-white shadow-sm"
+                      : "bg-white border border-gray-200 text-gray-500 hover:border-gray-300"
+                  }`}
+                  style={active ? { background: "linear-gradient(135deg, #FA4900, #b91c1c)" } : {}}
+                >
+                  {cfg ? cfg.label : "All"}
+                </button>
+              );
+            })}
+          </div>
         </div>
         <input
           type="text"
           placeholder="Search site…"
           value={siteSearch}
           onChange={(e) => setSiteSearch(e.target.value)}
-          className="pl-4 pr-4 py-2 rounded-xl border border-gray-200 text-sm outline-none w-44"
+          className="pl-4 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none w-full sm:w-44"
           style={ringStyle}
         />
       </div>

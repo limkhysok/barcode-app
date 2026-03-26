@@ -56,7 +56,7 @@ const emptyForm: ProductPayload = {
 };
 
 const inputCls =
-  "w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition";
+  "w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition";
 const ringStyle = { "--tw-ring-color": "#FA4900" } as React.CSSProperties;
 
 function CustomSelect({ id, label, value, onChange, options, placeholder }: Readonly<{
@@ -86,7 +86,7 @@ function CustomSelect({ id, label, value, onChange, options, placeholder }: Read
       <div className="relative">
         <button
           id={id} type="button" onClick={() => setOpen((v) => !v)}
-          className={`w-full px-4 py-2.5 rounded-xl border text-sm text-left flex items-center justify-between gap-2 transition focus:outline-none ${
+          className={`w-full px-4 py-3 rounded-xl border text-sm text-left flex items-center justify-between gap-2 transition focus:outline-none ${
             open ? "border-[#FA4900] ring-2 ring-[#FA4900]/20" : "border-gray-200 hover:border-gray-300"
           } ${selected ? "text-gray-900" : "text-gray-400"}`}
         >
@@ -105,7 +105,7 @@ function CustomSelect({ id, label, value, onChange, options, placeholder }: Read
                 <li key={opt.value}>
                   <button type="button"
                     onClick={() => { onChange(String(opt.value)); setOpen(false); }}
-                    className={`w-full text-left px-4 py-2.5 text-sm flex items-center justify-between gap-2 transition ${
+                    className={`w-full text-left px-4 py-3 text-sm flex items-center justify-between gap-2 transition ${
                       active ? "font-bold text-white" : "text-gray-700 hover:bg-gray-50"
                     }`}
                     style={active ? { background: "linear-gradient(135deg, #FA4900, #b91c1c)" } : {}}>
@@ -182,74 +182,120 @@ function ProductTable({ loading, error, displayed, products, sortKey, sortDir, o
     );
   }
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">#</th>
-            <th className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">Barcode</th>
-            {SORT_COLS.map(({ label, key }) => (
-              <th key={key}
-                className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400 cursor-pointer select-none hover:text-gray-700 transition-colors"
-                onClick={() => onSort(key)}>
-                <span className="inline-flex items-center gap-1">
-                  {label}
-                  <span className="flex flex-col leading-none">
-                    <svg className={`w-2.5 h-2.5 ${sortKey === key && sortDir === "asc" ? "text-orange-500" : "text-gray-300"}`}
-                      fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l8 8H4z" /></svg>
-                    <svg className={`w-2.5 h-2.5 ${sortKey === key && sortDir === "desc" ? "text-orange-500" : "text-gray-300"}`}
-                      fill="currentColor" viewBox="0 0 24 24"><path d="M12 20l-8-8h16z" /></svg>
-                  </span>
-                </span>
-              </th>
-            ))}
-            <th className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-50">
-          {displayed.map((p, idx) => (
-            <tr key={p.id ?? idx} className="hover:bg-gray-50 transition-colors">
-              <td className="px-5 py-3.5 text-xs font-bold text-gray-400">#{p.id}</td>
-              <td className="px-5 py-3.5">
-                <span className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold text-gray-600 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-lg">
+    <>
+      {/* Mobile cards - shown on mobile only */}
+      <div className="sm:hidden divide-y divide-gray-50">
+        {displayed.map((p, idx) => (
+          <div key={p.id ?? idx} className="px-4 py-4 flex items-start gap-3 active:bg-gray-50 transition-colors">
+            <div className="flex-1 min-w-0 space-y-1.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-semibold text-gray-800 text-sm leading-snug">{p.product_name}</span>
+                <span className="text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-orange-50 text-orange-500 shrink-0">{p.category}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1 text-xs font-mono text-gray-500 bg-gray-50 border border-gray-100 px-1.5 py-0.5 rounded-md">
                   <svg className="w-3 h-3 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h1.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-1.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h1.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-1.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h1.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-1.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
                   </svg>
                   {p.barcode}
                 </span>
-              </td>
-              <td className="px-5 py-3.5 font-semibold text-gray-800">{p.product_name}</td>
-              <td className="px-5 py-3.5">
-                <span className="text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-orange-50 text-orange-500">
-                  {p.category}
-                </span>
-              </td>
-              <td className="px-5 py-3.5 font-bold text-gray-700">${Number.parseFloat(p.cost_per_unit).toFixed(2)}</td>
-              <td className="px-5 py-3.5 text-gray-500">{p.reorder_level}</td>
-              <td className="px-5 py-3.5 text-gray-500">{p.supplier}</td>
-              <td className="px-5 py-3.5">
-                <div className="flex items-center gap-2">
-                  <button onClick={() => { console.log("onEdit called with row:", p); onEdit(p); }}
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition" title="Edit">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round"
-                        d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                    </svg>
-                  </button>
-                  <button onClick={() => onDelete(p)}
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition" title="Delete">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round"
-                        d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                    </svg>
-                  </button>
-                </div>
-              </td>
+              </div>
+              <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
+                <span>{p.supplier}</span>
+                <span className="font-bold text-gray-700">${Number.parseFloat(p.cost_per_unit).toFixed(2)}</span>
+                <span className="text-gray-400">Reorder: {p.reorder_level}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 shrink-0 mt-0.5">
+              <button onClick={() => { console.log("onEdit called with row:", p); onEdit(p); }}
+                className="p-2.5 rounded-xl text-gray-400 hover:text-blue-500 hover:bg-blue-50 active:scale-95 transition" title="Edit">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round"
+                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                </svg>
+              </button>
+              <button onClick={() => onDelete(p)}
+                className="p-2.5 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 active:scale-95 transition" title="Delete">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round"
+                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table - hidden on mobile */}
+      <div className="hidden sm:block overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">#</th>
+              <th className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">Barcode</th>
+              {SORT_COLS.map(({ label, key }) => (
+                <th key={key}
+                  className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400 cursor-pointer select-none hover:text-gray-700 transition-colors"
+                  onClick={() => onSort(key)}>
+                  <span className="inline-flex items-center gap-1">
+                    {label}
+                    <span className="flex flex-col leading-none">
+                      <svg className={`w-2.5 h-2.5 ${sortKey === key && sortDir === "asc" ? "text-orange-500" : "text-gray-300"}`}
+                        fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l8 8H4z" /></svg>
+                      <svg className={`w-2.5 h-2.5 ${sortKey === key && sortDir === "desc" ? "text-orange-500" : "text-gray-300"}`}
+                        fill="currentColor" viewBox="0 0 24 24"><path d="M12 20l-8-8h16z" /></svg>
+                    </span>
+                  </span>
+                </th>
+              ))}
+              <th className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {displayed.map((p, idx) => (
+              <tr key={p.id ?? idx} className="hover:bg-gray-50 transition-colors">
+                <td className="px-5 py-3.5 text-xs font-bold text-gray-400">#{p.id}</td>
+                <td className="px-5 py-3.5">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold text-gray-600 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-lg">
+                    <svg className="w-3 h-3 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h1.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-1.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h1.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-1.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h1.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-1.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
+                    </svg>
+                    {p.barcode}
+                  </span>
+                </td>
+                <td className="px-5 py-3.5 font-semibold text-gray-800">{p.product_name}</td>
+                <td className="px-5 py-3.5">
+                  <span className="text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-orange-50 text-orange-500">
+                    {p.category}
+                  </span>
+                </td>
+                <td className="px-5 py-3.5 font-bold text-gray-700">${Number.parseFloat(p.cost_per_unit).toFixed(2)}</td>
+                <td className="px-5 py-3.5 text-gray-500">{p.reorder_level}</td>
+                <td className="px-5 py-3.5 text-gray-500">{p.supplier}</td>
+                <td className="px-5 py-3.5">
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => { console.log("onEdit called with row:", p); onEdit(p); }}
+                      className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition" title="Edit">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round"
+                          d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                      </svg>
+                    </button>
+                    <button onClick={() => onDelete(p)}
+                      className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition" title="Delete">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round"
+                          d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 
@@ -387,7 +433,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
   const saveLabel = getSaveLabel(saving, editing);
 
   return (
-    <div className="px-8 py-8 space-y-6">
+    <div className="px-4 py-5 sm:px-8 sm:py-8 space-y-6">
 
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -396,12 +442,13 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
           <h1 className="text-2xl font-bold text-gray-900">Products</h1>
         </div>
         <button onClick={openCreate}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
+          className="flex items-center gap-2 px-4 py-2.5 sm:px-5 rounded-xl text-xs font-bold tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
           style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          Add Product
+          <span className="hidden sm:inline">Add Product</span>
+          <span className="sm:hidden">Add</span>
         </button>
       </div>
 
@@ -411,7 +458,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
         {/* Accessories */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="h-1.5 w-full" style={{ background: "linear-gradient(to right, #FA4900, #fb923c)" }} />
-          <div className="p-5 space-y-4">
+          <div className="p-4 sm:p-5 space-y-4">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Accessories</p>
@@ -444,7 +491,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
         {/* Fasteners */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="h-1.5 w-full" style={{ background: "linear-gradient(to right, #b91c1c, #ef4444)" }} />
-          <div className="p-5 space-y-4">
+          <div className="p-4 sm:p-5 space-y-4">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Fasteners</p>
@@ -477,7 +524,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
         {/* Total value */}
         <div className="rounded-2xl overflow-hidden shadow-sm text-white"
           style={{ background: "linear-gradient(135deg, #FA4900 0%, #b91c1c 100%)" }}>
-          <div className="p-5 space-y-4 h-full flex flex-col justify-between">
+          <div className="p-4 sm:p-5 space-y-4 h-full flex flex-col justify-between">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-[10px] font-bold tracking-widest uppercase text-white/70">Total Value</p>
@@ -516,13 +563,13 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
           </svg>
           <input type="text" placeholder="Search name or supplier…"
             value={search} onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition"
+            className="w-full pl-9 pr-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition"
             style={ringStyle} />
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 flex-wrap sm:shrink-0">
           {["", "Accessories", "Fasteners"].map((cat) => (
             <button key={cat || "all"} onClick={() => setCategoryFilter(cat)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold tracking-widest uppercase transition ${
+              className={`px-4 py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase transition ${
                 categoryFilter === cat ? "text-white shadow-sm" : "bg-white border border-gray-200 text-gray-500 hover:border-gray-300"
               }`}
               style={categoryFilter === cat ? { background: "linear-gradient(135deg, #FA4900, #b91c1c)" } : {}}>
@@ -543,7 +590,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
       </div>
 
       {!loading && !error && (
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-gray-400 px-1">
           Showing <span className="font-bold text-gray-600">{displayed.length}</span> of{" "}
           <span className="font-bold text-gray-600">{products.length}</span> products
         </p>
@@ -551,11 +598,15 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
 
       {/* Add / Edit Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-7 space-y-6">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md px-5 pt-4 pb-8 sm:p-7 space-y-5 max-h-[95vh] overflow-y-auto">
+            {/* drag handle mobile only */}
+            <div className="flex justify-center sm:hidden mb-1">
+              <div className="w-10 h-1 rounded-full bg-gray-200" />
+            </div>
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900">{editing ? "Edit Product" : "Add Product"}</h2>
-              <button onClick={() => setModalOpen(false)} className="text-gray-400 hover:text-gray-700 transition">
+              <button onClick={() => setModalOpen(false)} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 transition">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -566,7 +617,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
                 onChange={(v) => setForm((f) => ({ ...f, product_name: v }))} />
               <Field label="Barcode" id="barcode" value={form.barcode} placeholder="SN-ABC123"
                 onChange={(v) => setForm((f) => ({ ...f, barcode: v }))} />
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <CustomSelect id="category" label="Category" value={form.category} placeholder="Select…"
                   onChange={(v) => setForm((f) => ({ ...f, category: v }))}
                   options={[
@@ -576,7 +627,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
                 <Field label="Supplier" id="supplier" value={form.supplier} placeholder="CTK Supply Co."
                   onChange={(v) => setForm((f) => ({ ...f, supplier: v }))} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label="Cost / Unit ($)" id="cost_per_unit" type="number" value={form.cost_per_unit} placeholder="12.50"
                   onChange={(v) => setForm((f) => ({ ...f, cost_per_unit: Number.parseFloat(v) || 0 }))} />
                 <div className="space-y-1.5">
@@ -611,13 +662,13 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
                   {formError}
                 </p>
               )}
-              <div className="flex gap-3 pt-1">
+              <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setModalOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 transition">
+                  className="flex-1 py-3 rounded-xl text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
                   Cancel
                 </button>
                 <button type="submit" disabled={saving}
-                  className="flex-1 py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase text-white hover:opacity-90 transition shadow-sm disabled:opacity-60"
+                  className="flex-1 py-3 rounded-xl text-sm font-bold tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm disabled:opacity-60"
                   style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}>
                   {saveLabel}
                 </button>
@@ -629,8 +680,12 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
 
       {/* Delete Confirm Modal */}
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-7 space-y-5 text-center">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm px-5 pt-4 pb-8 sm:p-7 space-y-5 text-center">
+            {/* drag handle mobile only */}
+            <div className="flex justify-center sm:hidden mb-1">
+              <div className="w-10 h-1 rounded-full bg-gray-200" />
+            </div>
             <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto">
               <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round"
@@ -645,11 +700,11 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
             </div>
             <div className="flex gap-3">
               <button onClick={() => setDeleteTarget(null)}
-                className="flex-1 py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 transition">
+                className="flex-1 py-3 rounded-xl text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
                 Cancel
               </button>
               <button onClick={handleDelete} disabled={deleting}
-                className="flex-1 py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase text-white bg-red-500 hover:bg-red-600 transition disabled:opacity-60">
+                className="flex-1 py-3 rounded-xl text-sm font-bold tracking-widest uppercase text-white bg-red-500 hover:bg-red-600 active:scale-[0.97] transition disabled:opacity-60">
                 {deleting ? "Deleting…" : "Delete"}
               </button>
             </div>
