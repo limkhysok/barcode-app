@@ -5,8 +5,8 @@ import InventoryClient from "./InventoryClient";
 
 export default async function InventoryPage() {
   const [records, products] = await Promise.all([
-    serverFetch<InventoryRecord[]>("/api/inventory").catch((): InventoryRecord[] => []),
-    serverFetch<Product[]>("/api/products").catch((): Product[] => []),
+    serverFetch<InventoryRecord[]>("/api/inventory/").catch((): InventoryRecord[] => []),
+    serverFetch<Product[]>("/api/products/").catch((): Product[] => []),
   ]);
 
   return <InventoryClient initialRecords={records} initialProducts={products} />;

@@ -28,9 +28,7 @@ export interface InventoryPayload {
   product: number;
   site: string;
   location: string;
-  product_description: string;
   quantity_on_hand: number;
-  order_date: string;
 }
 
 /** Response from GET /api/inventory/scan/?barcode=<value> */
