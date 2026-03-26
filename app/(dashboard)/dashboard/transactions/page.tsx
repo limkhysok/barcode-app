@@ -5,8 +5,8 @@ import TransactionsClient from "./TransactionsClient";
 
 export default async function TransactionsPage() {
   const [transactions, inventory] = await Promise.all([
-    serverFetch<Transaction[]>("/api/transactions").catch((): Transaction[] => []),
-    serverFetch<InventoryRecord[]>("/api/inventory").catch((): InventoryRecord[] => []),
+    serverFetch<Transaction[]>("/api/transactions/").catch((): Transaction[] => []),
+    serverFetch<InventoryRecord[]>("/api/inventory/").catch((): InventoryRecord[] => []),
   ]);
 
   return <TransactionsClient initialTransactions={transactions} initialInventory={inventory} />;

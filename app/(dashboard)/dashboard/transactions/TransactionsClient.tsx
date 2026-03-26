@@ -6,84 +6,145 @@ import type { InventoryRecord } from "@/src/types/inventory.types";
 import { getTransactions, createTransaction, deleteTransaction } from "@/src/services/transaction.service";
 import { getInventory } from "@/src/services/inventory.service";
 
-function formatDate(ts: string): string {
-  return new Date(ts).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatDateTime(ts: string): string {
+  const d = new Date(ts);
+  const day   = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year  = d.getFullYear();
+  const h24   = d.getHours();
+  const mins  = d.getMinutes();
+  const ampm  = h24 >= 12 ? "PM" : "AM";
+  const h12   = h24 % 12 || 12;
+  const time  = mins === 0 ? `${h12}${ampm}` : `${h12}:${String(mins).padStart(2, "0")}${ampm}`;
+  return `${day}/${month}/${year} ${time}`;
 }
-function formatTime(ts: string): string {
-  return new Date(ts).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
-}
+
 function isToday(ts: string): boolean {
   const d = new Date(ts);
   const n = new Date();
   return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate();
 }
 
-const inputCls = "w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition";
+// ─── Constants ────────────────────────────────────────────────────────────────
+
 const ringStyle = { "--tw-ring-color": "#FA4900" } as React.CSSProperties;
 
-function CustomSelect({ id, label, value, onChange, options, placeholder }: Readonly<{
-  id: string; label: string; value: string | number;
-  onChange: (v: string) => void;
-  options: { value: string | number; label: string }[];
-  placeholder?: string;
+const TYPE_CONFIG = {
+  Receive: { label: "Receive", bg: "bg-green-50", text: "text-green-600", dot: "bg-green-500", badge: "text-green-600 bg-green-50" },
+  Sale:    { label: "Sale",    bg: "bg-red-50",   text: "text-red-600",   dot: "bg-red-500",   badge: "text-red-500 bg-red-50"     },
+};
+
+const emptyForm: TransactionPayload = { inventory: 0, transaction_type: "Receive", quantity: 0 };
+
+// ─── FilterableInventorySelect ────────────────────────────────────────────────
+
+function FilterableInventorySelect({
+  inventory,
+  value,
+  onChange,
+}: Readonly<{
+  inventory: InventoryRecord[];
+  value: number;
+  onChange: (id: number) => void;
 }>) {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const ref = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    function h(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); }
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
-  const selected = options.find((o) => String(o.value) === String(value));
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return inventory;
+    return inventory.filter(
+      (r) =>
+        r.product_details.product_name.toLowerCase().includes(q) ||
+        r.site.toLowerCase().includes(q) ||
+        r.location.toLowerCase().includes(q) ||
+        r.product_details.barcode.toLowerCase().includes(q)
+    );
+  }, [inventory, search]);
+
+  const selected = inventory.find((r) => r.id === value);
+
   return (
     <div className="space-y-1.5" ref={ref}>
-      <label htmlFor={id} className="text-xs font-bold tracking-widest uppercase text-gray-500">{label}</label>
+      <label htmlFor="inventory-select" className="text-xs font-bold tracking-widest uppercase text-gray-500">Inventory Record</label>
       <div className="relative">
-        <button id={id} type="button" onClick={() => setOpen((v) => !v)}
-          className={`w-full px-4 py-2.5 rounded-xl border text-sm text-left flex items-center justify-between gap-2 transition focus:outline-none ${
+        <button id="inventory-select"
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className={`w-full px-4 py-3 rounded-xl border text-sm text-left flex items-center justify-between gap-2 transition focus:outline-none ${
             open ? "border-[#FA4900] ring-2 ring-[#FA4900]/20" : "border-gray-200 hover:border-gray-300"
-          } ${selected ? "text-gray-900" : "text-gray-400"}`}>
-          <span className="truncate">{selected ? selected.label : (placeholder ?? "Select…")}</span>
-          <svg className="w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200"
+          } ${selected ? "text-gray-900" : "text-gray-400"}`}
+        >
+          <span className="truncate">
+            {selected
+              ? `${selected.product_details.product_name} — ${selected.site} (${selected.location})`
+              : "Select inventory record…"}
+          </span>
+          <svg
+            className="w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200"
             style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
-            fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
           </svg>
         </button>
+
         {open && (
-          <ul className="absolute z-50 mt-1.5 w-full bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden py-1 max-h-52 overflow-y-auto">
-            {options.map((opt) => {
-              const active = String(opt.value) === String(value);
-              return (
-                <li key={opt.value}>
-                  <button type="button" onClick={() => { onChange(String(opt.value)); setOpen(false); }}
-                    className={`w-full text-left px-4 py-2.5 text-sm flex items-center justify-between gap-2 transition ${
-                      active ? "font-bold text-white" : "text-gray-700 hover:bg-gray-50"
+          <div className="absolute z-50 mt-1.5 w-full bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden py-1">
+            <div className="px-3 py-2">
+              <input
+                type="text"
+                placeholder="Search by product, site, location…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent"
+                style={ringStyle}
+                autoFocus
+              />
+            </div>
+            <ul className="max-h-56 overflow-y-auto">
+              {filtered.length === 0 && (
+                <li className="px-4 py-2.5 text-sm text-gray-400">No records found.</li>
+              )}
+              {filtered.map((r) => (
+                <li key={r.id}>
+                  <button
+                    type="button"
+                    onClick={() => { onChange(r.id); setOpen(false); setSearch(""); }}
+                    className={`w-full text-left px-4 py-2.5 text-sm flex items-start gap-3 transition ${
+                      value === r.id ? "font-bold text-white" : "text-gray-700 hover:bg-gray-50"
                     }`}
-                    style={active ? { background: "linear-gradient(135deg, #FA4900, #b91c1c)" } : {}}>
-                    <span className="truncate">{opt.label}</span>
-                    {active && (
-                      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                      </svg>
-                    )}
+                    style={value === r.id ? { background: "linear-gradient(135deg, #FA4900, #b91c1c)" } : {}}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold">{r.product_details.product_name}</p>
+                      <p className={`text-[11px] truncate ${value === r.id ? "text-white/70" : "text-gray-400"}`}>
+                        {r.site} · {r.location} · Qty: {r.quantity_on_hand}
+                      </p>
+                    </div>
                   </button>
                 </li>
-              );
-            })}
-          </ul>
+              ))}
+            </ul>
+          </div>
         )}
       </div>
     </div>
   );
 }
 
-const TYPE_CONFIG = {
-  Receive: { label: "Receive", bg: "bg-green-50", text: "text-green-600", dot: "bg-green-500" },
-  Sale:    { label: "Sale",    bg: "bg-red-50",   text: "text-red-600",   dot: "bg-red-500"   },
-};
-
-const emptyForm: TransactionPayload = { inventory: 0, transaction_type: "Receive", quantity: 0 };
+// ─── TransactionsClient ───────────────────────────────────────────────────────
 
 export default function TransactionsClient({ initialTransactions, initialInventory }: Readonly<{
   initialTransactions: Transaction[];
@@ -93,6 +154,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
   const [inventory, setInventory] = useState<InventoryRecord[]>(initialInventory);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
   const [typeFilter, setTypeFilter] = useState<"" | "Receive" | "Sale">("");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -119,22 +181,37 @@ export default function TransactionsClient({ initialTransactions, initialInvento
       .finally(() => setLoading(false));
   }
 
+  function openModal() {
+    setForm(emptyForm);
+    setFormError("");
+    setModalOpen(true);
+  }
+
   async function handleSave(e: React.SyntheticEvent) {
     e.preventDefault();
     if (!form.inventory) { setFormError("Please select an inventory record."); return; }
+    if (!form.quantity)   { setFormError("Please enter a quantity."); return; }
     setSaving(true);
     setFormError("");
     try {
       const payload = {
         ...form,
-        quantity: form.transaction_type === "Sale" ? -Math.abs(form.quantity) : Math.abs(form.quantity),
+        quantity: form.transaction_type === "Sale"
+          ? -Math.abs(form.quantity)
+          : Math.abs(form.quantity),
       };
       await createTransaction(payload);
       setModalOpen(false);
       fetchAll();
       getInventory().then(setInventory).catch(() => {});
-    } catch {
-      setFormError("Failed to create transaction.");
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { detail?: string; non_field_errors?: string[] } } })
+          ?.response?.data?.detail ??
+        (err as { response?: { data?: { non_field_errors?: string[] } } })
+          ?.response?.data?.non_field_errors?.[0] ??
+        "Failed to create transaction.";
+      setFormError(msg);
     } finally {
       setSaving(false);
     }
@@ -152,6 +229,8 @@ export default function TransactionsClient({ initialTransactions, initialInvento
     }
   }
 
+  // ── Derived ─────────────────────────────────────────────────────────────────
+
   const stats = useMemo(() => {
     const total      = transactions.length;
     const receives   = transactions.filter((t) => t.transaction_type === "Receive").length;
@@ -166,12 +245,18 @@ export default function TransactionsClient({ initialTransactions, initialInvento
     if (debouncedSearch) {
       const q = debouncedSearch.toLowerCase();
       list = list.filter((t) =>
-        t.inventory_details?.product_details?.product_name?.toLowerCase().includes(q) ||
-        t.performed_by_username?.toLowerCase().includes(q),
+        t.product_name?.toLowerCase().includes(q) ||
+        t.barcode?.toLowerCase().includes(q) ||
+        t.site?.toLowerCase().includes(q) ||
+        t.performed_by_username?.toLowerCase().includes(q)
       );
     }
     return list;
   }, [transactions, typeFilter, debouncedSearch]);
+
+  const selectedInventory = inventory.find((r) => r.id === form.inventory);
+
+  // ── Table / card content ─────────────────────────────────────────────────────
 
   let tableContent: React.ReactNode;
   if (loading) {
@@ -194,64 +279,110 @@ export default function TransactionsClient({ initialTransactions, initialInvento
     );
   } else {
     tableContent = (
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              {["#", "Barcode", "Type", "Product", "Site", "Qty", "Performed By", "Date", "Time", "Actions"].map((h) => (
-                <th key={h} className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {displayed.map((t) => {
-              const cfg = TYPE_CONFIG[t.transaction_type];
-              const product = t.inventory_details?.product_details;
-              const qtyColor = t.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
-              const qtySign  = t.transaction_type === "Receive" ? "+" : "";
-              return (
-                <tr key={t.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-5 py-3.5 text-xs font-bold text-gray-400">#{t.id}</td>
-                  <td className="px-5 py-3.5">
-                    <span className="font-mono text-xs text-gray-500 bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-md whitespace-nowrap">
-                      {t.barcode ?? "—"}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.text}`}>
+      <>
+        {/* Mobile cards */}
+        <div className="sm:hidden divide-y divide-gray-50">
+          {displayed.map((t) => {
+            const cfg      = TYPE_CONFIG[t.transaction_type];
+            const qtyColor = t.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
+            const qtySign  = t.transaction_type === "Receive" ? "+" : "";
+            return (
+              <div key={t.id} className="px-4 py-4 flex items-start gap-3 active:bg-gray-50 transition-colors">
+                <div className="flex-1 min-w-0 space-y-1.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-gray-800 text-sm">{t.product_name ?? "—"}</span>
+                    <span className={`inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.text}`}>
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
                       {cfg.label}
                     </span>
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <p className="font-semibold text-gray-800">{product?.product_name ?? "—"}</p>
-                    <p className="text-[11px] text-gray-400">{product?.category ?? ""}</p>
-                  </td>
-                  <td className="px-5 py-3.5 text-gray-600 text-xs">{t.inventory_details?.site ?? "—"}</td>
-                  <td className={`px-5 py-3.5 font-bold text-base ${qtyColor}`}>{qtySign}{t.quantity}</td>
-                  <td className="px-5 py-3.5 text-gray-600 text-xs">{t.performed_by_username}</td>
-                  <td className="px-5 py-3.5 text-gray-600 text-xs" suppressHydrationWarning>{formatDate(t.transaction_date)}</td>
-                  <td className="px-5 py-3.5 text-gray-400 text-xs font-mono" suppressHydrationWarning>{formatTime(t.transaction_date)}</td>
-                  <td className="px-5 py-3.5">
-                    <button onClick={() => setDeleteTarget(t)}
-                      className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition" title="Delete">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round"
-                          d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                      </svg>
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap text-xs text-gray-500">
+                    <span className="font-mono text-[11px] bg-gray-50 border border-gray-100 px-1.5 py-0.5 rounded">{t.barcode ?? "—"}</span>
+                    <span className="text-gray-300">·</span>
+                    <span>{t.site ?? "—"}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs flex-wrap">
+                    <span className={`text-base font-black ${qtyColor}`}>{qtySign}{t.quantity}</span>
+                    <span className="text-gray-400">by <span className="font-semibold text-gray-600">{t.performed_by_username}</span></span>
+                  </div>
+                  <p className="text-[11px] text-gray-400" suppressHydrationWarning>{formatDateTime(t.transaction_date)}</p>
+                </div>
+                <button onClick={() => setDeleteTarget(t)}
+                  className="p-2.5 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 active:scale-95 transition shrink-0 mt-0.5"
+                  title="Delete">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                  </svg>
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden sm:block overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                {["#", "Barcode", "Type", "Product", "Site", "Location", "Qty", "Performed By", "Date", "Actions"].map((h) => (
+                  <th key={h} className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {displayed.map((t) => {
+                const cfg      = TYPE_CONFIG[t.transaction_type];
+                const qtyColor = t.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
+                const qtySign  = t.transaction_type === "Receive" ? "+" : "";
+                return (
+                  <tr key={t.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-5 py-3.5 text-xs font-bold text-gray-400">#{t.id}</td>
+                    <td className="px-5 py-3.5">
+                      <span className="font-mono text-xs text-gray-500 bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-md whitespace-nowrap">
+                        {t.barcode ?? "—"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.text}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
+                        {cfg.label}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <p className="font-semibold text-gray-800">{t.product_name ?? "—"}</p>
+                      <p className="text-[11px] text-gray-400">{t.inventory_details?.product_details?.category ?? ""}</p>
+                    </td>
+                    <td className="px-5 py-3.5 text-gray-600 text-xs">{t.site ?? "—"}</td>
+                    <td className="px-5 py-3.5 text-gray-500 text-xs">{t.location ?? "—"}</td>
+                    <td className={`px-5 py-3.5 font-black text-base tabular-nums ${qtyColor}`}>{qtySign}{t.quantity}</td>
+                    <td className="px-5 py-3.5 text-gray-600 text-xs">{t.performed_by_username}</td>
+                    <td className="px-5 py-3.5 text-xs text-gray-500 whitespace-nowrap" suppressHydrationWarning>
+                      {formatDateTime(t.transaction_date)}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <button onClick={() => setDeleteTarget(t)}
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition" title="Delete">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round"
+                            d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </>
     );
   }
 
+  // ── Render ───────────────────────────────────────────────────────────────────
+
   return (
-    <div className="px-8 py-8 space-y-6">
+    <div className="px-4 py-5 sm:px-8 sm:py-8 space-y-6">
 
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -259,53 +390,55 @@ export default function TransactionsClient({ initialTransactions, initialInvento
           <p className="text-xs font-medium tracking-[0.25em] uppercase italic" style={{ color: "#FA4900" }}>Stock Movement</p>
           <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
         </div>
-        <button onClick={() => { setForm(emptyForm); setFormError(""); setModalOpen(true); }}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
-          style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}>
+        <button
+          onClick={openModal}
+          className="flex items-center gap-2 px-4 py-2.5 sm:px-5 rounded-xl text-xs font-bold tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
+          style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}
+        >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          New Transaction
+          <span className="hidden sm:inline">New Transaction</span>
+          <span className="sm:hidden">New</span>
         </button>
       </div>
 
       {/* Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
 
         {/* Today */}
-        <div className="relative overflow-hidden rounded-2xl p-6 text-white"
+        <div className="col-span-2 lg:col-span-1 relative overflow-hidden rounded-2xl p-5 sm:p-6 text-white"
           style={{ background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%)" }}>
           <div className="absolute -left-4 -top-4 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
           <div className="absolute right-2 -bottom-3 w-20 h-20 rounded-full bg-white/5 pointer-events-none" />
           <div className="relative z-10">
-            <div className="flex items-start justify-between mb-5">
-              <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                 </svg>
               </div>
               <span className="flex items-center gap-1.5 text-[9px] font-bold tracking-widest uppercase bg-white/15 px-2.5 py-1 rounded-full">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /><span>TODAY</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shrink-0" />Today
               </span>
             </div>
-            <p className="text-[30px] font-black tracking-tight leading-none tabular-nums">{stats.todayCount}</p>
-            <p className="text-xs text-white/60 mt-2">Transactions today</p>
+            <p className="text-[28px] sm:text-[32px] font-black tracking-tight leading-none tabular-nums">{stats.todayCount}</p>
+            <p className="text-[11px] text-white/60 mt-2 font-medium">Transactions today</p>
           </div>
         </div>
 
         {/* Total */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="h-1 w-full" style={{ background: "linear-gradient(90deg, #FA4900, #b91c1c)" }} />
-          <div className="p-5 flex items-start gap-4">
-            <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center shrink-0 text-orange-500">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+          <div className="p-4 sm:p-5 flex flex-col justify-between gap-3">
+            <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center shrink-0 text-orange-500">
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
               </svg>
             </div>
-            <div className="min-w-0">
+            <div>
               <p className="text-2xl font-black text-gray-900 leading-none tabular-nums">{stats.total}</p>
-              <p className="text-xs font-bold text-gray-700 mt-1.5">Total Transactions</p>
-              <p className="text-[10px] text-gray-400 mt-0.5">all time</p>
+              <p className="text-[11px] font-semibold text-gray-400 mt-1 uppercase tracking-widest">Total</p>
             </div>
           </div>
         </div>
@@ -313,14 +446,14 @@ export default function TransactionsClient({ initialTransactions, initialInvento
         {/* Stock In */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="h-1 w-full bg-green-500" />
-          <div className="p-5 flex items-start gap-4">
-            <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center shrink-0 text-green-600">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+          <div className="p-4 sm:p-5 flex flex-col justify-between gap-3">
+            <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center shrink-0 text-green-600">
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
               </svg>
             </div>
-            <div className="min-w-0">
-              <div className="flex items-baseline gap-2">
+            <div>
+              <div className="flex items-baseline gap-1.5">
                 <p className="text-2xl font-black text-gray-900 leading-none tabular-nums">{stats.receives}</p>
                 {stats.total > 0 && (
                   <span className="text-[10px] font-bold text-green-500 bg-green-50 px-1.5 py-0.5 rounded-md">
@@ -328,8 +461,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                   </span>
                 )}
               </div>
-              <p className="text-xs font-bold text-gray-700 mt-1.5">Stock In (Receive)</p>
-              <p className="text-[10px] text-gray-400 mt-0.5">receive transactions</p>
+              <p className="text-[11px] font-semibold text-gray-400 mt-1 uppercase tracking-widest">Stock In</p>
             </div>
           </div>
         </div>
@@ -337,14 +469,14 @@ export default function TransactionsClient({ initialTransactions, initialInvento
         {/* Stock Out */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="h-1 w-full bg-red-500" />
-          <div className="p-5 flex items-start gap-4">
-            <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center shrink-0 text-red-500">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+          <div className="p-4 sm:p-5 flex flex-col justify-between gap-3">
+            <div className="w-9 h-9 rounded-xl bg-red-50 flex items-center justify-center shrink-0 text-red-500">
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
               </svg>
             </div>
-            <div className="min-w-0">
-              <div className="flex items-baseline gap-2">
+            <div>
+              <div className="flex items-baseline gap-1.5">
                 <p className="text-2xl font-black text-gray-900 leading-none tabular-nums">{stats.sales}</p>
                 {stats.total > 0 && (
                   <span className="text-[10px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-md">
@@ -352,16 +484,16 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                   </span>
                 )}
               </div>
-              <p className="text-xs font-bold text-gray-700 mt-1.5">Stock Out (Sale)</p>
-              <p className="text-[10px] text-gray-400 mt-0.5">sale transactions</p>
+              <p className="text-[11px] font-semibold text-gray-400 mt-1 uppercase tracking-widest">Stock Out</p>
             </div>
           </div>
         </div>
+
       </div>
 
-      {/* Transaction flow ratio */}
+      {/* Transaction flow bar */}
       {stats.total > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-4">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Transaction Flow</p>
             <p className="text-[10px] text-gray-400">{stats.total} total</p>
@@ -391,30 +523,37 @@ export default function TransactionsClient({ initialTransactions, initialInvento
 
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          {([
-            { key: "",        label: "All"     },
-            { key: "Receive", label: "Receive" },
-            { key: "Sale",    label: "Sale"    },
-          ] as { key: "" | "Receive" | "Sale"; label: string }[]).map(({ key, label }) => (
-            <button key={key || "all"} onClick={() => setTypeFilter(key)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold tracking-widest uppercase transition ${
-                typeFilter === key ? "text-white shadow-sm" : "bg-white border border-gray-200 text-gray-500 hover:border-gray-300"
-              }`}
-              style={typeFilter === key ? { background: "linear-gradient(135deg, #FA4900, #b91c1c)" } : {}}>
-              {label}
-            </button>
-          ))}
+        <div className="overflow-x-auto pb-1 -mb-1">
+          <div className="flex items-center gap-2 w-max">
+            {([
+              { key: "",        label: "All"     },
+              { key: "Receive", label: "Receive" },
+              { key: "Sale",    label: "Sale"    },
+            ] as { key: "" | "Receive" | "Sale"; label: string }[]).map(({ key, label }) => (
+              <button
+                key={key || "all"}
+                onClick={() => setTypeFilter(key)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold tracking-widest uppercase transition ${
+                  typeFilter === key ? "text-white shadow-sm" : "bg-white border border-gray-200 text-gray-500 hover:border-gray-300"
+                }`}
+                style={typeFilter === key ? { background: "linear-gradient(135deg, #FA4900, #b91c1c)" } : {}}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="relative">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
             fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
           </svg>
-          <input type="text" placeholder="Search product or user…"
+          <input
+            type="text" placeholder="Search product, barcode, user…"
             value={search} onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 pr-4 py-2 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition w-56"
-            style={ringStyle} />
+            className="pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition w-full sm:w-60"
+            style={ringStyle}
+          />
         </div>
       </div>
 
@@ -430,58 +569,107 @@ export default function TransactionsClient({ initialTransactions, initialInvento
         </p>
       )}
 
-      {/* New Transaction Modal */}
+      {/* New Transaction Modal — bottom sheet on mobile */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-7 space-y-6">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg px-5 pt-4 pb-8 sm:p-7 space-y-5 max-h-[95vh] overflow-y-auto">
+
+            {/* Mobile drag handle */}
+            <div className="flex justify-center sm:hidden mb-1">
+              <div className="w-10 h-1 rounded-full bg-gray-200" />
+            </div>
+
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900">New Transaction</h2>
-              <button onClick={() => setModalOpen(false)} className="text-gray-400 hover:text-gray-700 transition">
+              <button onClick={() => setModalOpen(false)} className="text-gray-400 hover:text-gray-700 p-1 transition">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
+
             <form onSubmit={handleSave} className="space-y-4">
-              <CustomSelect
-                id="inventory" label="Inventory Record"
-                value={form.inventory || ""} placeholder="Select inventory…"
-                onChange={(v) => setForm((f) => ({ ...f, inventory: Number.parseInt(v) }))}
-                options={inventory.map((r) => ({
-                  value: r.id,
-                  label: `${r.product_details.product_name} — ${r.site} (${r.location})`,
-                }))} />
-              <CustomSelect
-                id="transaction_type" label="Type"
-                value={form.transaction_type}
-                onChange={(v) => setForm((f) => ({ ...f, transaction_type: v as "Receive" | "Sale" }))}
-                options={[
-                  { value: "Receive", label: "Receive — Stock In (+)" },
-                  { value: "Sale",    label: "Sale — Stock Out (−)"   },
-                ]} />
+
+              <FilterableInventorySelect
+                inventory={inventory}
+                value={form.inventory}
+                onChange={(id) => setForm((f) => ({ ...f, inventory: id }))}
+              />
+
+              {/* Selected inventory info */}
+              {selectedInventory && (
+                <div className="grid grid-cols-2 gap-3 px-4 py-3.5 bg-gray-50 rounded-xl border border-gray-100">
+                  <div>
+                    <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-1">Current Stock</p>
+                    <p className="text-sm font-bold text-gray-800">{selectedInventory.quantity_on_hand.toLocaleString()} units</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-1">Stock Value</p>
+                    <p className="text-sm font-semibold text-gray-800">
+                      ${(selectedInventory.quantity_on_hand * Number.parseFloat(selectedInventory.product_details.cost_per_unit))
+                        .toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Transaction type */}
+              <div className="space-y-1.5">
+                <p className="text-xs font-bold tracking-widest uppercase text-gray-500">Type</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["Receive", "Sale"] as const).map((t) => {
+                    const active = form.transaction_type === t;
+                    const activeCls = t === "Receive"
+                      ? "bg-green-500 border-green-500 text-white"
+                      : "bg-red-500 border-red-500 text-white";
+                    return (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, transaction_type: t }))}
+                        className={`py-3 rounded-xl text-sm font-bold border transition ${
+                          active ? activeCls : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
+                        }`}
+                      >
+                        {t === "Receive" ? "▼ Stock In" : "▲ Stock Out"}
+                        <span className={`block text-[10px] font-semibold mt-0.5 ${active ? "text-white/70" : "text-gray-400"}`}>
+                          {t === "Receive" ? "Receive (+)" : "Sale (−)"}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Quantity */}
               <div className="space-y-1.5">
                 <label htmlFor="quantity" className="text-xs font-bold tracking-widest uppercase text-gray-500">Quantity</label>
-                <input id="quantity" type="number" min={1} required
-                  placeholder={form.transaction_type === "Receive" ? "e.g. 25 (positive)" : "e.g. 10 (will be negative)"}
+                <input
+                  id="quantity" type="number" min={1} required
+                  placeholder={form.transaction_type === "Receive" ? "e.g. 25" : "e.g. 10"}
                   value={form.quantity || ""}
                   onChange={(e) => setForm((f) => ({ ...f, quantity: Math.abs(Number.parseInt(e.target.value) || 0) }))}
-                  className={inputCls} style={ringStyle} />
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition"
+                  style={ringStyle}
+                />
                 <p className="text-[11px] text-gray-400">
                   {form.transaction_type === "Sale"
-                    ? "Enter a positive number — it will be applied as negative automatically."
-                    : "Enter the number of units being received."}
+                    ? "Enter a positive number — automatically applied as negative."
+                    : "Enter the number of units to receive."}
                 </p>
               </div>
+
               {formError && (
                 <p className="text-xs font-medium text-red-500 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5">{formError}</p>
               )}
+
               <div className="flex gap-3 pt-1">
                 <button type="button" onClick={() => setModalOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 transition">
+                  className="flex-1 py-3 rounded-xl text-sm font-bold text-gray-500 bg-gray-100 active:scale-[0.97] transition">
                   Cancel
                 </button>
                 <button type="submit" disabled={saving}
-                  className="flex-1 py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase text-white hover:opacity-90 transition shadow-sm disabled:opacity-60"
+                  className="flex-1 py-3 rounded-xl text-sm font-bold text-white shadow-sm active:scale-[0.97] transition disabled:opacity-60"
                   style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}>
                   {saving ? "Saving…" : "Submit"}
                 </button>
@@ -493,8 +681,11 @@ export default function TransactionsClient({ initialTransactions, initialInvento
 
       {/* Delete Confirm Modal */}
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-7 space-y-5 text-center">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm px-5 pt-4 pb-8 sm:p-7 space-y-5 text-center">
+            <div className="flex justify-center sm:hidden mb-1">
+              <div className="w-10 h-1 rounded-full bg-gray-200" />
+            </div>
             <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto">
               <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round"
@@ -507,16 +698,18 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                 <span className="font-semibold">{deleteTarget.transaction_type}</span>
                 {" of "}
                 <span className="font-semibold">{Math.abs(deleteTarget.quantity)} units</span>
+                {" of "}
+                <span className="font-semibold text-gray-700">{deleteTarget.product_name}</span>
                 {" will be permanently removed."}
               </p>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteTarget(null)}
-                className="flex-1 py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 transition">
+              <button onClick={() => setDeleteTarget(null)} disabled={deleting}
+                className="flex-1 py-3 rounded-xl bg-gray-100 text-sm font-bold text-gray-600 active:scale-[0.97] transition">
                 Cancel
               </button>
               <button onClick={handleDelete} disabled={deleting}
-                className="flex-1 py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase text-white bg-red-500 hover:bg-red-600 transition disabled:opacity-60">
+                className="flex-1 py-3 rounded-xl bg-red-500 text-white text-sm font-bold active:scale-[0.97] transition hover:bg-red-600 disabled:opacity-60">
                 {deleting ? "Deleting…" : "Delete"}
               </button>
             </div>

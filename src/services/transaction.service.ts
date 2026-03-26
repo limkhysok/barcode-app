@@ -7,12 +7,12 @@ export async function getTransactions(params?: {
   barcode?: string;
   search?: string;
 }): Promise<Transaction[]> {
-  const { data } = await api.get<Transaction[]>("/api/transactions", { params });
+  const { data } = await api.get<Transaction[]>("/api/transactions/", { params });
   return data;
 }
 
 export async function createTransaction(payload: TransactionPayload): Promise<Transaction> {
-  const { data } = await api.post<Transaction>("/api/transactions", payload);
+  const { data } = await api.post<Transaction>("/api/transactions/", payload);
   return data;
 }
 
