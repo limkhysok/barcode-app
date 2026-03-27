@@ -279,6 +279,8 @@ export default function TransactionsClient({ initialTransactions, initialInvento
   const [items, setItems] = useState<ItemDraft[]>([emptyItem()]);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
+  const [scanInput, setScanInput] = useState("");
+  const [scanFeedback, setScanFeedback] = useState<{ ok: boolean; msg: string } | null>(null);
 
   const [deleteTarget, setDeleteTarget] = useState<Transaction | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -286,7 +288,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
 
-  const [singleExporting, setSingleExporting] = useState(false);
+  // Removed unused singleExporting state per SonarQube warning
   const [pendingExportItems, setPendingExportItems] = useState<TemplateItem[]>([]);
   const [pendingExportType, setPendingExportType] = useState<"Sale" | "Receive">("Sale");
   const templateRef = useRef<HTMLDivElement>(null);
@@ -324,6 +326,8 @@ export default function TransactionsClient({ initialTransactions, initialInvento
     setTxType("Receive");
     setItems([emptyItem()]);
     setFormError("");
+    setScanInput("");
+    setScanFeedback(null);
     setModalOpen(true);
   }
 
@@ -331,6 +335,33 @@ export default function TransactionsClient({ initialTransactions, initialInvento
   function removeItem(idx: number) { setItems((prev) => prev.filter((_, i) => i !== idx)); }
   function updateItem(idx: number, patch: Partial<ItemDraft>) {
     setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, ...patch } : item)));
+  }
+
+  function handleScanBarcode() {
+    const q = scanInput.trim();
+    if (!q) return;
+    const rec = inventory.find((r) => r.product_details?.barcode?.toLowerCase().includes(q.toLowerCase()));
+    if (!rec) {
+      setScanFeedback({ ok: false, msg: `"${q}" not found in inventory.` });
+      setScanInput("");
+      setTimeout(() => setScanFeedback(null), 2500);
+      return;
+    }
+    const existingIdx = items.findIndex((i) => i.inventory === rec.id);
+    if (existingIdx >= 0) {
+      updateItem(existingIdx, { quantity: items[existingIdx].quantity + 1 });
+      setScanFeedback({ ok: true, msg: `+1 × ${rec.product_details.product_name}` });
+    } else {
+      const emptyIdx = items.findIndex((i) => i.inventory === 0);
+      if (emptyIdx >= 0) {
+        updateItem(emptyIdx, { inventory: rec.id, quantity: 1 });
+      } else {
+        setItems((prev) => [...prev, { id: ++itemIdCounter, inventory: rec.id, quantity: 1 }]);
+      }
+      setScanFeedback({ ok: true, msg: `Added: ${rec.product_details.product_name}` });
+    }
+    setScanInput("");
+    setTimeout(() => setScanFeedback(null), 2500);
   }
 
   async function doSave(andExport: boolean) {
@@ -384,7 +415,6 @@ export default function TransactionsClient({ initialTransactions, initialInvento
     setPendingExportItems(items);
     setPendingExportType(txType);
     await waitTwoFrames();
-    setSingleExporting(true);
     try {
       try {
         const face = new FontFace("KantumruyPro", "url(/fonts/KantumruyPro-Regular.ttf)");
@@ -407,7 +437,6 @@ export default function TransactionsClient({ initialTransactions, initialInvento
     } catch (err) {
       console.error("Export failed", err);
     } finally {
-      setSingleExporting(false);
       setPendingExportItems([]);
     }
   }
@@ -874,6 +903,44 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                       );
                     })}
                   </div>
+                </div>
+
+                {/* Scan */}
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Scan</p>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      autoComplete="off"
+                      placeholder="Scan or type barcode, press Enter…"
+                      value={scanInput}
+                      onChange={(e) => { setScanInput(e.target.value); setScanFeedback(null); }}
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleScanBarcode(); } }}
+                      className="w-full pl-4 pr-10 py-3 rounded-sm border border-black text-sm bg-gray-50 outline-none focus:ring-2 focus:border-transparent focus:bg-white transition placeholder:text-gray-300 text-gray-900 font-mono"
+                      style={ringStyle}
+                    />
+                    <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                      <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none">
+                        <rect x="2"    y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
+                        <rect x="5"    y="4" width="1"   height="16" rx="0.5" fill="currentColor" />
+                        <rect x="7.5"  y="4" width="2"   height="16" rx="0.5" fill="currentColor" />
+                        <rect x="11"   y="4" width="1"   height="16" rx="0.5" fill="currentColor" />
+                        <rect x="13.5" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
+                        <rect x="16.5" y="4" width="1"   height="16" rx="0.5" fill="currentColor" />
+                        <rect x="19"   y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
+                        <rect x="21.5" y="4" width="1"   height="16" rx="0.5" fill="currentColor" />
+                      </svg>
+                    </div>
+                  </div>
+                  {scanFeedback && (
+                    <p className={`text-xs font-medium px-3 py-1.5 rounded-sm border ${
+                      scanFeedback.ok
+                        ? "text-green-700 bg-green-50 border-green-100"
+                        : "text-red-500 bg-red-50 border-red-100"
+                    }`}>
+                      {scanFeedback.ok ? "✓" : "✗"} {scanFeedback.msg}
+                    </p>
+                  )}
                 </div>
 
                 {/* Items */}

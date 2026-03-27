@@ -84,7 +84,7 @@ const TransactionTemplate = ({ transaction }: {
         </thead>
         <tbody>
           {transaction.items.map((item, index) => (
-            <tr key={`${item.barcode}-${index}`}>
+            <tr key={`${item.barcode}-${item.product_name}`}> 
               <td style={CELL_CENTER}>{index + 1}</td>
               <td style={{ ...CELL_BODY, paddingLeft: "8px" }}>{item.barcode}</td>
               <td style={{ ...CELL_BODY, paddingLeft: "8px" }}>{item.product_name}</td>
@@ -94,7 +94,7 @@ const TransactionTemplate = ({ transaction }: {
             </tr>
           ))}
           {transaction.items.length < 5 && Array.from({ length: 5 - transaction.items.length }).map((_, i) => (
-            <tr key={`empty-${i}`}>
+            <tr key={`empty-${transaction.items.length}-${i}`}> 
               <td style={{ ...CELL_BODY, height: "32px" }}>&nbsp;</td>
               <td style={CELL_BODY}></td>
               <td style={CELL_BODY}></td>
