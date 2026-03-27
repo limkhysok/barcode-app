@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const EXPANDED_W  = 220;
+const EXPANDED_W  = 200;
 const COLLAPSED_W = 56;
 const MOBILE_W    = 280;
 const easing      = "0.3s cubic-bezier(0.4, 0, 0.2, 1)";
