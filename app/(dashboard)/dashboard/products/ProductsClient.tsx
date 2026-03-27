@@ -55,7 +55,7 @@ const emptyForm: ProductPayload = {
 };
 
 const inputCls =
-  "w-full px-4 py-3 rounded-xl border border-black text-sm text-gray-800 placeholder:text-gray-300 outline-none focus:ring-2 focus:border-transparent bg-gray-50 focus:bg-white transition";
+  "w-full px-4 py-3 rounded-sm border border-black text-sm text-gray-800 placeholder:text-gray-300 outline-none focus:ring-2 focus:border-transparent bg-gray-50 focus:bg-white transition";
 const ringStyle = { "--tw-ring-color": "#FA4900" } as React.CSSProperties;
 
 function CustomSelect({ id, label, value, onChange, options, placeholder, openUp }: Readonly<{
@@ -202,14 +202,14 @@ function ProductTable({ loading, error, displayed, products, costDir, reorderDir
             </div>
             <div className="flex items-center gap-1 shrink-0 mt-0.5">
               <button onClick={() => { console.log("onEdit called with row:", p); onEdit(p); }}
-                className="p-2.5 rounded-xl text-gray-400 hover:text-blue-500 hover:bg-blue-50 active:scale-95 transition" title="Edit">
+                className="p-2.5 rounded-sm text-gray-400 hover:text-blue-500 hover:bg-blue-50 active:scale-95 transition" title="Edit">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round"
                     d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                 </svg>
               </button>
               <button onClick={() => onDelete(p)}
-                className="p-2.5 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 active:scale-95 transition" title="Delete">
+                className="p-2.5 rounded-sm text-gray-400 hover:text-red-500 hover:bg-red-50 active:scale-95 transition" title="Delete">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round"
                     d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
@@ -449,7 +449,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
       {/* Category stat cards — mobile: compact summary / desktop: stitched cards */}
 
       {/* Mobile compact summary */}
-      <div className="sm:hidden rounded-xl border border-black overflow-hidden">
+      <div className="sm:hidden rounded-sm border border-black overflow-hidden">
         {/* Top row — totals */}
         <div className="grid grid-cols-2 divide-x divide-black border-b border-black">
           <div className="bg-black px-4 py-3">
@@ -477,7 +477,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
       </div>
 
       {/* Desktop stitched cards */}
-      <div className="hidden sm:flex rounded-xl border border-black overflow-hidden divide-x divide-black">
+      <div className="hidden sm:flex rounded-sm border border-black overflow-hidden divide-x divide-black">
 
         {/* Accessories */}
         <div className="flex-1 bg-white p-6 space-y-4">
@@ -572,7 +572,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
       {/* Filters — four card tiles */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
 
-        <div className="bg-white rounded-xl">
+        <div className="bg-white rounded-sm">
           <CustomSelect
             id="filter-category"
             value={categoryFilter}
@@ -585,7 +585,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
           />
         </div>
 
-        <div className="bg-white rounded-xl">
+        <div className="bg-white rounded-sm">
           <CustomSelect
             id="sort-cost"
             value={costDir}
@@ -598,7 +598,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
           />
         </div>
 
-        <div className="bg-white rounded-xl">
+        <div className="bg-white rounded-sm">
           <CustomSelect
             id="sort-reorder"
             value={reorderDir}
@@ -676,7 +676,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
                   <p className="text-xs text-gray-400 mt-0.5">Fill in the fields below and save.</p>
                 </div>
                 <button onClick={() => setModalOpen(false)}
-                  className="mt-1 p-2 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition shrink-0">
+                  className="mt-1 p-2 rounded-sm text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition shrink-0">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -737,18 +737,18 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
               </div>
 
               {formError && (
-                <p className="text-xs font-medium text-red-500 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5">
+                <p className="text-xs font-medium text-red-500 bg-red-50 border border-red-100 px-4 py-2.5">
                   {formError}
                 </p>
               )}
 
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setModalOpen(false)}
-                  className="flex-1 py-3 rounded-xl text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
+                  className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
                   Cancel
                 </button>
                 <button type="submit" disabled={saving}
-                  className="flex-1 py-3 rounded-xl text-sm font-bold tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition disabled:opacity-60"
+                  className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition disabled:opacity-60"
                   style={{ background: "#FA4900" }}>
                   {saveLabel}
                 </button>
@@ -781,11 +781,11 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
             </div>
             <div className="flex gap-3">
               <button onClick={() => setDeleteTarget(null)}
-                className="flex-1 py-3 rounded-xl text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
+                className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
                 Cancel
               </button>
               <button onClick={handleDelete} disabled={deleting}
-                className="flex-1 py-3 rounded-xl text-sm font-bold tracking-widest uppercase text-white bg-red-500 hover:bg-red-600 active:scale-[0.97] transition disabled:opacity-60">
+                className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-white bg-red-500 hover:bg-red-600 active:scale-[0.97] transition disabled:opacity-60">
                 {deleting ? "Deleting…" : "Delete"}
               </button>
             </div>
