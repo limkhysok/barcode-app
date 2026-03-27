@@ -66,17 +66,28 @@ function InventoryPicker({
   const [search, setSearch] = useState("");
   const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 0 });
   const ref = useRef<HTMLDivElement>(null);
-  const btnRef = useRef<HTMLButtonElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const selected = inventory.find((r) => r.id === value);
+
+  // Sync display text when selection changes externally
+  useEffect(() => {
+    setSearch(selected ? `${selected.product_details.product_name} — ${selected.site}` : "");
+  }, [value, selected]);
 
   useEffect(() => {
     function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        // Restore label on blur
+        setSearch(selected ? `${selected.product_details.product_name} — ${selected.site}` : "");
+      }
     }
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  }, [selected]);
 
-  // Close on any scroll so stale position never shows
+  // Close on scroll so stale position never shows
   useEffect(() => {
     if (!open) return;
     function onScroll() { setOpen(false); }
@@ -84,86 +95,89 @@ function InventoryPicker({
     return () => window.removeEventListener("scroll", onScroll, true);
   }, [open]);
 
-  function handleToggle() {
-    if (!open && btnRef.current) {
-      const r = btnRef.current.getBoundingClientRect();
+  function handleFocus() {
+    if (inputRef.current) {
+      const r = inputRef.current.getBoundingClientRect();
       setDropPos({ top: r.bottom + 4, left: r.left, width: r.width });
     }
-    setOpen((v) => !v);
+    setSearch(""); // clear so user sees all options
+    setOpen(true);
   }
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return inventory.filter(
-      (r) =>
-        !excludeIds.includes(r.id) || r.id === value
-    ).filter((r) => {
-      if (!q) return true;
-      return (
-        r.product_details.product_name.toLowerCase().includes(q) ||
-        r.site.toLowerCase().includes(q) ||
-        r.location.toLowerCase().includes(q) ||
-        r.product_details.barcode.toLowerCase().includes(q)
-      );
-    });
-  }, [inventory, search, excludeIds, value]);
-
-  const selected = inventory.find((r) => r.id === value);
+    const selectedLabel = selected
+      ? `${selected.product_details.product_name} — ${selected.site}`.toLowerCase()
+      : "";
+    const available = inventory.filter((r) => !excludeIds.includes(r.id) || r.id === value);
+    if (!q || q === selectedLabel) return available;
+    return available.filter((r) =>
+      r.product_details?.product_name?.toLowerCase().includes(q) ||
+      r.site?.toLowerCase().includes(q) ||
+      r.location?.toLowerCase().includes(q) ||
+      r.product_details?.barcode?.toLowerCase().includes(q)
+    );
+  }, [inventory, search, excludeIds, value, selected]);
 
   return (
     <div className="relative flex-1 min-w-0" ref={ref}>
-      <button
-        ref={btnRef}
-        type="button"
-        onClick={handleToggle}
-        className={`w-full px-3 py-2.5 rounded-xl border text-sm text-left flex items-center justify-between gap-2 transition focus:outline-none ${
-          open ? "border-[#FA4900] ring-2 ring-[#FA4900]/20" : "border-gray-200 hover:border-gray-300"
-        } ${selected ? "text-gray-900" : "text-gray-400"}`}
-      >
-        <span className="truncate text-sm">
-          {selected
-            ? `${selected.product_details.product_name} — ${selected.site}`
-            : "Select product…"}
-        </span>
-        <svg className="w-4 h-4 text-gray-400 shrink-0" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
-          fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+      <input
+        ref={inputRef}
+        type="text"
+        autoComplete="off"
+        placeholder="Search by name or barcode…"
+        value={search}
+        onFocus={handleFocus}
+        onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
+        className="w-full pl-4 pr-10 py-3 rounded-sm border border-black text-sm bg-gray-50 outline-none focus:ring-2 focus:border-transparent focus:bg-white transition placeholder:text-gray-300 text-gray-900"
+        style={ringStyle}
+      />
+      {/* Barcode hint icon */}
+      <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+        <svg className="w-5 h-5 text-gray-800" viewBox="0 0 24 24" fill="none">
+          <rect x="2"    y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
+          <rect x="5"    y="4" width="1"   height="16" rx="0.5" fill="currentColor" />
+          <rect x="7.5"  y="4" width="2"   height="16" rx="0.5" fill="currentColor" />
+          <rect x="11"   y="4" width="1"   height="16" rx="0.5" fill="currentColor" />
+          <rect x="13.5" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
+          <rect x="16.5" y="4" width="1"   height="16" rx="0.5" fill="currentColor" />
+          <rect x="19"   y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
+          <rect x="21.5" y="4" width="1"   height="16" rx="0.5" fill="currentColor" />
         </svg>
-      </button>
+      </div>
 
       {open && (
         <div
-          className="bg-white border border-gray-100 rounded-xl shadow-2xl overflow-hidden py-1 min-w-65"
+          className="bg-white border border-black rounded-sm shadow-lg overflow-hidden"
           style={{ position: "fixed", top: dropPos.top, left: dropPos.left, width: dropPos.width, zIndex: 9999 }}
         >
-          <div className="px-3 py-2">
-            <input
-              type="text"
-              placeholder="Search by product name or barcode…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent"
-              style={ringStyle}
-              autoFocus
-            />
-          </div>
           <ul className="max-h-52 overflow-y-auto">
             {filtered.length === 0 && (
-              <li className="px-4 py-2.5 text-sm text-gray-400">No records found.</li>
+              <li className="px-4 py-3 text-xs text-gray-400 font-medium">No records found.</li>
             )}
             {filtered.map((r) => (
-              <li key={r.id}>
+              <li key={r.id} className="border-b border-black last:border-b-0">
                 <button
                   type="button"
-                  onClick={() => { onChange(r.id); setOpen(false); setSearch(""); }}
-                  className={`w-full text-left px-4 py-2.5 text-sm flex items-start gap-3 transition ${
-                    value === r.id ? "font-bold text-white" : "text-gray-700 hover:bg-gray-50"
+                  onClick={() => {
+                    onChange(r.id);
+                    setSearch(`${r.product_details.product_name} — ${r.site}`);
+                    setOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2.5 text-[11px] font-semibold tracking-wide flex items-start gap-3 transition ${
+                    value === r.id ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
                   }`}
-                  style={value === r.id ? { background: "linear-gradient(135deg, #FA4900, #b91c1c)" } : {}}
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">{r.product_details.product_name}</p>
-                    <p className={`text-[11px] truncate ${value === r.id ? "text-white/70" : "text-gray-400"}`}>
+                    <p className="truncate">
+                      {r.product_details.product_name}
+                      {r.product_details.barcode && (
+                        <span className={`ml-1.5 font-mono font-normal ${value === r.id ? "text-white/60" : "text-gray-400"}`}>
+                          ({r.product_details.barcode})
+                        </span>
+                      )}
+                    </p>
+                    <p className={`text-[10px] truncate font-normal ${value === r.id ? "text-white/60" : "text-gray-400"}`}>
                       {r.site} · {r.location} · Qty: {r.quantity_on_hand}
                     </p>
                   </div>
@@ -213,6 +227,67 @@ function drawPngRow(
     ctx.fillText(truncateCanvasText(ctx, cells[ci].text, cols[ci].w - 8), x, rowY + 22);
     x += cols[ci].w;
   }
+}
+
+// ─── TypeFilterSelect ─────────────────────────────────────────────────────────
+
+function TypeFilterSelect({
+  value,
+  onChange,
+}: Readonly<{ value: "" | "Receive" | "Sale"; onChange: (v: "" | "Receive" | "Sale") => void }>) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const options: { key: "" | "Receive" | "Sale"; label: string }[] = [
+    { key: "",        label: "All Types"  },
+    { key: "Receive", label: "Receive"    },
+    { key: "Sale",    label: "Sale"       },
+  ];
+  const current = options.find((o) => o.key === value) ?? options[0];
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={`w-full px-4 py-2 rounded-sm border text-sm font-medium text-left flex items-center justify-between gap-2 transition focus:outline-none bg-gray-50 ${
+          open ? "border-black ring-1 ring-black" : "border-black hover:bg-slate-50"
+        } ${value === "" ? "text-gray-300" : "text-gray-900"}`}
+      >
+        <span className="truncate">{current.label}</span>
+        <svg className="w-3.5 h-3.5 text-slate-500 shrink-0 transition-transform duration-200"
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+          fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+      {open && (
+        <ul className="absolute z-200 top-full mt-1 w-full bg-white border border-black rounded-sm shadow-lg overflow-hidden">
+          {options.map((o) => (
+            <li key={o.key || "all"} className="border-b border-black last:border-b-0">
+              <button
+                type="button"
+                onClick={() => { onChange(o.key); setOpen(false); }}
+                className={`w-full text-left px-3 py-2.5 text-[11px] font-semibold tracking-wide transition ${
+                  value === o.key ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                {o.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 // ─── TransactionsClient ───────────────────────────────────────────────────────
@@ -589,7 +664,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
     tableContent = (
       <>
         {/* Mobile cards */}
-        <div className="sm:hidden divide-y divide-gray-50">
+        <div className="sm:hidden divide-y divide-black">
           {displayed.map((t) => {
             const cfg     = TYPE_CONFIG[t.transaction_type];
             const sign    = t.transaction_type === "Receive" ? "+" : "−";
@@ -642,14 +717,14 @@ export default function TransactionsClient({ initialTransactions, initialInvento
         {/* Desktop table */}
         <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50">
+            <thead className="bg-slate-50 border-b border-black">
               <tr>
                 {["#", "Type", "Items", "Total Value", "Performed By", "Date", "Actions"].map((h) => (
-                  <th key={h} className="px-5 py-3 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">{h}</th>
+                  <th key={h} className="px-5 py-3 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-black bg-white text-[11px]">
               {displayed.map((t) => {
                 const cfg    = TYPE_CONFIG[t.transaction_type];
                 const sign   = t.transaction_type === "Receive" ? "+" : "−";
@@ -657,8 +732,8 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                 const first  = t.items[0];
                 const more   = t.items.length - 1;
                 return (
-                  <tr key={t.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-3.5 text-xs font-bold text-gray-400">#{t.id}</td>
+                  <tr key={t.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-5 py-3.5 font-bold text-gray-400">#{t.id}</td>
                     <td className="px-5 py-3.5">
                       <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.text}`}>
                         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
@@ -668,15 +743,15 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                     <td className="px-5 py-3.5">
                       <p className="font-semibold text-gray-800">
                         {first?.product_name ?? "—"}
-                        {more > 0 && <span className="text-gray-400 font-normal text-xs"> & {more} more</span>}
+                        {more > 0 && <span className="text-gray-400 font-normal"> &amp; {more} more</span>}
                       </p>
-                      <p className="text-[11px] text-gray-400 mt-0.5">{t.items.length} item{t.items.length === 1 ? "" : "s"}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{t.items.length} item{t.items.length === 1 ? "" : "s"}</p>
                     </td>
-                    <td className={`px-5 py-3.5 font-bold text-sm tabular-nums ${valCol}`}>
+                    <td className={`px-5 py-3.5 font-bold tabular-nums ${valCol}`}>
                       {fmtValue(t.total_transaction_value, sign)}
                     </td>
-                    <td className="px-5 py-3.5 text-gray-600 text-xs">{t.performed_by_username}</td>
-                    <td className="px-5 py-3.5 text-xs text-gray-500 whitespace-nowrap" suppressHydrationWarning>
+                    <td className="px-5 py-3.5 text-gray-600">{t.performed_by_username}</td>
+                    <td className="px-5 py-3.5 text-gray-500 whitespace-nowrap" suppressHydrationWarning>
                       {formatDateTime(t.transaction_date)}
                     </td>
                     <td className="px-5 py-3.5">
@@ -855,37 +930,23 @@ export default function TransactionsClient({ initialTransactions, initialInvento
       )}
 
       {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="overflow-x-auto pb-1 -mb-1">
-          <div className="flex items-center gap-2 w-max">
-            {([
-              { key: "",        label: "All"     },
-              { key: "Receive", label: "Receive" },
-              { key: "Sale",    label: "Sale"    },
-            ] as { key: "" | "Receive" | "Sale"; label: string }[]).map(({ key, label }) => (
-              <button
-                key={key || "all"}
-                onClick={() => setTypeFilter(key)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold tracking-widest uppercase transition ${
-                  typeFilter === key ? "text-white shadow-sm" : "bg-white border border-gray-200 text-gray-500 hover:border-gray-300"
-                }`}
-                style={typeFilter === key ? { background: "linear-gradient(135deg, #FA4900, #b91c1c)" } : {}}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
-            fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <div className="grid grid-cols-2 gap-2.5">
+        {/* Type filter */}
+        <TypeFilterSelect value={typeFilter} onChange={setTypeFilter} />
+        {/* Search */}
+        <div className="flex items-center gap-2 bg-white rounded-sm border border-black px-3 py-2">
+          <svg className="w-3.5 h-3.5 text-gray-400 shrink-0 pointer-events-none"
+            fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
           </svg>
           <input
-            type="text" placeholder="Search product or user…"
-            value={search} onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition w-full sm:w-60"
-            style={ringStyle}
+            id="tx-search"
+            name="tx-search"
+            type="text"
+            placeholder="Search product or user…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 text-sm outline-none bg-transparent text-gray-800 placeholder:text-gray-300"
           />
         </div>
       </div>
@@ -905,24 +966,25 @@ export default function TransactionsClient({ initialTransactions, initialInvento
       {/* New Transaction Modal — two-panel */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
-          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-4xl flex flex-col max-h-[95vh]">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-4xl flex flex-col max-h-[95vh]">
+
+            {/* ── Orange accent strip ── */}
+            <div className="h-1 w-full rounded-t-3xl sm:rounded-t-2xl" style={{ background: "#FA4900" }} />
 
             {/* ── Header ── */}
-            <div className="flex items-center justify-between px-6 py-4 border-b shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white shrink-0"
-                  style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-gray-900 leading-tight">New Transaction</h2>
-                  <p className="text-[11px] text-gray-400">Select type, add items, confirm</p>
-                </div>
+            <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-black shrink-0">
+              <div className="space-y-1">
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-none"
+                  style={{ background: "#FFF0E8", color: "#FA4900" }}>
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "#FA4900" }} />
+                  New
+                </span>
+                <h2 className="text-xl font-bold text-gray-900">New Transaction</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Select type, add items, confirm.</p>
               </div>
-              <button onClick={() => setModalOpen(false)} className="text-gray-400 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <button onClick={() => setModalOpen(false)}
+                className="mt-1 p-2 rounded-sm text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition shrink-0">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -932,7 +994,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
             <form id="tx-form" onSubmit={handleSave} className="flex flex-col sm:flex-row flex-1 overflow-hidden min-h-0">
 
               {/* Left panel — type + item picker */}
-              <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5 sm:border-r border-gray-100">
+              <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5 sm:border-r border-black">
 
                 {/* Type toggle */}
                 <div className="space-y-2">
@@ -941,15 +1003,15 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                     {(["Receive", "Sale"] as const).map((t) => {
                       const active = txType === t;
                       const activeCls = t === "Receive"
-                        ? "bg-green-500 border-green-500 text-white shadow-sm"
-                        : "bg-red-500 border-red-500 text-white shadow-sm";
+                        ? "bg-green-500 border-green-500 text-white"
+                        : "bg-red-500 border-red-500 text-white";
                       return (
                         <button
                           key={t}
                           type="button"
                           onClick={() => setTxType(t)}
-                          className={`py-2.5 rounded-xl text-sm font-bold border transition ${
-                            active ? activeCls : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
+                          className={`py-2.5 rounded-sm text-sm font-bold border transition ${
+                            active ? activeCls : "bg-white border-black text-gray-500 hover:bg-slate-50"
                           }`}
                         >
                           {t === "Receive" ? "↓ Receive (+)" : "↑ Sale (−)"}
@@ -961,9 +1023,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
 
                 {/* Items */}
                 <div className="space-y-2.5">
-                  <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400">
-                    Items
-                  </p>
+                  <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Items</p>
 
                   {items.map((item, idx) => {
                     const rec = inventory.find((r) => r.id === item.inventory);
@@ -982,7 +1042,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                           placeholder="Qty"
                           value={item.quantity || ""}
                           onChange={(e) => updateItem(idx, { quantity: Math.abs(Number.parseInt(e.target.value) || 0) })}
-                          className="w-20 shrink-0 px-2 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition text-center font-bold"
+                          className="w-20 shrink-0 px-2 py-3 rounded-sm border border-black text-sm outline-none focus:ring-2 focus:border-transparent transition text-center font-bold bg-gray-50 focus:bg-white"
                           style={ringStyle}
                         />
                         {rec && (
@@ -994,7 +1054,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                           type="button"
                           onClick={() => removeItem(idx)}
                           disabled={items.length === 1}
-                          className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="p-1.5 rounded-sm text-gray-300 hover:text-red-500 hover:bg-red-50 transition shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -1007,7 +1067,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                   <button
                     type="button"
                     onClick={addItem}
-                    className="w-full py-2.5 rounded-xl border border-dashed border-gray-200 text-xs text-gray-400 font-medium hover:border-[#FA4900] hover:text-[#FA4900] transition flex items-center justify-center gap-1.5"
+                    className="w-full py-2.5 rounded-sm border border-dashed border-black text-xs text-gray-400 font-bold tracking-widest uppercase hover:border-[#FA4900] hover:text-[#FA4900] transition flex items-center justify-center gap-1.5"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -1018,8 +1078,8 @@ export default function TransactionsClient({ initialTransactions, initialInvento
               </div>
 
               {/* Right panel — order summary */}
-              <div className="sm:w-72 shrink-0 flex flex-col bg-gray-50 border-t sm:border-t-0 sm:border-l border-gray-100">
-                <div className="px-5 py-4 border-b border-gray-100">
+              <div className="sm:w-72 shrink-0 flex flex-col bg-gray-50 border-t sm:border-t-0 sm:border-l border-black">
+                <div className="px-5 py-4 border-b border-black">
                   <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Order Summary</p>
                 </div>
 
@@ -1047,13 +1107,13 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                       <>
                         <table className="w-full text-xs">
                           <thead>
-                            <tr className="border-b border-gray-100">
+                            <tr className="border-b border-black">
                               <th className="px-4 py-2.5 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">Product</th>
                               <th className="px-3 py-2.5 text-center text-[10px] font-bold tracking-widest uppercase text-gray-400">Qty</th>
                               <th className="px-4 py-2.5 text-right text-[10px] font-bold tracking-widest uppercase text-gray-400">Total</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-100">
+                          <tbody className="divide-y divide-black">
                             {filled.map((i) => {
                               const rec = inventory.find((r) => r.id === i.inventory);
                               const lineTotal = rec ? i.quantity * Number.parseFloat(rec.product_details.cost_per_unit) : 0;
@@ -1074,7 +1134,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                         </table>
 
                         {/* Grand total */}
-                        <div className="mx-4 my-3 pt-3 border-t border-gray-200 flex items-center justify-between">
+                        <div className="mx-4 my-3 pt-3 border-t border-black flex items-center justify-between">
                           <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Total</p>
                           <p className={`text-lg font-black tabular-nums ${valCol}`}>
                             {sign}${grandTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -1088,21 +1148,21 @@ export default function TransactionsClient({ initialTransactions, initialInvento
             </form>
 
             {/* ── Footer ── */}
-            <div className="border-t border-gray-100 px-6 py-4 shrink-0 space-y-3">
+            <div className="border-t border-black px-6 py-4 shrink-0 space-y-3">
               {formError && (
-                <p className="text-xs font-medium text-red-500 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5">{formError}</p>
+                <p className="text-xs font-medium text-red-500 bg-red-50 border border-red-100 rounded-sm px-4 py-2.5">{formError}</p>
               )}
               <div className="flex gap-3">
                 <button type="button" onClick={() => setModalOpen(false)}
-                  className="flex-1 py-3 rounded-xl text-sm font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
+                  className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
                   Cancel
                 </button>
                 <button
                   type="submit"
                   form="tx-form"
                   disabled={saving}
-                  className="flex-1 py-3 rounded-xl text-sm font-bold text-white shadow-sm active:scale-[0.97] transition disabled:opacity-60"
-                  style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}
+                  className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-white active:scale-[0.97] transition disabled:opacity-60"
+                  style={{ background: "#FA4900" }}
                 >
                   {saving ? "Saving…" : submitLabel(items)}
                 </button>
@@ -1119,7 +1179,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
           <button type="button" aria-label="Close export panel" className="fixed inset-0 z-9998 cursor-default bg-transparent border-0 p-0" onClick={() => setExportOpen(false)} />
           <div
             style={{ position: "fixed", top: exportPos.top, left: exportPos.left, zIndex: 9999 }}
-            className="bg-white border border-gray-100 rounded-2xl shadow-2xl p-5 w-56 space-y-4"
+            className="bg-white border border-black rounded-sm shadow-2xl p-5 w-56 space-y-4"
           >
             {/* Format */}
             <div>
@@ -1130,10 +1190,10 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                     key={f}
                     type="button"
                     onClick={() => setExportFormat(f)}
-                    className={`py-1.5 rounded-lg text-[10px] font-bold uppercase border transition ${
-                      exportFormat === f ? "text-white border-transparent" : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
+                    className={`py-1.5 rounded-sm text-[10px] font-bold uppercase border transition ${
+                      exportFormat === f ? "text-white border-transparent" : "bg-white border-black text-gray-500 hover:bg-slate-50"
                     }`}
-                    style={exportFormat === f ? { background: "linear-gradient(135deg, #FA4900, #b91c1c)" } : {}}
+                    style={exportFormat === f ? { background: "#FA4900" } : {}}
                   >
                     {f.toUpperCase()}
                   </button>
@@ -1151,10 +1211,10 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                       key={s}
                       type="button"
                       onClick={() => setExportSize(s)}
-                      className={`py-1.5 rounded-lg text-[10px] font-bold uppercase border transition ${
-                        exportSize === s ? "text-white border-transparent" : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
+                      className={`py-1.5 rounded-sm text-[10px] font-bold uppercase border transition ${
+                        exportSize === s ? "text-white border-transparent" : "bg-white border-black text-gray-500 hover:bg-slate-50"
                       }`}
-                      style={exportSize === s ? { background: "linear-gradient(135deg, #FA4900, #b91c1c)" } : {}}
+                      style={exportSize === s ? { background: "#FA4900" } : {}}
                     >
                       {s.toUpperCase()}
                     </button>
@@ -1173,8 +1233,8 @@ export default function TransactionsClient({ initialTransactions, initialInvento
               type="button"
               onClick={handleExport}
               disabled={exporting}
-              className="w-full py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase text-white shadow-sm active:scale-[0.97] transition disabled:opacity-60 flex items-center justify-center gap-2"
-              style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}
+              className="w-full py-2.5 rounded-sm text-xs font-bold tracking-widest uppercase text-white active:scale-[0.97] transition disabled:opacity-60 flex items-center justify-center gap-2"
+              style={{ background: "#FA4900" }}
             >
               {exporting ? (
                 <>
@@ -1203,23 +1263,23 @@ export default function TransactionsClient({ initialTransactions, initialInvento
             <button type="button" aria-label="Close menu" className="fixed inset-0 z-9998 cursor-default bg-transparent border-0 p-0" onClick={() => setMenuOpenId(null)} />
             <div
               style={{ position: "fixed", top: menuPos.top, left: menuPos.left, zIndex: 9999 }}
-              className="bg-white border border-gray-100 rounded-xl shadow-2xl py-1.5 w-32 overflow-hidden"
+              className="bg-white border border-black rounded-sm shadow-2xl py-1.5 w-32 overflow-hidden"
             >
               <button
                 type="button"
                 onClick={() => { setViewTarget(t); setMenuOpenId(null); }}
-                className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest uppercase text-gray-600 hover:bg-gray-50 transition"
+                className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest uppercase text-gray-600 hover:bg-slate-50 transition"
               >
                 View
               </button>
               <button
                 type="button"
                 onClick={() => { openEditModal(t); setMenuOpenId(null); }}
-                className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest uppercase text-gray-600 hover:bg-gray-50 transition"
+                className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest uppercase text-gray-600 hover:bg-slate-50 transition"
               >
                 Edit
               </button>
-              <div className="mx-3 my-1 border-t border-gray-100" />
+              <div className="mx-3 my-1 border-t border-black" />
               <button
                 type="button"
                 onClick={() => { setDeleteTarget(t); setMenuOpenId(null); }}
@@ -1235,25 +1295,25 @@ export default function TransactionsClient({ initialTransactions, initialInvento
       {/* View Modal */}
       {viewTarget && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
-          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg flex flex-col max-h-[90vh]">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg flex flex-col max-h-[90vh]">
+
+            {/* Orange accent strip */}
+            <div className="h-1 w-full rounded-t-3xl sm:rounded-t-2xl" style={{ background: "#FA4900" }} />
 
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white shrink-0"
-                  style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-gray-900 leading-tight">Transaction #{viewTarget.id}</h2>
-                  <p className="text-[11px] text-gray-400">{formatDateTime(viewTarget.transaction_date)}</p>
-                </div>
+            <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-black shrink-0">
+              <div className="space-y-1">
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-none"
+                  style={{ background: "#FFF0E8", color: "#FA4900" }}>
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "#FA4900" }} />
+                  View
+                </span>
+                <h2 className="text-xl font-bold text-gray-900">Transaction #{viewTarget.id}</h2>
+                <p className="text-xs text-gray-400 mt-0.5" suppressHydrationWarning>{formatDateTime(viewTarget.transaction_date)}</p>
               </div>
-              <button onClick={() => setViewTarget(null)} className="text-gray-400 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <button onClick={() => setViewTarget(null)}
+                className="mt-1 p-2 rounded-sm text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition shrink-0">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -1277,16 +1337,16 @@ export default function TransactionsClient({ initialTransactions, initialInvento
               </div>
 
               {/* Items table */}
-              <div className="rounded-xl border border-gray-100 overflow-hidden">
+              <div className="border border-black overflow-hidden">
                 <table className="w-full text-xs">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-slate-50 border-b border-black">
                     <tr>
                       {["Product", "Qty", "Unit Cost", "Total"].map((h) => (
-                        <th key={h} className="px-4 py-2.5 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">{h}</th>
+                        <th key={h} className="px-4 py-2.5 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">{h}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-black">
                     {viewTarget.items.map((item) => {
                       const sign = viewTarget.transaction_type === "Receive" ? "+" : "−";
                       const valCol = viewTarget.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
@@ -1315,11 +1375,11 @@ export default function TransactionsClient({ initialTransactions, initialInvento
             </div>
 
             {/* Footer */}
-            <div className="border-t border-gray-100 px-6 py-4 shrink-0">
+            <div className="border-t border-black px-6 py-4 shrink-0">
               <button
                 type="button"
                 onClick={() => setViewTarget(null)}
-                className="w-full py-3 rounded-xl text-sm font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition"
+                className="w-full py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition"
               >
                 Close
               </button>
@@ -1332,24 +1392,25 @@ export default function TransactionsClient({ initialTransactions, initialInvento
       {/* Edit Transaction Modal */}
       {editTarget && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
-          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-4xl flex flex-col max-h-[95vh]">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-4xl flex flex-col max-h-[95vh]">
+
+            {/* Orange accent strip */}
+            <div className="h-1 w-full rounded-t-3xl sm:rounded-t-2xl" style={{ background: "#FA4900" }} />
 
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white shrink-0"
-                  style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-gray-900 leading-tight">Edit Transaction #{editTarget.id}</h2>
-                  <p className="text-[11px] text-gray-400">Modify type, items, and quantities</p>
-                </div>
+            <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-black shrink-0">
+              <div className="space-y-1">
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-none"
+                  style={{ background: "#FFF0E8", color: "#FA4900" }}>
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "#FA4900" }} />
+                  Editing
+                </span>
+                <h2 className="text-xl font-bold text-gray-900">Edit Transaction #{editTarget.id}</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Modify type, items, and quantities.</p>
               </div>
-              <button onClick={() => setEditTarget(null)} className="text-gray-400 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <button onClick={() => setEditTarget(null)}
+                className="mt-1 p-2 rounded-sm text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition shrink-0">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -1359,7 +1420,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
             <form id="edit-tx-form" onSubmit={handleEditSave} className="flex flex-col sm:flex-row flex-1 overflow-hidden min-h-0">
 
               {/* Left panel */}
-              <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5 sm:border-r border-gray-100">
+              <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5 sm:border-r border-black">
 
                 {/* Type toggle */}
                 <div className="space-y-2">
@@ -1368,15 +1429,15 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                     {(["Receive", "Sale"] as const).map((t) => {
                       const active = editTxType === t;
                       const activeCls = t === "Receive"
-                        ? "bg-green-500 border-green-500 text-white shadow-sm"
-                        : "bg-red-500 border-red-500 text-white shadow-sm";
+                        ? "bg-green-500 border-green-500 text-white"
+                        : "bg-red-500 border-red-500 text-white";
                       return (
                         <button
                           key={t}
                           type="button"
                           onClick={() => setEditTxType(t)}
-                          className={`py-2.5 rounded-xl text-sm font-bold border transition ${
-                            active ? activeCls : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
+                          className={`py-2.5 rounded-sm text-sm font-bold border transition ${
+                            active ? activeCls : "bg-white border-black text-gray-500 hover:bg-slate-50"
                           }`}
                         >
                           {t === "Receive" ? "↓ Receive (+)" : "↑ Sale (−)"}
@@ -1406,7 +1467,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                           placeholder="Qty"
                           value={item.quantity || ""}
                           onChange={(e) => updateEditItem(idx, { quantity: Math.abs(Number.parseInt(e.target.value) || 0) })}
-                          className="w-20 shrink-0 px-2 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition text-center font-bold"
+                          className="w-20 shrink-0 px-2 py-3 rounded-sm border border-black text-sm outline-none focus:ring-2 focus:border-transparent transition text-center font-bold bg-gray-50 focus:bg-white"
                           style={ringStyle}
                         />
                         {rec && (
@@ -1418,7 +1479,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                           type="button"
                           onClick={() => removeEditItem(idx)}
                           disabled={editItems.length === 1}
-                          className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="p-1.5 rounded-sm text-gray-300 hover:text-red-500 hover:bg-red-50 transition shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -1430,7 +1491,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                   <button
                     type="button"
                     onClick={addEditItem}
-                    className="w-full py-2.5 rounded-xl border border-dashed border-gray-200 text-xs text-gray-400 font-medium hover:border-[#FA4900] hover:text-[#FA4900] transition flex items-center justify-center gap-1.5"
+                    className="w-full py-2.5 rounded-sm border border-dashed border-black text-xs text-gray-400 font-bold tracking-widest uppercase hover:border-[#FA4900] hover:text-[#FA4900] transition flex items-center justify-center gap-1.5"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -1441,8 +1502,8 @@ export default function TransactionsClient({ initialTransactions, initialInvento
               </div>
 
               {/* Right panel — order summary */}
-              <div className="sm:w-72 shrink-0 flex flex-col bg-gray-50 border-t sm:border-t-0 sm:border-l border-gray-100">
-                <div className="px-5 py-4 border-b border-gray-100">
+              <div className="sm:w-72 shrink-0 flex flex-col bg-gray-50 border-t sm:border-t-0 sm:border-l border-black">
+                <div className="px-5 py-4 border-b border-black">
                   <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Order Summary</p>
                 </div>
                 <div className="flex-1 overflow-y-auto">
@@ -1468,13 +1529,13 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                       <>
                         <table className="w-full text-xs">
                           <thead>
-                            <tr className="border-b border-gray-100">
+                            <tr className="border-b border-black">
                               <th className="px-4 py-2.5 text-left text-[10px] font-bold tracking-widest uppercase text-gray-400">Product</th>
                               <th className="px-3 py-2.5 text-center text-[10px] font-bold tracking-widest uppercase text-gray-400">Qty</th>
                               <th className="px-4 py-2.5 text-right text-[10px] font-bold tracking-widest uppercase text-gray-400">Total</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-100">
+                          <tbody className="divide-y divide-black">
                             {filled.map((i) => {
                               const rec = inventory.find((r) => r.id === i.inventory);
                               const lineTotal = rec ? i.quantity * Number.parseFloat(rec.product_details.cost_per_unit) : 0;
@@ -1493,7 +1554,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                             })}
                           </tbody>
                         </table>
-                        <div className="mx-4 my-3 pt-3 border-t border-gray-200 flex items-center justify-between">
+                        <div className="mx-4 my-3 pt-3 border-t border-black flex items-center justify-between">
                           <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Total</p>
                           <p className={`text-lg font-black tabular-nums ${valCol}`}>
                             {sign}${grandTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -1507,21 +1568,21 @@ export default function TransactionsClient({ initialTransactions, initialInvento
             </form>
 
             {/* Footer */}
-            <div className="border-t border-gray-100 px-6 py-4 shrink-0 space-y-3">
+            <div className="border-t border-black px-6 py-4 shrink-0 space-y-3">
               {editFormError && (
-                <p className="text-xs font-medium text-red-500 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5">{editFormError}</p>
+                <p className="text-xs font-medium text-red-500 bg-red-50 border border-red-100 rounded-sm px-4 py-2.5">{editFormError}</p>
               )}
               <div className="flex gap-3">
                 <button type="button" onClick={() => setEditTarget(null)}
-                  className="flex-1 py-3 rounded-xl text-sm font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
+                  className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
                   Cancel
                 </button>
                 <button
                   type="submit"
                   form="edit-tx-form"
                   disabled={editSaving}
-                  className="flex-1 py-3 rounded-xl text-sm font-bold text-white shadow-sm active:scale-[0.97] transition disabled:opacity-60"
-                  style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}
+                  className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-white active:scale-[0.97] transition disabled:opacity-60"
+                  style={{ background: "#FA4900" }}
                 >
                   {editSaving ? "Saving…" : submitLabel(editItems)}
                 </button>
@@ -1535,10 +1596,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
       {/* Delete Confirm Modal */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
-          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm px-5 pt-4 pb-8 sm:p-7 space-y-5 text-center">
-            <div className="flex justify-center sm:hidden mb-1">
-              <div className="w-10 h-1 rounded-full bg-gray-200" />
-            </div>
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm px-5 pt-4 pb-8 sm:p-7 space-y-5 text-center">
             <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto">
               <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round"
@@ -1558,11 +1616,11 @@ export default function TransactionsClient({ initialTransactions, initialInvento
             </div>
             <div className="flex gap-3">
               <button onClick={() => setDeleteTarget(null)} disabled={deleting}
-                className="flex-1 py-3 rounded-xl bg-gray-100 text-sm font-bold text-gray-600 active:scale-[0.97] transition">
+                className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition disabled:opacity-60">
                 Cancel
               </button>
               <button onClick={handleDelete} disabled={deleting}
-                className="flex-1 py-3 rounded-xl bg-red-500 text-white text-sm font-bold active:scale-[0.97] transition hover:bg-red-600 disabled:opacity-60">
+                className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-white bg-red-500 hover:bg-red-600 active:scale-[0.97] transition disabled:opacity-60">
                 {deleting ? "Deleting…" : "Delete"}
               </button>
             </div>
