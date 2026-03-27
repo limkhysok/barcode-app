@@ -859,7 +859,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
               {formError && (
                 <p className="text-xs font-medium text-red-500 bg-red-50 border border-red-100 rounded-sm px-4 py-2.5">{formError}</p>
               )}
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <button type="button" onClick={() => setModalOpen(false)}
                   className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
                   Cancel
@@ -881,6 +881,71 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
                   style={{ background: "#1a1a1a" }}
                 >
                   {saving ? "Saving…" : "Save & Export"}
+                </button>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={async () => {
+                    const valid = items.filter((i) => i.inventory > 0 && i.quantity > 0);
+                    if (valid.length === 0) { setFormError("Add at least one item with a product and quantity."); return; }
+                    setSaving(true);
+                    setFormError("");
+                    try {
+                      const payload = {
+                        transaction_type: txType,
+                        items: valid.map((i) => ({
+                          inventory: i.inventory,
+                          quantity: txType === "Sale" ? -Math.abs(i.quantity) : Math.abs(i.quantity),
+                        })),
+                      };
+                      await createTransaction(payload);
+                      setModalOpen(false);
+                      fetchAll();
+                      getInventory().then(setInventory).catch(() => {});
+                      // Prepare template items
+                      const templateItems = valid.map((i) => {
+                        const rec = inventory.find((r) => r.id === i.inventory);
+                        return {
+                          barcode: rec?.product_details.barcode ?? "",
+                          product_name: rec?.product_details.product_name ?? "",
+                          unit: "Pcs",
+                          quantity: i.quantity,
+                        };
+                      });
+                      setPendingExportItems(templateItems);
+                      setPendingExportType(txType);
+                      await waitTwoFrames();
+                      try {
+                        const face = new FontFace("KantumruyPro", "url(/fonts/KantumruyPro-Regular.ttf)");
+                        document.fonts.add(await face.load());
+                        await document.fonts.ready;
+                      } catch {}
+                      const html2canvas = (await import("html2canvas")).default;
+                      const node = templateRef.current;
+                      if (!node) return;
+                      const canvas = await html2canvas(node, {
+                        scale: 3, useCORS: true, backgroundColor: "#ffffff",
+                        logging: false, width: node.scrollWidth, height: node.scrollHeight,
+                      });
+                      const { default: jsPDF } = await import("jspdf");
+                      const doc = new jsPDF({ orientation: "portrait", format: "a5", unit: "mm", compress: true });
+                      const pdfW = doc.internal.pageSize.getWidth();
+                      const pdfH = doc.internal.pageSize.getHeight();
+                      doc.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, pdfW, pdfH);
+                      // Open PDF in new tab for print
+                      const pdfBlob = doc.output("blob");
+                      const pdfUrl = URL.createObjectURL(pdfBlob);
+                      window.open(pdfUrl, "_blank");
+                    } catch (err) {
+                      setFormError("Failed to save and print transaction.");
+                    } finally {
+                      setSaving(false);
+                      setPendingExportItems([]);
+                    }
+                  }}
+                  className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-white bg-blue-600 hover:bg-blue-700 active:scale-[0.97] transition disabled:opacity-60 whitespace-nowrap"
+                >
+                  {saving ? "Printing…" : "Save & Print"}
                 </button>
               </div>
             </div>
