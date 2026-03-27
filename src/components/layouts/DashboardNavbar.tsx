@@ -57,12 +57,12 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
           </button>
 
           {/* Logo + title — always visible */}
-          <Link href="/dashboard" className="flex items-center gap-2.5 shrink-0">
+          <Link href="/dashboard" className="flex items-center gap-0 shrink-0">
             <div
               className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}
+             
             >
-              <Image src="/ctk.svg" alt="CTK" width={16} height={22} priority />
+              <Image src="/ctk.svg" alt="CTK" width={18} height={22} priority />
             </div>
             <div>
               <p className="text-sm font-bold tracking-[0.2em] uppercase text-gray-900 leading-none">CTK</p>
