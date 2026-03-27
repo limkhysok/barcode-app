@@ -1,6 +1,6 @@
-"use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+"use client";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { Transaction, TransactionPayload } from "@/src/types/transaction.types";
 import type { InventoryRecord } from "@/src/types/inventory.types";
 import { getTransactions, createTransaction, updateTransaction, deleteTransaction } from "@/src/services/transaction.service";
@@ -261,10 +261,12 @@ function TypeFilterSelect({
 
 // ─── TransactionsClient ───────────────────────────────────────────────────────
 
-export default function TransactionsClient({ initialTransactions, initialInventory }: Readonly<{
+type TransactionsClientProps = Readonly<{
   initialTransactions: Transaction[];
   initialInventory: InventoryRecord[];
-}>) {
+}>;
+
+const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransactions, initialInventory }) => {
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
   const [inventory, setInventory] = useState<InventoryRecord[]>(initialInventory);
   const [loading, setLoading] = useState(false);
@@ -338,7 +340,11 @@ export default function TransactionsClient({ initialTransactions, initialInvento
   }
 
   function handleScanBarcode() {
-    const q = scanInput.trim();
+    handleScanBarcodeWithValue(scanInput);
+  }
+
+  function handleScanBarcodeWithValue(inputValue: string) {
+    const q = inputValue.trim();
     if (!q) return;
     const rec = inventory.find((r) => r.product_details?.barcode?.toLowerCase().includes(q.toLowerCase()));
     if (!rec) {
@@ -910,12 +916,21 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                   <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Scan</p>
                   <div className="relative">
                     <input
+                      id="scan-barcode-input"
+                      name="scan-barcode"
                       type="text"
                       autoComplete="off"
-                      placeholder="Scan or type barcode, press Enter…"
+                      placeholder="Scan or type barcode…"
                       value={scanInput}
-                      onChange={(e) => { setScanInput(e.target.value); setScanFeedback(null); }}
-                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleScanBarcode(); } }}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setScanInput(value);
+                        setScanFeedback(null);
+                        if (value.trim() !== "") {
+                          console.log('Scan input changed, checking barcode:', value);
+                          handleScanBarcodeWithValue(value);
+                        }
+                      }}
                       className="w-full pl-4 pr-10 py-3 rounded-sm border border-black text-sm bg-gray-50 outline-none focus:ring-2 focus:border-transparent focus:bg-white transition placeholder:text-gray-300 text-gray-900 font-mono"
                       style={ringStyle}
                     />
@@ -1498,4 +1513,5 @@ export default function TransactionsClient({ initialTransactions, initialInvento
 
     </div>
   );
-}
+};
+export default TransactionsClient;
