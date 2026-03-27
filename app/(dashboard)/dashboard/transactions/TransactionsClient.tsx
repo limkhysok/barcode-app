@@ -1,198 +1,17 @@
 
 "use client";
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { Transaction, TransactionPayload } from "@/src/types/transaction.types";
 import type { InventoryRecord } from "@/src/types/inventory.types";
 import { getTransactions, createTransaction, updateTransaction, deleteTransaction } from "@/src/services/transaction.service";
 import { getInventory } from "@/src/services/inventory.service";
 import TransactionTemplate from "@/src/components/features/export/TransactionTemplate";
+import { formatDateTime, isToday, fmtValue, submitLabel } from "./utils/helpers";
+import { ringStyle, TYPE_CONFIG, TxTypeFilter, ItemDraft, TemplateItem, getNextItemId, emptyItem } from "./utils/constants";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatDateTime(ts: string): string {
-  const d = new Date(ts);
-  const day   = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year  = d.getFullYear();
-  const h24   = d.getHours();
-  const mins  = d.getMinutes();
-  const ampm  = h24 >= 12 ? "PM" : "AM";
-  const h12   = h24 % 12 || 12;
-  const time  = mins === 0 ? `${h12}${ampm}` : `${h12}:${String(mins).padStart(2, "0")}${ampm}`;
-  return `${day}/${month}/${year} ${time}`;
-}
-
-function isToday(ts: string): boolean {
-  const d = new Date(ts);
-  const n = new Date();
-  return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate();
-}
-
-function fmtValue(v: string, sign: string) {
-  return `${sign}$${Number.parseFloat(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const ringStyle = { "--tw-ring-color": "#FA4900" } as React.CSSProperties;
-
-const TYPE_CONFIG = {
-  Receive: { label: "Receive", bg: "bg-green-50", text: "text-green-600", dot: "bg-green-500" },
-  Sale:    { label: "Sale",    bg: "bg-red-50",   text: "text-red-600",   dot: "bg-red-500"   },
-};
-
-type TxTypeFilter = "" | "Receive" | "Sale";
-type ItemDraft = { id: number; inventory: number; quantity: number };
-type TemplateItem = { barcode: string; product_name: string; unit: string; quantity: number };
-let itemIdCounter = 0;
-const emptyItem = (): ItemDraft => ({ id: ++itemIdCounter, inventory: 0, quantity: 0 });
-
-function submitLabel(items: ItemDraft[]): string {
-  const count = items.filter((i) => i.inventory > 0 && i.quantity > 0).length;
-  return `Submit ${count} item${count === 1 ? "" : "s"}`;
-}
-
-// ─── InventoryPicker ─────────────────────────────────────────────────────────
-
-function InventoryPicker({
-  inventory,
-  value,
-  onChange,
-  excludeIds,
-}: Readonly<{
-  inventory: InventoryRecord[];
-  value: number;
-  onChange: (id: number) => void;
-  excludeIds: number[];
-}>) {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 0 });
-  const ref = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const selected = inventory.find((r) => r.id === value);
-
-  // Sync display text when selection changes externally
-  useEffect(() => {
-    setSearch(selected ? `${selected.product_details.product_name} — ${selected.site}` : "");
-  }, [value, selected]);
-
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-        // Restore label on blur
-        setSearch(selected ? `${selected.product_details.product_name} — ${selected.site}` : "");
-      }
-    }
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [selected]);
-
-  // Close on scroll so stale position never shows
-  useEffect(() => {
-    if (!open) return;
-    function onScroll() { setOpen(false); }
-    window.addEventListener("scroll", onScroll, true);
-    return () => window.removeEventListener("scroll", onScroll, true);
-  }, [open]);
-
-  function handleFocus() {
-    if (inputRef.current) {
-      const r = inputRef.current.getBoundingClientRect();
-      setDropPos({ top: r.bottom + 4, left: r.left, width: r.width });
-    }
-    setSearch(""); // clear so user sees all options
-    setOpen(true);
-  }
-
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const selectedLabel = selected
-      ? `${selected.product_details.product_name} — ${selected.site}`.toLowerCase()
-      : "";
-    const available = inventory.filter((r) => !excludeIds.includes(r.id) || r.id === value);
-    if (!q || q === selectedLabel) return available;
-    return available.filter((r) =>
-      r.product_details?.product_name?.toLowerCase().includes(q) ||
-      r.site?.toLowerCase().includes(q) ||
-      r.location?.toLowerCase().includes(q) ||
-      r.product_details?.barcode?.toLowerCase().includes(q)
-    );
-  }, [inventory, search, excludeIds, value, selected]);
-
-  return (
-    <div className="relative flex-1 min-w-0" ref={ref}>
-      <input
-        ref={inputRef}
-        type="text"
-        autoComplete="off"
-        placeholder="Search by name or barcode…"
-        value={search}
-        onFocus={handleFocus}
-        onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
-        className="w-full pl-4 pr-10 py-3 rounded-sm border border-black text-sm bg-gray-50 outline-none focus:ring-2 focus:border-transparent focus:bg-white transition placeholder:text-gray-300 text-gray-900"
-        style={ringStyle}
-      />
-      {/* Barcode hint icon */}
-      <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-        <svg className="w-5 h-5 text-gray-800" viewBox="0 0 24 24" fill="none">
-          <rect x="2"    y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
-          <rect x="5"    y="4" width="1"   height="16" rx="0.5" fill="currentColor" />
-          <rect x="7.5"  y="4" width="2"   height="16" rx="0.5" fill="currentColor" />
-          <rect x="11"   y="4" width="1"   height="16" rx="0.5" fill="currentColor" />
-          <rect x="13.5" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
-          <rect x="16.5" y="4" width="1"   height="16" rx="0.5" fill="currentColor" />
-          <rect x="19"   y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
-          <rect x="21.5" y="4" width="1"   height="16" rx="0.5" fill="currentColor" />
-        </svg>
-      </div>
-
-      {open && (
-        <div
-          className="bg-white border border-black rounded-sm shadow-lg overflow-hidden"
-          style={{ position: "fixed", top: dropPos.top, left: dropPos.left, width: dropPos.width, zIndex: 9999 }}
-        >
-          <ul className="max-h-52 overflow-y-auto">
-            {filtered.length === 0 && (
-              <li className="px-4 py-3 text-xs text-gray-400 font-medium">No records found.</li>
-            )}
-            {filtered.map((r) => (
-              <li key={r.id} className="border-b border-black last:border-b-0">
-                <button
-                  type="button"
-                  onClick={() => {
-                    onChange(r.id);
-                    setSearch(`${r.product_details.product_name} — ${r.site}`);
-                    setOpen(false);
-                  }}
-                  className={`w-full text-left px-3 py-2.5 text-[11px] font-semibold tracking-wide flex items-start gap-3 transition ${
-                    value === r.id ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
-                  }`}
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate">
-                      {r.product_details.product_name}
-                      {r.product_details.barcode && (
-                        <span className={`ml-1.5 font-mono font-normal ${value === r.id ? "text-white/60" : "text-gray-400"}`}>
-                          ({r.product_details.barcode})
-                        </span>
-                      )}
-                    </p>
-                    <p className={`text-[10px] truncate font-normal ${value === r.id ? "text-white/60" : "text-gray-400"}`}>
-                      {r.site} · {r.location} · Qty: {r.quantity_on_hand}
-                    </p>
-                  </div>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-}
+import InventoryPicker from "./InventoryPicker";
 
 function waitTwoFrames(): Promise<void> {
   return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
@@ -200,64 +19,8 @@ function waitTwoFrames(): Promise<void> {
 
 // ─── TypeFilterSelect ─────────────────────────────────────────────────────────
 
-function TypeFilterSelect({
-  value,
-  onChange,
-}: Readonly<{ value: TxTypeFilter; onChange: (v: TxTypeFilter) => void }>) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  const options: { key: TxTypeFilter; label: string }[] = [
-    { key: "",        label: "All Types"  },
-    { key: "Receive", label: "Receive"    },
-    { key: "Sale",    label: "Sale"       },
-  ];
-  const current = options.find((o) => o.key === value) ?? options[0];
-
-  return (
-    <div className="relative" ref={ref}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className={`w-full px-4 py-2 rounded-sm border text-sm font-medium text-left flex items-center justify-between gap-2 transition focus:outline-none bg-gray-50 ${
-          open ? "border-black ring-1 ring-black" : "border-black hover:bg-slate-50"
-        } ${value === "" ? "text-gray-300" : "text-gray-900"}`}
-      >
-        <span className="truncate">{current.label}</span>
-        <svg className="w-3.5 h-3.5 text-slate-500 shrink-0 transition-transform duration-200"
-          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
-          fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-        </svg>
-      </button>
-      {open && (
-        <ul className="absolute z-200 top-full mt-1 w-full bg-white border border-black rounded-sm shadow-lg overflow-hidden">
-          {options.map((o) => (
-            <li key={o.key || "all"} className="border-b border-black last:border-b-0">
-              <button
-                type="button"
-                onClick={() => { onChange(o.key); setOpen(false); }}
-                className={`w-full text-left px-3 py-2.5 text-[11px] font-semibold tracking-wide transition ${
-                  value === o.key ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                {o.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
+import TypeFilterSelect from "./TypeFilterSelect";
 
 // ─── TransactionsClient ───────────────────────────────────────────────────────
 
@@ -362,7 +125,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
       if (emptyIdx >= 0) {
         updateItem(emptyIdx, { inventory: rec.id, quantity: 1 });
       } else {
-        setItems((prev) => [...prev, { id: ++itemIdCounter, inventory: rec.id, quantity: 1 }]);
+        setItems((prev) => [...prev, { id: getNextItemId(), inventory: rec.id, quantity: 1 }]);
       }
       setScanFeedback({ ok: true, msg: `Added: ${rec.product_details.product_name}` });
     }
@@ -465,7 +228,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
     setEditTarget(t);
     setEditTxType(t.transaction_type);
     setEditItems(t.items.map((item) => ({
-      id: ++itemIdCounter,
+      id: getNextItemId(),
       inventory: item.inventory,
       quantity: Math.abs(item.quantity),
     })));
@@ -923,12 +686,19 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
                       placeholder="Scan or type barcode…"
                       value={scanInput}
                       onChange={(e) => {
-                        const value = e.target.value;
-                        setScanInput(value);
+                        setScanInput(e.target.value);
                         setScanFeedback(null);
-                        if (value.trim() !== "") {
-                          console.log('Scan input changed, checking barcode:', value);
-                          handleScanBarcodeWithValue(value);
+                        console.log('Scan input changed:', e.target.value);
+                      }}
+                      onKeyDown={(e) => {
+                        const value = (e.target as HTMLInputElement).value.trim();
+                        console.log('Key down event:', e.key, 'Current input value:', value);
+                        if (e.key === "Enter") {
+                          e.preventDefault(); // Prevent form submission!
+                          if (value !== "") {
+                            console.log('Enter pressed, processing barcode:', value);
+                            handleScanBarcodeWithValue(value);
+                          }
                         }
                       }}
                       className="w-full pl-4 pr-10 py-3 rounded-sm border border-black text-sm bg-gray-50 outline-none focus:ring-2 focus:border-transparent focus:bg-white transition placeholder:text-gray-300 text-gray-900 font-mono"

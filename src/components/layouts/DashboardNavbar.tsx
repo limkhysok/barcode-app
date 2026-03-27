@@ -62,7 +62,7 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
               className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
              
             >
-              <Image src="/ctk.svg" alt="CTK" width={18} height={22} priority />
+              <Image src="/ctk.svg" alt="CTK" width={18} height={18} priority />
             </div>
             <div>
               <p className="text-sm font-bold tracking-[0.2em] uppercase text-gray-900 leading-none">CTK</p>
