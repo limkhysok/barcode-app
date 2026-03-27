@@ -5,22 +5,22 @@ const BORDER_COLOR = "#000000";
 const CELL_BASE: React.CSSProperties = {
   border: `1px solid ${BORDER_COLOR}`,
   fontSize: "12px",
-  lineHeight: "1.6", // Vital for Khmer script legibility
+  lineHeight: "1.6",
   padding: "8px 4px",
   boxSizing: "border-box",
 };
 
-const CELL_HEADER: React.CSSProperties = { 
+const CELL_HEADER: React.CSSProperties = {
   ...CELL_BASE,
-  backgroundColor: "#f2f2f2", // Light grey to distinguish header
+  backgroundColor: "#f2f2f2",
   textAlign: "center",
   fontWeight: "bold",
-  verticalAlign: "middle", 
+  verticalAlign: "middle",
 };
 
-const CELL_BODY: React.CSSProperties = { 
+const CELL_BODY: React.CSSProperties = {
   ...CELL_BASE,
-  verticalAlign: "middle", 
+  verticalAlign: "middle",
 };
 
 const CELL_CENTER: React.CSSProperties = {
@@ -28,27 +28,36 @@ const CELL_CENTER: React.CSSProperties = {
   textAlign: "center",
 };
 
+const TITLE: Record<"Sale" | "Receive", string> = {
+  Sale:    "ប័ណ្ណស្នើបើកគ្រឿងបន្លាស់",
+  Receive: "ប័ណ្ណស្នើបញ្ចូលគ្រឿងបន្លាស់",
+};
+
 const TransactionTemplate = ({ transaction }: {
-  transaction: { items: { barcode: string; product_name: string; unit?: string; quantity: number }[] };
+  transaction: {
+    transaction_type: "Sale" | "Receive";
+    items: { barcode: string; product_name: string; unit?: string; quantity: number }[];
+  };
 }) => {
+  const title = TITLE[transaction.transaction_type];
   return (
     <div
       id="invoice-receipt"
       style={{
         width: "148mm",
         minHeight: "210mm",
-        padding: "20mm 12mm", // Standard print margins
+        padding: "20mm 12mm",
         backgroundColor: "#ffffff",
         color: "#000000",
         fontFamily: "var(--font-kantumruy, 'KantumruyPro', sans-serif)",
         boxSizing: "border-box",
-        margin: "auto"
+        margin: "auto",
       }}
     >
-      {/* Header Section */} {/* transaction_type =( Sale = ប័ណ្ណស្នើបើកគ្រឿងបន្លាស់ / Receive = ប័ណ្ណស្នើបញ្ចូលគ្រឿងបន្លាស់* )/}
+      {/* Header Section */}
       <div style={{ textAlign: "center", marginBottom: "30px" }}>
         <h1 style={{ fontSize: "22px", fontWeight: "bold", margin: "0 0 8px 0" }}>
-          ប័ណ្ណស្នើបើកគ្រឿងបន្លាស់
+          {title}
         </h1>
         <p style={{ fontSize: "14px", margin: 0 }}>
           ថ្ងៃទី....... ខែ....... ឆ្នាំ ........
@@ -59,7 +68,7 @@ const TransactionTemplate = ({ transaction }: {
       <table
         style={{
           width: "100%",
-          borderCollapse: "collapse", // Ensures single borders instead of double
+          borderCollapse: "collapse",
           tableLayout: "fixed",
         }}
       >
@@ -84,27 +93,21 @@ const TransactionTemplate = ({ transaction }: {
               <td style={CELL_BODY}></td>
             </tr>
           ))}
-          {/* Empty rows to maintain table height if list is short (Optional) */}
-          {transaction.items.length < 5 && Array.from({length: 5 - transaction.items.length}).map((_, i) => (
+          {transaction.items.length < 5 && Array.from({ length: 5 - transaction.items.length }).map((_, i) => (
             <tr key={`empty-${i}`}>
-                <td style={{...CELL_BODY, height: '32px'}}>&nbsp;</td>
-                <td style={CELL_BODY}></td>
-                <td style={CELL_BODY}></td>
-                <td style={CELL_BODY}></td>
-                <td style={CELL_BODY}></td>
-                <td style={CELL_BODY}></td>
+              <td style={{ ...CELL_BODY, height: "32px" }}>&nbsp;</td>
+              <td style={CELL_BODY}></td>
+              <td style={CELL_BODY}></td>
+              <td style={CELL_BODY}></td>
+              <td style={CELL_BODY}></td>
+              <td style={CELL_BODY}></td>
             </tr>
           ))}
         </tbody>
       </table>
 
       {/* Footer Section — signature blocks */}
-      <div style={{ 
-        display: "flex", 
-        justifyContent: "space-between", 
-        marginTop: "60px",
-        padding: "0 20px" 
-      }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "60px", padding: "0 20px" }}>
         {(["ផ្នែក QC", "ផ្នែកជាង", "ប្រធានឃ្លាំង"] as const).map((label) => (
           <div key={label} style={{ textAlign: "center", width: "120px" }}>
             <p style={{ fontSize: "13px", fontWeight: "bold", margin: "0 0 60px 0" }}>{label}</p>

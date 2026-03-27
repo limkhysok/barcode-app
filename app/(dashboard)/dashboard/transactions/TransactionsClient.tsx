@@ -288,6 +288,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
 
   const [singleExporting, setSingleExporting] = useState(false);
   const [pendingExportItems, setPendingExportItems] = useState<TemplateItem[]>([]);
+  const [pendingExportType, setPendingExportType] = useState<"Sale" | "Receive">("Sale");
   const templateRef = useRef<HTMLDivElement>(null);
 
   const [viewTarget, setViewTarget] = useState<Transaction | null>(null);
@@ -359,7 +360,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
             quantity: i.quantity,
           };
         });
-        exportTemplateAsPdf(templateItems, `transaction-${new Date().toISOString().slice(0, 10)}`);
+        exportTemplateAsPdf(templateItems, txType, `transaction-${new Date().toISOString().slice(0, 10)}`);
       }
     } catch (err: unknown) {
       type ApiErr = { response?: { data?: { detail?: string; items?: Array<{ quantity?: string }> } } };
@@ -379,8 +380,9 @@ export default function TransactionsClient({ initialTransactions, initialInvento
     await doSave(false);
   }
 
-  async function exportTemplateAsPdf(items: TemplateItem[], filename: string) {
+  async function exportTemplateAsPdf(items: TemplateItem[], txType: "Sale" | "Receive", filename: string) {
     setPendingExportItems(items);
+    setPendingExportType(txType);
     await waitTwoFrames();
     setSingleExporting(true);
     try {
@@ -420,7 +422,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
         quantity: item.quantity,
       };
     });
-    exportTemplateAsPdf(items, `transaction-${t.id}-${new Date().toISOString().slice(0, 10)}`);
+    exportTemplateAsPdf(items, t.transaction_type, `transaction-${t.id}-${new Date().toISOString().slice(0, 10)}`);
   }
 
 
@@ -1423,7 +1425,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
         style={{ position: "fixed", left: "-9999px", top: 0, zIndex: -1, pointerEvents: "none" }}
       >
         {pendingExportItems.length > 0 && (
-          <TransactionTemplate transaction={{ items: pendingExportItems }} />
+          <TransactionTemplate transaction={{ transaction_type: pendingExportType, items: pendingExportItems }} />
         )}
       </div>
 
