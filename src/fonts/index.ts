@@ -1,15 +1,8 @@
 import { Roboto, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 
 /**
  * Primary UI font — Roboto with all needed weights + italic.
- * weights: 400 (regular) | 500 (medium) | 700 (bold)
- * styles:  normal | italic
- *
- * Usage via Tailwind:
- *   font-normal   → 400 Regular
- *   font-medium   → 500 Medium
- *   font-bold     → 700 Bold
- *   italic        → Italic variant of any weight
  */
 export const fontSans = Roboto({
     variable: "--font-roboto",
@@ -25,5 +18,15 @@ export const fontSans = Roboto({
 export const fontMono = Geist_Mono({
     variable: "--font-geist-mono",
     subsets: ["latin"],
+    display: "swap",
+});
+
+/**
+ * Khmer display font — used for Khmer-language print templates.
+ * Maps to the `font-khmer` Tailwind utility via --font-kantumruy.
+ */
+export const fontKhmer = localFont({
+    src: "../fonts/KantumruyPro-Regular.ttf",
+    variable: "--font-kantumruy",
     display: "swap",
 });

@@ -5,6 +5,7 @@ import type { Transaction, TransactionPayload } from "@/src/types/transaction.ty
 import type { InventoryRecord } from "@/src/types/inventory.types";
 import { getTransactions, createTransaction, updateTransaction, deleteTransaction } from "@/src/services/transaction.service";
 import { getInventory } from "@/src/services/inventory.service";
+import TransactionTemplate from "@/src/components/features/export/TransactionTemplate";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -40,7 +41,9 @@ const TYPE_CONFIG = {
   Sale:    { label: "Sale",    bg: "bg-red-50",   text: "text-red-600",   dot: "bg-red-500"   },
 };
 
+type TxTypeFilter = "" | "Receive" | "Sale";
 type ItemDraft = { id: number; inventory: number; quantity: number };
+type TemplateItem = { barcode: string; product_name: string; unit: string; quantity: number };
 let itemIdCounter = 0;
 const emptyItem = (): ItemDraft => ({ id: ++itemIdCounter, inventory: 0, quantity: 0 });
 
@@ -234,7 +237,7 @@ function drawPngRow(
 function TypeFilterSelect({
   value,
   onChange,
-}: Readonly<{ value: "" | "Receive" | "Sale"; onChange: (v: "" | "Receive" | "Sale") => void }>) {
+}: Readonly<{ value: TxTypeFilter; onChange: (v: TxTypeFilter) => void }>) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -246,7 +249,7 @@ function TypeFilterSelect({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const options: { key: "" | "Receive" | "Sale"; label: string }[] = [
+  const options: { key: TxTypeFilter; label: string }[] = [
     { key: "",        label: "All Types"  },
     { key: "Receive", label: "Receive"    },
     { key: "Sale",    label: "Sale"       },
@@ -301,7 +304,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const [typeFilter, setTypeFilter] = useState<"" | "Receive" | "Sale">("");
+  const [typeFilter, setTypeFilter] = useState<TxTypeFilter>("");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
@@ -322,6 +325,13 @@ export default function TransactionsClient({ initialTransactions, initialInvento
   const [exportFormat, setExportFormat] = useState<"pdf" | "xlsx" | "png">("pdf");
   const [exportSize, setExportSize] = useState<"a5" | "a4" | "a3" | "letter">("a5");
   const [exporting, setExporting] = useState(false);
+
+  const [singleExportOpen, setSingleExportOpen] = useState(false);
+  const [singleExportSize, setSingleExportSize] = useState<"a5" | "a4" | "a3">("a5");
+  const [singleExportFormat, setSingleExportFormat] = useState<"pdf" | "xlsx" | "png">("pdf");
+  const [singleExporting, setSingleExporting] = useState(false);
+  const [pendingExportItems, setPendingExportItems] = useState<TemplateItem[]>([]);
+  const templateRef = useRef<HTMLDivElement>(null);
 
   const [viewTarget, setViewTarget] = useState<Transaction | null>(null);
 
@@ -365,8 +375,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
     setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, ...patch } : item)));
   }
 
-  async function handleSave(e: React.SyntheticEvent) {
-    e.preventDefault();
+  async function doSave(andExport: boolean) {
     const valid = items.filter((i) => i.inventory > 0 && i.quantity > 0);
     if (valid.length === 0) { setFormError("Add at least one item with a product and quantity."); return; }
     setSaving(true);
@@ -383,6 +392,19 @@ export default function TransactionsClient({ initialTransactions, initialInvento
       setModalOpen(false);
       fetchAll();
       getInventory().then(setInventory).catch(() => {});
+      if (andExport) {
+        const templateItems: TemplateItem[] = valid.map((i) => {
+          const rec = inventory.find((r) => r.id === i.inventory);
+          return {
+            barcode: rec?.product_details.barcode ?? "",
+            product_name: rec?.product_details.product_name ?? "",
+            unit: "Pcs",
+            quantity: i.quantity,
+          };
+        });
+        setPendingExportItems(templateItems);
+        setSingleExportOpen(true);
+      }
     } catch (err: unknown) {
       type ApiErr = { response?: { data?: { detail?: string; items?: Array<{ quantity?: string }> } } };
       const data = (err as ApiErr)?.response?.data;
@@ -393,6 +415,97 @@ export default function TransactionsClient({ initialTransactions, initialInvento
       setFormError(msg);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleSave(e: React.SyntheticEvent) {
+    e.preventDefault();
+    await doSave(false);
+  }
+
+  async function handleSingleExport() {
+    if (pendingExportItems.length === 0) return;
+    setSingleExporting(true);
+    const filename = `transaction-${new Date().toISOString().slice(0, 10)}`;
+    try {
+      if (singleExportFormat === "xlsx") {
+        const XLSX = await import("xlsx");
+        const header = ["#", "Barcode", "Product Name", "Unit", "Quantity"];
+        const rows = pendingExportItems.map((item, idx) => [
+          idx + 1,
+          item.barcode,
+          item.product_name,
+          item.unit,
+          item.quantity,
+        ]);
+        const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Transaction");
+        XLSX.writeFile(wb, `${filename}.xlsx`);
+        setSingleExportOpen(false);
+      } else {
+        // Preload KantumruyPro so html2canvas renders Khmer text correctly
+        try {
+          const face = new FontFace("KantumruyPro", "url(/fonts/KantumruyPro-Regular.ttf)");
+          const loaded = await face.load();
+          document.fonts.add(loaded);
+          await document.fonts.ready;
+        } catch {
+          // Font already loaded or unavailable — continue anyway
+        }
+
+        const html2canvas = (await import("html2canvas")).default;
+        const node = templateRef.current;
+        if (!node) return;
+
+        // Capture the template at 3× for sharp text on HiDPI screens / print
+        const canvas = await html2canvas(node, {
+          scale: 3,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+          logging: false,
+          width: node.scrollWidth,
+          height: node.scrollHeight,
+        });
+
+        if (singleExportFormat === "png") {
+          canvas.toBlob((blob) => {
+            if (!blob) return;
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${filename}.png`;
+            a.click();
+            URL.revokeObjectURL(url);
+          }, "image/png");
+        } else {
+          const { default: jsPDF } = await import("jspdf");
+          const doc = new jsPDF({ orientation: "portrait", format: singleExportSize, unit: "mm", compress: true });
+          const pdfW = doc.internal.pageSize.getWidth();
+          const pdfH = doc.internal.pageSize.getHeight();
+          const imgData = canvas.toDataURL("image/jpeg", 0.95);
+
+          // Template is natively A5 (148 × 210 mm).
+          // Scale it proportionally to fit the selected paper size.
+          const TEMPLATE_W_MM = 148;
+          const TEMPLATE_H_MM = 210;
+          const scaleX = pdfW / TEMPLATE_W_MM;
+          const scaleY = pdfH / TEMPLATE_H_MM;
+          const fitScale = Math.min(scaleX, scaleY);
+          const imgW = TEMPLATE_W_MM * fitScale;
+          const imgH = TEMPLATE_H_MM * fitScale;
+          const xOff = (pdfW - imgW) / 2;
+          const yOff = (pdfH - imgH) / 2;
+
+          doc.addImage(imgData, "JPEG", xOff, yOff, imgW, imgH);
+          doc.save(`${filename}.pdf`);
+        }
+        setSingleExportOpen(false);
+      }
+    } catch (err) {
+      console.error("Export failed", err);
+    } finally {
+      setSingleExporting(false);
     }
   }
 
@@ -702,7 +815,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                     setMenuPos({ top: r.bottom + 4, left: r.right - 128 });
                     setMenuOpenId(menuOpenId === t.id ? null : t.id);
                   }}
-                  className="p-2.5 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 active:scale-95 transition shrink-0 mt-0.5"
+                  className="p-2.5 rounded-sm text-gray-400 hover:text-gray-700 hover:bg-gray-100 active:scale-95 transition shrink-0 mt-0.5"
                   title="Actions"
                 >
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -824,7 +937,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
       </div>
 
       {/* Overview */}
-      <div className="flex flex-col sm:flex-row rounded-xl border border-black overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-black">
+      <div className="flex flex-col sm:flex-row rounded-sm border border-black overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-black">
 
         {/* Today */}
         <div className="flex-1 bg-white p-4 sm:p-5 flex flex-col justify-between gap-3">
@@ -901,7 +1014,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
 
       {/* Transaction flow bar */}
       {stats.total > 0 && (
-        <div className="rounded-xl border border-black bg-white px-5 py-4">
+        <div className="rounded-sm border border-black bg-white px-5 py-4">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Transaction Flow</p>
             <p className="text-[10px] text-gray-400">{stats.total} total</p>
@@ -952,7 +1065,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
       </div>
 
       {/* Table */}
-      <div className="rounded-xl border border-black overflow-hidden bg-white">
+      <div className="rounded-sm border border-black overflow-hidden bg-white">
         {tableContent}
       </div>
 
@@ -966,10 +1079,10 @@ export default function TransactionsClient({ initialTransactions, initialInvento
       {/* New Transaction Modal — two-panel */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
-          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-4xl flex flex-col max-h-[95vh]">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-4xl flex flex-col max-h-[95vh] overflow-hidden">
 
             {/* ── Orange accent strip ── */}
-            <div className="h-1 w-full rounded-t-3xl sm:rounded-t-2xl" style={{ background: "#FA4900" }} />
+            <div className="h-1 w-full shrink-0" style={{ background: "#FA4900" }} />
 
             {/* ── Header ── */}
             <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-black shrink-0">
@@ -977,7 +1090,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                 <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-none"
                   style={{ background: "#FFF0E8", color: "#FA4900" }}>
                   <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "#FA4900" }} />
-                  New
+                  <span>New</span>
                 </span>
                 <h2 className="text-xl font-bold text-gray-900">New Transaction</h2>
                 <p className="text-xs text-gray-400 mt-0.5">Select type, add items, confirm.</p>
@@ -1152,7 +1265,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
               {formError && (
                 <p className="text-xs font-medium text-red-500 bg-red-50 border border-red-100 rounded-sm px-4 py-2.5">{formError}</p>
               )}
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 <button type="button" onClick={() => setModalOpen(false)}
                   className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
                   Cancel
@@ -1164,7 +1277,16 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                   className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-white active:scale-[0.97] transition disabled:opacity-60"
                   style={{ background: "#FA4900" }}
                 >
-                  {saving ? "Saving…" : submitLabel(items)}
+                  {saving ? "Saving…" : "Save"}
+                </button>
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => doSave(true)}
+                  className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-white active:scale-[0.97] transition disabled:opacity-60 whitespace-nowrap"
+                  style={{ background: "#1a1a1a" }}
+                >
+                  {saving ? "Saving…" : "Save & Export"}
                 </button>
               </div>
             </div>
@@ -1306,7 +1428,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                 <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-none"
                   style={{ background: "#FFF0E8", color: "#FA4900" }}>
                   <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "#FA4900" }} />
-                  View
+                  <span>View</span>
                 </span>
                 <h2 className="text-xl font-bold text-gray-900">Transaction #{viewTarget.id}</h2>
                 <p className="text-xs text-gray-400 mt-0.5" suppressHydrationWarning>{formatDateTime(viewTarget.transaction_date)}</p>
@@ -1392,10 +1514,10 @@ export default function TransactionsClient({ initialTransactions, initialInvento
       {/* Edit Transaction Modal */}
       {editTarget && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
-          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-4xl flex flex-col max-h-[95vh]">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-4xl flex flex-col max-h-[95vh] overflow-hidden">
 
             {/* Orange accent strip */}
-            <div className="h-1 w-full rounded-t-3xl sm:rounded-t-2xl" style={{ background: "#FA4900" }} />
+            <div className="h-1 w-full shrink-0" style={{ background: "#FA4900" }} />
 
             {/* Header */}
             <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-black shrink-0">
@@ -1403,7 +1525,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                 <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-none"
                   style={{ background: "#FFF0E8", color: "#FA4900" }}>
                   <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "#FA4900" }} />
-                  Editing
+                  <span>Editing</span>
                 </span>
                 <h2 className="text-xl font-bold text-gray-900">Edit Transaction #{editTarget.id}</h2>
                 <p className="text-xs text-gray-400 mt-0.5">Modify type, items, and quantities.</p>
@@ -1622,6 +1744,96 @@ export default function TransactionsClient({ initialTransactions, initialInvento
               <button onClick={handleDelete} disabled={deleting}
                 className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-white bg-red-500 hover:bg-red-600 active:scale-[0.97] transition disabled:opacity-60">
                 {deleting ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden TransactionTemplate for html2canvas capture */}
+      <div
+        ref={templateRef}
+        aria-hidden="true"
+        style={{ position: "fixed", left: "-9999px", top: 0, zIndex: -1, pointerEvents: "none" }}
+      >
+        {pendingExportItems.length > 0 && (
+          <TransactionTemplate transaction={{ items: pendingExportItems }} />
+        )}
+      </div>
+
+      {/* Single Transaction Export Dialog */}
+      {singleExportOpen && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+            <div className="h-1 w-full shrink-0" style={{ background: "#FA4900" }} />
+            <div className="px-6 pt-5 pb-4 border-b border-black">
+              <h2 className="text-lg font-bold text-gray-900">Export Transaction</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Choose paper size and file format.</p>
+            </div>
+            <div className="px-6 py-5 space-y-5">
+              {/* Paper size */}
+              <div>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Paper Size</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["a5", "a4", "a3"] as const).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setSingleExportSize(s)}
+                      className={`py-2 rounded-sm text-xs font-bold uppercase border transition ${
+                        singleExportSize === s
+                          ? "border-transparent text-white"
+                          : "border-black text-gray-700 hover:bg-slate-50"
+                      }`}
+                      style={singleExportSize === s ? { background: "#FA4900" } : {}}
+                    >
+                      {s.toUpperCase()}
+                      {s === "a5" && <span className="ml-1 text-[9px] font-normal opacity-70">(default)</span>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Format */}
+              <div>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Format</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["pdf", "xlsx", "png"] as const).map((f) => (
+                    <button
+                      key={f}
+                      type="button"
+                      onClick={() => setSingleExportFormat(f)}
+                      className={`py-2 rounded-sm text-xs font-bold uppercase border transition ${
+                        singleExportFormat === f
+                          ? "border-transparent text-white"
+                          : "border-black text-gray-700 hover:bg-slate-50"
+                      }`}
+                      style={singleExportFormat === f ? { background: "#1a1a1a" } : {}}
+                    >
+                      {f.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+                {singleExportFormat === "xlsx" && (
+                  <p className="text-[10px] text-gray-400 mt-1.5">Paper size is not applied to Excel exports.</p>
+                )}
+              </div>
+            </div>
+            <div className="px-6 pb-6 flex gap-2">
+              <button
+                type="button"
+                onClick={() => { setSingleExportOpen(false); setPendingExportItems([]); }}
+                className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={singleExporting}
+                onClick={handleSingleExport}
+                className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-white active:scale-[0.97] transition disabled:opacity-60"
+                style={{ background: "#FA4900" }}
+              >
+                {singleExporting ? "Exporting…" : "Export"}
               </button>
             </div>
           </div>

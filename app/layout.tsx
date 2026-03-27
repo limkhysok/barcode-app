@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { fontSans, fontMono } from "@/src/fonts";
+import { fontSans, fontMono, fontKhmer } from "@/src/fonts";
 import { AuthProvider } from "@/src/context/AuthContext";
 import "./globals.css";
 
@@ -19,7 +19,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fontSans.variable} ${fontMono.variable} h-full antialiased`}
+      className={`${fontSans.variable} ${fontMono.variable} ${fontKhmer.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
