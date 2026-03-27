@@ -194,42 +194,8 @@ function InventoryPicker({
   );
 }
 
-// ─── PNG export helpers (module-level, no closure) ───────────────────────────
-
-function truncateCanvasText(ctx: CanvasRenderingContext2D, text: string, maxW: number): string {
-  let txt = text;
-  while (ctx.measureText(txt).width > maxW && txt.length > 3) txt = txt.slice(0, -1);
-  return txt === text ? txt : `${txt}…`;
-}
-
-function buildPngCells(t: Transaction): Array<{ text: string; color: string }> {
-  const sign    = t.transaction_type === "Receive" ? "+" : "−";
-  const accent  = t.transaction_type === "Receive" ? "#16a34a" : "#ef4444";
-  const itemTxt = `${t.items.map((i) => i.product_name).join(", ")} (${t.items.length})`;
-  return [
-    { text: `#${t.id}`,                                                              color: "#9ca3af" },
-    { text: t.transaction_type,                                                      color: accent    },
-    { text: itemTxt,                                                                 color: "#111827" },
-    { text: `${sign}$${Number.parseFloat(t.total_transaction_value).toFixed(2)}`,   color: accent    },
-    { text: t.performed_by_username,                                                 color: "#374151" },
-    { text: formatDateTime(t.transaction_date),                                      color: "#6b7280" },
-  ];
-}
-
-function drawPngRow(
-  ctx: CanvasRenderingContext2D,
-  cols: Array<{ label: string; w: number }>,
-  cells: Array<{ text: string; color: string }>,
-  rowY: number,
-  pad: number,
-) {
-  ctx.font = "10px system-ui,sans-serif";
-  let x = pad;
-  for (let ci = 0; ci < cols.length; ci++) {
-    ctx.fillStyle = cells[ci].color;
-    ctx.fillText(truncateCanvasText(ctx, cells[ci].text, cols[ci].w - 8), x, rowY + 22);
-    x += cols[ci].w;
-  }
+function waitTwoFrames(): Promise<void> {
+  return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 }
 
 // ─── TypeFilterSelect ─────────────────────────────────────────────────────────
@@ -320,15 +286,6 @@ export default function TransactionsClient({ initialTransactions, initialInvento
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
 
-  const [exportOpen, setExportOpen] = useState(false);
-  const [exportPos, setExportPos] = useState({ top: 0, left: 0 });
-  const [exportFormat, setExportFormat] = useState<"pdf" | "xlsx" | "png">("pdf");
-  const [exportSize, setExportSize] = useState<"a5" | "a4" | "a3" | "letter">("a5");
-  const [exporting, setExporting] = useState(false);
-
-  const [singleExportOpen, setSingleExportOpen] = useState(false);
-  const [singleExportSize, setSingleExportSize] = useState<"a5" | "a4" | "a3">("a5");
-  const [singleExportFormat, setSingleExportFormat] = useState<"pdf" | "xlsx" | "png">("pdf");
   const [singleExporting, setSingleExporting] = useState(false);
   const [pendingExportItems, setPendingExportItems] = useState<TemplateItem[]>([]);
   const templateRef = useRef<HTMLDivElement>(null);
@@ -402,8 +359,7 @@ export default function TransactionsClient({ initialTransactions, initialInvento
             quantity: i.quantity,
           };
         });
-        setPendingExportItems(templateItems);
-        setSingleExportOpen(true);
+        exportTemplateAsPdf(templateItems, `transaction-${new Date().toISOString().slice(0, 10)}`);
       }
     } catch (err: unknown) {
       type ApiErr = { response?: { data?: { detail?: string; items?: Array<{ quantity?: string }> } } };
@@ -423,250 +379,50 @@ export default function TransactionsClient({ initialTransactions, initialInvento
     await doSave(false);
   }
 
-  async function handleSingleExport() {
-    if (pendingExportItems.length === 0) return;
+  async function exportTemplateAsPdf(items: TemplateItem[], filename: string) {
+    setPendingExportItems(items);
+    await waitTwoFrames();
     setSingleExporting(true);
-    const filename = `transaction-${new Date().toISOString().slice(0, 10)}`;
     try {
-      if (singleExportFormat === "xlsx") {
-        const XLSX = await import("xlsx");
-        const header = ["#", "Barcode", "Product Name", "Unit", "Quantity"];
-        const rows = pendingExportItems.map((item, idx) => [
-          idx + 1,
-          item.barcode,
-          item.product_name,
-          item.unit,
-          item.quantity,
-        ]);
-        const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Transaction");
-        XLSX.writeFile(wb, `${filename}.xlsx`);
-        setSingleExportOpen(false);
-      } else {
-        // Preload KantumruyPro so html2canvas renders Khmer text correctly
-        try {
-          const face = new FontFace("KantumruyPro", "url(/fonts/KantumruyPro-Regular.ttf)");
-          const loaded = await face.load();
-          document.fonts.add(loaded);
-          await document.fonts.ready;
-        } catch {
-          // Font already loaded or unavailable — continue anyway
-        }
-
-        const html2canvas = (await import("html2canvas")).default;
-        const node = templateRef.current;
-        if (!node) return;
-
-        // Capture the template at 3× for sharp text on HiDPI screens / print
-        const canvas = await html2canvas(node, {
-          scale: 3,
-          useCORS: true,
-          backgroundColor: "#ffffff",
-          logging: false,
-          width: node.scrollWidth,
-          height: node.scrollHeight,
-        });
-
-        if (singleExportFormat === "png") {
-          canvas.toBlob((blob) => {
-            if (!blob) return;
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `${filename}.png`;
-            a.click();
-            URL.revokeObjectURL(url);
-          }, "image/png");
-        } else {
-          const { default: jsPDF } = await import("jspdf");
-          const doc = new jsPDF({ orientation: "portrait", format: singleExportSize, unit: "mm", compress: true });
-          const pdfW = doc.internal.pageSize.getWidth();
-          const pdfH = doc.internal.pageSize.getHeight();
-          const imgData = canvas.toDataURL("image/jpeg", 0.95);
-
-          // Template is natively A5 (148 × 210 mm).
-          // Scale it proportionally to fit the selected paper size.
-          const TEMPLATE_W_MM = 148;
-          const TEMPLATE_H_MM = 210;
-          const scaleX = pdfW / TEMPLATE_W_MM;
-          const scaleY = pdfH / TEMPLATE_H_MM;
-          const fitScale = Math.min(scaleX, scaleY);
-          const imgW = TEMPLATE_W_MM * fitScale;
-          const imgH = TEMPLATE_H_MM * fitScale;
-          const xOff = (pdfW - imgW) / 2;
-          const yOff = (pdfH - imgH) / 2;
-
-          doc.addImage(imgData, "JPEG", xOff, yOff, imgW, imgH);
-          doc.save(`${filename}.pdf`);
-        }
-        setSingleExportOpen(false);
-      }
+      try {
+        const face = new FontFace("KantumruyPro", "url(/fonts/KantumruyPro-Regular.ttf)");
+        document.fonts.add(await face.load());
+        await document.fonts.ready;
+      } catch { /* already loaded */ }
+      const html2canvas = (await import("html2canvas")).default;
+      const node = templateRef.current;
+      if (!node) return;
+      const canvas = await html2canvas(node, {
+        scale: 3, useCORS: true, backgroundColor: "#ffffff",
+        logging: false, width: node.scrollWidth, height: node.scrollHeight,
+      });
+      const { default: jsPDF } = await import("jspdf");
+      const doc = new jsPDF({ orientation: "portrait", format: "a5", unit: "mm", compress: true });
+      const pdfW = doc.internal.pageSize.getWidth();
+      const pdfH = doc.internal.pageSize.getHeight();
+      doc.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, pdfW, pdfH);
+      doc.save(`${filename}.pdf`);
     } catch (err) {
       console.error("Export failed", err);
     } finally {
       setSingleExporting(false);
+      setPendingExportItems([]);
     }
   }
 
-  async function exportAsPNG(filename: string) {
-    const PAPER = { a5: 559, a4: 794, a3: 1123, letter: 816 };
-    const scale = 2;
-    const pageW = PAPER[exportSize];
-    const pad = 36;
-    const ROW_H = 34;
-    const HEADER_H = 38;
-    const TITLE_H = 60;
-    const totalH = TITLE_H + HEADER_H + displayed.length * ROW_H + 32;
-
-    const canvas = document.createElement("canvas");
-    canvas.width = pageW * scale;
-    canvas.height = totalH * scale;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.scale(scale, scale);
-
-    // Background
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, pageW, totalH);
-
-    // Top accent bar
-    ctx.fillStyle = "#FA4900";
-    ctx.fillRect(0, 0, pageW, 5);
-
-    // Title
-    ctx.fillStyle = "#111827";
-    ctx.font = "bold 15px system-ui,sans-serif";
-    ctx.fillText("Transactions Report", pad, 30);
-    ctx.fillStyle = "#9ca3af";
-    ctx.font = "10px system-ui,sans-serif";
-    ctx.fillText(
-      `Generated: ${new Date().toLocaleString()}  ·  ${displayed.length} record${displayed.length === 1 ? "" : "s"}`,
-      pad,
-      47
-    );
-
-    // Column widths
-    const fixedW = 44 + 66 + 104 + 94 + 128; // #, Type, Total, By, Date
-    const itemsW = pageW - pad * 2 - fixedW;
-    const cols = [
-      { label: "#",            w: 44 },
-      { label: "TYPE",         w: 66 },
-      { label: "ITEMS",        w: itemsW },
-      { label: "TOTAL VALUE",  w: 104 },
-      { label: "PERFORMED BY", w: 94 },
-      { label: "DATE",         w: 128 },
-    ];
-
-    // Header row background
-    let y = TITLE_H;
-    ctx.fillStyle = "#f9fafb";
-    ctx.fillRect(0, y, pageW, HEADER_H);
-    ctx.fillStyle = "#6b7280";
-    ctx.font = "bold 8px system-ui,sans-serif";
-    let x = pad;
-    for (const col of cols) {
-      ctx.fillText(col.label, x, y + 24);
-      x += col.w;
-    }
-
-    // Data rows
-    y += HEADER_H;
-    for (let ri = 0; ri < displayed.length; ri++) {
-      const rowY = y + ri * ROW_H;
-      if (ri % 2 === 1) {
-        ctx.fillStyle = "#f9fafb";
-        ctx.fillRect(0, rowY, pageW, ROW_H);
-      }
-      drawPngRow(ctx, cols, buildPngCells(displayed[ri]), rowY, pad);
-      ctx.fillStyle = "#f3f4f6";
-      ctx.fillRect(0, rowY + ROW_H - 1, pageW, 1);
-    }
-
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${filename}.png`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }, "image/png");
+  async function handleDirectExport(t: Transaction) {
+    const items: TemplateItem[] = t.items.map((item) => {
+      const rec = inventory.find((r) => r.id === item.inventory);
+      return {
+        barcode: rec?.product_details.barcode ?? "",
+        product_name: item.product_name,
+        unit: "Pcs",
+        quantity: item.quantity,
+      };
+    });
+    exportTemplateAsPdf(items, `transaction-${t.id}-${new Date().toISOString().slice(0, 10)}`);
   }
 
-  async function handleExport() {
-    setExporting(true);
-    const filename = `transactions-${new Date().toISOString().slice(0, 10)}`;
-    try {
-      if (exportFormat === "pdf") {
-        const { default: jsPDF }   = await import("jspdf");
-        const { default: autoTable } = await import("jspdf-autotable");
-        const doc = new jsPDF({ orientation: "portrait", format: exportSize, unit: "mm" });
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(13);
-        doc.text("Transactions Report", 14, 16);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        doc.text(
-          `Generated: ${new Date().toLocaleString()}  ·  ${displayed.length} record${displayed.length === 1 ? "" : "s"}`,
-          14, 22
-        );
-        doc.setTextColor(0);
-
-        autoTable(doc, {
-          startY: 28,
-          head: [["#", "Type", "Items", "Total Value", "Performed By", "Date"]],
-          body: displayed.map((t) => {
-            const sign = t.transaction_type === "Receive" ? "+" : "-";
-            return [
-              `#${t.id}`,
-              t.transaction_type,
-              `${t.items.map((i) => i.product_name).join(", ")} (${t.items.length})`,
-              `${sign}$${Number.parseFloat(t.total_transaction_value).toFixed(2)}`,
-              t.performed_by_username,
-              formatDateTime(t.transaction_date),
-            ];
-          }),
-          headStyles: { fillColor: [250, 73, 0], textColor: 255, fontStyle: "bold", fontSize: 7 },
-          bodyStyles: { fontSize: 7, textColor: 50 },
-          alternateRowStyles: { fillColor: [250, 250, 250] },
-          columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 18 }, 5: { cellWidth: 28 } },
-          margin: { left: 14, right: 14 },
-        });
-        doc.save(`${filename}.pdf`);
-
-      } else if (exportFormat === "xlsx") {
-        const XLSX = await import("xlsx");
-        const header = ["#", "Type", "Items", "Total Value", "Performed By", "Date"];
-        const rows = displayed.map((t) => {
-          const sign = t.transaction_type === "Receive" ? "+" : "-";
-          return [
-            t.id,
-            t.transaction_type,
-            t.items.map((i) => i.product_name).join(", "),
-            `${sign}$${Number.parseFloat(t.total_transaction_value).toFixed(2)}`,
-            t.performed_by_username,
-            formatDateTime(t.transaction_date),
-          ];
-        });
-        const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Transactions");
-        XLSX.writeFile(wb, `${filename}.xlsx`);
-
-      } else {
-        await exportAsPNG(filename);
-      }
-
-      setExportOpen(false);
-    } catch (err) {
-      console.error("Export failed", err);
-    } finally {
-      setExporting(false);
-    }
-  }
 
   function openEditModal(t: Transaction) {
     setEditTarget(t);
@@ -905,22 +661,6 @@ export default function TransactionsClient({ initialTransactions, initialInvento
           <h1 className="text-2xl font-bold text-gray-900 uppercase italic">Movement</h1>
         </div>
         <div className="flex items-center gap-2">
-          {/* Export button */}
-          <button
-            type="button"
-            onClick={(e) => {
-              const r = e.currentTarget.getBoundingClientRect();
-              setExportPos({ top: r.bottom + 8, left: r.right - 224 });
-              setExportOpen(true);
-            }}
-            className="flex items-center gap-2 px-4 py-2  text-xs font-bold tracking-widest uppercase  text-black hover:border-gray-300 hover:text-gray-800 active:scale-[0.97] transition bg-white rounded-sm border border-black"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-            </svg>
-            <span className="hidden sm:inline ">Export</span>
-          </button>
-
           {/* New Transaction button */}
           <button
             onClick={openModal}
@@ -1295,87 +1035,6 @@ export default function TransactionsClient({ initialTransactions, initialInvento
         </div>
       )}
 
-      {/* Export Popover */}
-      {exportOpen && (
-        <>
-          <button type="button" aria-label="Close export panel" className="fixed inset-0 z-9998 cursor-default bg-transparent border-0 p-0" onClick={() => setExportOpen(false)} />
-          <div
-            style={{ position: "fixed", top: exportPos.top, left: exportPos.left, zIndex: 9999 }}
-            className="bg-white border border-black rounded-sm shadow-2xl p-5 w-56 space-y-4"
-          >
-            {/* Format */}
-            <div>
-              <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Format</p>
-              <div className="grid grid-cols-3 gap-1.5">
-                {(["pdf", "xlsx", "png"] as const).map((f) => (
-                  <button
-                    key={f}
-                    type="button"
-                    onClick={() => setExportFormat(f)}
-                    className={`py-1.5 rounded-sm text-[10px] font-bold uppercase border transition ${
-                      exportFormat === f ? "text-white border-transparent" : "bg-white border-black text-gray-500 hover:bg-slate-50"
-                    }`}
-                    style={exportFormat === f ? { background: "#FA4900" } : {}}
-                  >
-                    {f.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Paper size (PDF & PNG only) */}
-            {exportFormat !== "xlsx" && (
-              <div>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Paper Size</p>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {(["a5", "a4", "a3", "letter"] as const).map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => setExportSize(s)}
-                      className={`py-1.5 rounded-sm text-[10px] font-bold uppercase border transition ${
-                        exportSize === s ? "text-white border-transparent" : "bg-white border-black text-gray-500 hover:bg-slate-50"
-                      }`}
-                      style={exportSize === s ? { background: "#FA4900" } : {}}
-                    >
-                      {s.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Record count */}
-            <p className="text-[11px] text-gray-400 text-center">
-              {displayed.length} record{displayed.length === 1 ? "" : "s"} will be exported
-            </p>
-
-            {/* Download button */}
-            <button
-              type="button"
-              onClick={handleExport}
-              disabled={exporting}
-              className="w-full py-2.5 rounded-sm text-xs font-bold tracking-widest uppercase text-white active:scale-[0.97] transition disabled:opacity-60 flex items-center justify-center gap-2"
-              style={{ background: "#FA4900" }}
-            >
-              {exporting ? (
-                <>
-                  <div className="w-3.5 h-3.5 rounded-full border-2 border-white/40 border-t-white animate-spin" />
-                  Exporting…
-                </>
-              ) : (
-                <>
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                  </svg>
-                  Download
-                </>
-              )}
-            </button>
-          </div>
-        </>
-      )}
-
       {/* Floating Actions Menu */}
       {menuOpenId !== null && (() => {
         const t = transactions.find((tx) => tx.id === menuOpenId);
@@ -1400,6 +1059,13 @@ export default function TransactionsClient({ initialTransactions, initialInvento
                 className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest uppercase text-gray-600 hover:bg-slate-50 transition"
               >
                 Edit
+              </button>
+              <button
+                type="button"
+                onClick={() => { handleDirectExport(t); setMenuOpenId(null); }}
+                className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest uppercase text-gray-600 hover:bg-slate-50 transition"
+              >
+                Export
               </button>
               <div className="mx-3 my-1 border-t border-black" />
               <button
@@ -1760,85 +1426,6 @@ export default function TransactionsClient({ initialTransactions, initialInvento
           <TransactionTemplate transaction={{ items: pendingExportItems }} />
         )}
       </div>
-
-      {/* Single Transaction Export Dialog */}
-      {singleExportOpen && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/40 px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
-            <div className="h-1 w-full shrink-0" style={{ background: "#FA4900" }} />
-            <div className="px-6 pt-5 pb-4 border-b border-black">
-              <h2 className="text-lg font-bold text-gray-900">Export Transaction</h2>
-              <p className="text-xs text-gray-400 mt-0.5">Choose paper size and file format.</p>
-            </div>
-            <div className="px-6 py-5 space-y-5">
-              {/* Paper size */}
-              <div>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Paper Size</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {(["a5", "a4", "a3"] as const).map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => setSingleExportSize(s)}
-                      className={`py-2 rounded-sm text-xs font-bold uppercase border transition ${
-                        singleExportSize === s
-                          ? "border-transparent text-white"
-                          : "border-black text-gray-700 hover:bg-slate-50"
-                      }`}
-                      style={singleExportSize === s ? { background: "#FA4900" } : {}}
-                    >
-                      {s.toUpperCase()}
-                      {s === "a5" && <span className="ml-1 text-[9px] font-normal opacity-70">(default)</span>}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {/* Format */}
-              <div>
-                <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2">Format</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {(["pdf", "xlsx", "png"] as const).map((f) => (
-                    <button
-                      key={f}
-                      type="button"
-                      onClick={() => setSingleExportFormat(f)}
-                      className={`py-2 rounded-sm text-xs font-bold uppercase border transition ${
-                        singleExportFormat === f
-                          ? "border-transparent text-white"
-                          : "border-black text-gray-700 hover:bg-slate-50"
-                      }`}
-                      style={singleExportFormat === f ? { background: "#1a1a1a" } : {}}
-                    >
-                      {f.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-                {singleExportFormat === "xlsx" && (
-                  <p className="text-[10px] text-gray-400 mt-1.5">Paper size is not applied to Excel exports.</p>
-                )}
-              </div>
-            </div>
-            <div className="px-6 pb-6 flex gap-2">
-              <button
-                type="button"
-                onClick={() => { setSingleExportOpen(false); setPendingExportItems([]); }}
-                className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={singleExporting}
-                onClick={handleSingleExport}
-                className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-white active:scale-[0.97] transition disabled:opacity-60"
-                style={{ background: "#FA4900" }}
-              >
-                {singleExporting ? "Exporting…" : "Export"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
     </div>
   );

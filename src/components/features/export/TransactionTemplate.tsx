@@ -45,7 +45,7 @@ const TransactionTemplate = ({ transaction }: {
         margin: "auto"
       }}
     >
-      {/* Header Section */}
+      {/* Header Section */} {/* transaction_type =( Sale = ប័ណ្ណស្នើបើកគ្រឿងបន្លាស់ / Receive = ប័ណ្ណស្នើបញ្ចូលគ្រឿងបន្លាស់* )/}
       <div style={{ textAlign: "center", marginBottom: "30px" }}>
         <h1 style={{ fontSize: "22px", fontWeight: "bold", margin: "0 0 8px 0" }}>
           ប័ណ្ណស្នើបើកគ្រឿងបន្លាស់
