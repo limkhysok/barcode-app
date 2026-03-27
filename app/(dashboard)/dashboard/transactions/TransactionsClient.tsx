@@ -552,35 +552,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
 
       </div>
 
-      {/* Transaction flow bar */}
-      {stats.total > 0 && (
-        <div className="rounded-sm border border-black bg-white px-5 py-4">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Transaction Flow</p>
-            <p className="text-[10px] text-gray-400">{stats.total} total</p>
-          </div>
-          <div className="flex h-2 rounded-full overflow-hidden gap-0.5">
-            {stats.receives > 0 && (
-              <div className="bg-green-500 rounded-full transition-all" style={{ width: `${(stats.receives / stats.total) * 100}%` }} />
-            )}
-            {stats.sales > 0 && (
-              <div className="bg-red-500 rounded-full transition-all" style={{ width: `${(stats.sales / stats.total) * 100}%` }} />
-            )}
-          </div>
-          <div className="flex items-center gap-5 mt-3">
-            {[
-              { label: "Receive", count: stats.receives, dot: "bg-green-500" },
-              { label: "Sale",    count: stats.sales,    dot: "bg-red-500"   },
-            ].map(({ label, count, dot }) => (
-              <div key={label} className="flex items-center gap-1.5">
-                <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
-                <span className="text-[10px] text-gray-500 font-medium">{label}</span>
-                <span className="text-[10px] font-bold text-gray-700">{count}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      
 
       {/* Toolbar */}
       <div className="grid grid-cols-2 gap-2.5">
@@ -985,6 +957,49 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
                 className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest uppercase text-gray-600 hover:bg-slate-50 transition"
               >
                 Export
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  // Print logic: open PDF in new tab
+                  const items = t.items.map((item) => {
+                    const rec = inventory.find((r) => r.id === item.inventory);
+                    return {
+                      barcode: rec?.product_details.barcode ?? "",
+                      product_name: item.product_name,
+                      unit: "Pcs",
+                      quantity: item.quantity,
+                    };
+                  });
+                  setPendingExportItems(items);
+                  setPendingExportType(t.transaction_type);
+                  await waitTwoFrames();
+                  try {
+                    const face = new FontFace("KantumruyPro", "url(/fonts/KantumruyPro-Regular.ttf)");
+                    document.fonts.add(await face.load());
+                    await document.fonts.ready;
+                  } catch {}
+                  const html2canvas = (await import("html2canvas")).default;
+                  const node = templateRef.current;
+                  if (!node) return;
+                  const canvas = await html2canvas(node, {
+                    scale: 3, useCORS: true, backgroundColor: "#ffffff",
+                    logging: false, width: node.scrollWidth, height: node.scrollHeight,
+                  });
+                  const { default: jsPDF } = await import("jspdf");
+                  const doc = new jsPDF({ orientation: "portrait", format: "a5", unit: "mm", compress: true });
+                  const pdfW = doc.internal.pageSize.getWidth();
+                  const pdfH = doc.internal.pageSize.getHeight();
+                  doc.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, pdfW, pdfH);
+                  const pdfBlob = doc.output("blob");
+                  const pdfUrl = URL.createObjectURL(pdfBlob);
+                  window.open(pdfUrl, "_blank");
+                  setMenuOpenId(null);
+                  setPendingExportItems([]);
+                }}
+                className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest uppercase text-blue-600 hover:bg-blue-50 transition"
+              >
+                Print
               </button>
               <div className="mx-3 my-1 border-t border-black" />
               <button
