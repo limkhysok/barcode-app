@@ -484,7 +484,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
           style: { fontFamily: "var(--font-roboto)", fontSize: "12px", borderRadius: "3px" },
         }}
       />
-      <div className="px-3 py-4 sm:px-8 sm:py-8 space-y-6">
+      <div className="px-4 py-4 sm:px-8 sm:py-8 space-y-6">
 
       {/* Header */}
       <div className="flex items-center justify-between">
