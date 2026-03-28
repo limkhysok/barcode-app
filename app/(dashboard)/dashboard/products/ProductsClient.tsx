@@ -50,8 +50,8 @@ const emptyForm: ProductPayload = {
   barcode: "",
   product_name: "",
   category: "",
-  cost_per_unit: 0,
-  reorder_level: 0,
+  cost_per_unit: 1,
+  reorder_level: 1,
   supplier: "",
 };
 
@@ -401,12 +401,18 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
           description: `${form.product_name} has been added to your catalog.`,
         });
       }
+      setSaving(false);
       setModalOpen(false);
       fetchProducts();
     } catch (err: any) {
+      setSaving(false);
       const data = err?.response?.data;
       const status = err?.response?.status;
-      if (status === 404) {
+      if (status === 409) {
+        const msg = data?.detail ?? "A product with this barcode already exists.";
+        setFormError(msg);
+        toast.error("Duplicate Barcode", { description: msg });
+      } else if (status === 404) {
         const msg = data?.detail ?? "This product no longer exists. Please refresh the page.";
         setFormError(msg);
         toast.error("Product Not Found", { description: msg });
@@ -420,8 +426,6 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
         setFormError("Failed to save. Please check your inputs.");
         toast.error("Save Failed", { description: "Please check your inputs and try again." });
       }
-    } finally {
-      setSaving(false);
     }
   }
 
