@@ -83,14 +83,14 @@ function CustomSelect({ id, label, value, onChange, options, placeholder, openUp
     <div className={label ? "space-y-1.5" : ""} ref={ref}>
       {label && (
         <label htmlFor={id} className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase text-gray-400">
-          <span className="inline-block w-1 h-3 rounded-full" style={{ background: "#FA4900" }} />
+          <span className="inline-block w-1 h-3 rounded-full" style={{ background: "#FA4900" }} /> 
           {label}
         </label>
       )}
       <div className="relative">
         <button
           id={id} type="button" onClick={() => setOpen((v) => !v)}
-          className={`w-full px-4 py-3 rounded-sm border text-sm font-medium text-left flex items-center justify-between gap-2 transition focus:outline-none bg-gray-50 ${
+          className={`w-full px-3 py-2 rounded-sm border text-sm font-medium text-left flex items-center justify-between gap-2 transition focus:outline-none bg-gray-50 ${
             open ? "border-black ring-1 ring-black" : "border-black hover:bg-slate-50"
           } ${selected && String(selected.value) !== "" ? "text-slate-900" : "text-slate-400"}`}
         >
@@ -493,8 +493,8 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
           <h1 className="text-2xl font-bold text-gray-900 uppercase italic">Management</h1>
         </div>
         <button onClick={openCreate}
-          className="flex items-center gap-2 px-3 py-2 sm:px-5 rounded-sm text-xs tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
-          style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}>
+          className="flex items-center gap-2 px-4 py-2 sm:px-5 rounded-sm text-xs font-bold tracking-widest uppercase bg-orange-500 text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
+          >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
@@ -506,30 +506,56 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
       {/* Category stat cards — mobile: compact summary / desktop: stitched cards */}
 
       {/* Mobile compact summary */}
-      <div className="sm:hidden rounded-sm border border-black overflow-hidden">
-        {/* Top row — totals */}
-        <div className="grid grid-cols-2 divide-x divide-black border-b border-black">
-          <div className="bg-black px-4 py-3">
-            <p className="text-[9px] font-semibold tracking-widest uppercase text-slate-400">Total Items</p>
-            <p className="text-2xl font-bold text-white tabular-nums mt-0.5">{categoryStats.total}</p>
+      <div className="sm:hidden rounded-sm border border-black overflow-hidden bg-white">
+        {/* Accent header */}
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-black" >
+          <p className="text-[11px] font-bold tracking-widest uppercase text-black ">Products Overview</p>
+          <p className="text-sm font-bold text-black tabular-nums">{categoryStats.total} <span className="text-[10px] font-normal opacity-80">items</span></p>
+        </div>
+
+        {/* Category rows */}
+        <div className="divide-y divide-black/10">
+          {/* Accessories */}
+          <div className="px-4 py-3 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold tracking-widest uppercase text-orange-500">Accessories</span>
+              <div className="text-right">
+                <span className="text-sm font-bold text-slate-900 tabular-nums">{categoryStats.accessories.count}</span>
+                <span className="text-[10px] text-slate-400 ml-1">units</span>
+              </div>
+            </div>
+            <div className="h-1 w-full rounded-full bg-slate-100 overflow-hidden">
+              <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.round((categoryStats.accessories.count / Math.max(categoryStats.total, 1)) * 100)}%`, background: "#FA4900" }} />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] text-slate-400">{Math.round((categoryStats.accessories.count / Math.max(categoryStats.total, 1)) * 100)}% of total</span>
+              <span className="text-[10px] font-semibold text-slate-600 tabular-nums">${categoryStats.accessories.cost.toFixed(2)}</span>
+            </div>
           </div>
-          <div className="bg-white px-4 py-3">
-            <p className="text-[9px] font-semibold tracking-widest uppercase text-slate-400 ">Total Value</p>
-            <p className="text-2xl font-bold text-slate-900 tabular-nums mt-0.5">${(categoryStats.accessories.cost + categoryStats.fasteners.cost).toFixed(2)}</p>
+
+          {/* Fasteners */}
+          <div className="px-4 py-3 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold tracking-widest uppercase text-slate-500">Fasteners</span>
+              <div className="text-right">
+                <span className="text-sm font-bold text-slate-900 tabular-nums">{categoryStats.fasteners.count}</span>
+                <span className="text-[10px] text-slate-400 ml-1">units</span>
+              </div>
+            </div>
+            <div className="h-1 w-full rounded-full bg-slate-100 overflow-hidden">
+              <div className="h-full rounded-full bg-slate-400 transition-all duration-700" style={{ width: `${Math.round((categoryStats.fasteners.count / Math.max(categoryStats.total, 1)) * 100)}%` }} />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] text-slate-400">{Math.round((categoryStats.fasteners.count / Math.max(categoryStats.total, 1)) * 100)}% of total</span>
+              <span className="text-[10px] font-semibold text-slate-600 tabular-nums">${categoryStats.fasteners.cost.toFixed(2)}</span>
+            </div>
           </div>
         </div>
-        {/* Bottom row — categories */}
-        <div className="grid grid-cols-2 divide-x divide-black bg-white">
-          <div className="px-4 py-3 space-y-1">
-            <span className="inline-block text-[9px] font-semibold tracking-widest uppercase px-2 py-0.5 rounded-md border border-orange-200 bg-orange-50 text-orange-600">Accessories</span>
-            <p className="text-[11px] font-semibold text-slate-700 tabular-nums">{categoryStats.accessories.count} units</p>
-            <p className="text-[10px] text-slate-400 tabular-nums">${categoryStats.accessories.cost.toFixed(2)}</p>
-          </div>
-          <div className="px-4 py-3 space-y-1">
-            <span className="inline-block text-[9px] font-semibold tracking-widest uppercase px-2 py-0.5 rounded-md border border-slate-200 bg-slate-50 text-slate-600">Fasteners</span>
-            <p className="text-[11px] font-semibold text-slate-700 tabular-nums">{categoryStats.fasteners.count} units</p>
-            <p className="text-[10px] text-slate-400 tabular-nums">${categoryStats.fasteners.cost.toFixed(2)}</p>
-          </div>
+
+        {/* Total value footer */}
+        <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-t border-black/10">
+          <p className="text-[9px] font-bold tracking-widest uppercase text-slate-400">Total Value</p>
+          <p className="text-sm font-bold text-slate-900 tabular-nums">${(categoryStats.accessories.cost + categoryStats.fasteners.cost).toFixed(2)}</p>
         </div>
       </div>
 
@@ -537,11 +563,11 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
       <div className="hidden sm:flex rounded-sm border border-black overflow-hidden divide-x divide-black">
 
         {/* Accessories */}
-        <div className="flex-1 bg-white p-6 space-y-4">
+        <div className="flex-1 bg-white p-3 space-y-6">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="inline-block text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5 rounded-none">Accessories</p>
-              <p className="text-3xl font-bold text-slate-900 mt-1 leading-none tabular-nums">{categoryStats.accessories.count}</p>
+              <p className="text-3xl font-bold text-slate-900 mt-2 leading-none tabular-nums">{categoryStats.accessories.count}</p>
               <p className="text-xs text-slate-400 mt-1">products</p>
             </div>
             <div className="w-9 h-9 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
@@ -566,11 +592,11 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
         </div>
 
         {/* Fasteners */}
-        <div className="flex-1 bg-white p-6 space-y-4">
+        <div className="flex-1 bg-white p-3 space-y-6">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="inline-block text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5 rounded-none">Fasteners</p>
-              <p className="text-3xl font-bold text-slate-900 mt-1 leading-none tabular-nums">{categoryStats.fasteners.count}</p>
+              <p className="text-3xl font-bold text-slate-900 mt-2 leading-none tabular-nums">{categoryStats.fasteners.count}</p>
               <p className="text-xs text-slate-400 mt-1">products</p>
             </div>
             <div className="w-9 h-9 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
@@ -595,11 +621,11 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
         </div>
 
         {/* Total Value */}
-        <div className="flex-1 bg-white p-6 space-y-4">
+        <div className="flex-1 bg-white p-3 space-y-6">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="inline-block text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5 rounded-none">Total Value</p>
-              <p className="text-3xl font-bold text-slate-900 mt-1 leading-none tabular-nums">
+              <p className="text-3xl font-bold text-slate-900 mt-2 leading-none tabular-nums">
                 ${(categoryStats.accessories.cost + categoryStats.fasteners.cost).toFixed(2)}
               </p>
               <p className="text-xs text-slate-400 mt-1">combined cost / unit</p>
@@ -659,7 +685,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
           </svg>
           <input id="product-search" name="product-search" type="text" placeholder="Search Name"
             value={search} onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 min-w-0 text-[11px] font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal bg-transparent outline-none" />
+            className="flex-1 min-w-0 text-sm font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal bg-transparent outline-none" />
           {search && (
             <button type="button" onClick={() => setSearch("")} aria-label="Clear search" className="text-slate-300 hover:text-black transition shrink-0">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -678,7 +704,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
             const activeCount = [categoryFilter, costDir, reorderDir].filter(Boolean).length;
             return (
               <button type="button" onClick={() => setFiltersOpen((v) => !v)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-sm border text-[11px] font-bold tracking-widest uppercase transition ${
+                className={`flex items-center gap-2 px-3 py-3 rounded-sm border text-[11px] font-bold tracking-widest uppercase transition ${
                   filtersOpen ? "bg-black text-white border-black" : "bg-white text-slate-700 border-black hover:bg-slate-50"
                 }`}>
                 <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -740,8 +766,8 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
           <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
           </svg>
-          <input type="text" placeholder="Search Name" value={search} onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 min-w-0 text-[11px] font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal bg-transparent outline-none" />
+          <input id="product-search-mobile" name="product-search" type="text" placeholder="Search Name" value={search} onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 min-w-0 text-sm font-medium text-slate-800 placeholder:text-slate-400 placeholder:font-normal bg-transparent outline-none" />
           {search && (
             <button type="button" onClick={() => setSearch("")} aria-label="Clear search" className="text-slate-300 hover:text-black transition shrink-0">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -772,7 +798,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
       {/* Add / Edit Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4">
-          <div className="w-full sm:max-w-lg max-h-[95vh] overflow-y-auto bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col">
+          <div className="w-full sm:max-w-lg max-h-[95vh] overflow-y-auto bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col">
 
             {/* Orange accent strip + header */}
             <div className="relative px-6 pt-6 pb-5">
