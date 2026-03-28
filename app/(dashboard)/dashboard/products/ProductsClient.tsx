@@ -325,11 +325,21 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
   const [categoryFilter, setCategoryFilter] = useState("");
   const [costDir, setCostDir] = useState<SortDir>("");
   const [reorderDir, setReorderDir] = useState<SortDir>("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const filtersRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 200);
     return () => clearTimeout(t);
   }, [search]);
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (filtersRef.current && !filtersRef.current.contains(e.target as Node)) setFiltersOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const categoryStats = useMemo(() => {
     const acc = products.filter((p) => p.category === "Accessories");
@@ -617,71 +627,129 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
 
       {/* Toolbar */}
       {/* Filters — four card tiles */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-
+      {/* Desktop filters — 4 columns */}
+      <div className="hidden lg:grid grid-cols-4 gap-2.5">
         <div className="bg-white rounded-sm">
-          <CustomSelect
-            id="filter-category"
-            value={categoryFilter}
-            onChange={setCategoryFilter}
+          <CustomSelect id="filter-category" value={categoryFilter} onChange={setCategoryFilter}
             options={[
               { value: "",            label: "All Categories" },
               { value: "Accessories", label: "Accessories"    },
               { value: "Fasteners",   label: "Fasteners"      },
-            ]}
-          />
+            ]} />
         </div>
-
         <div className="bg-white rounded-sm">
-          <CustomSelect
-            id="sort-cost"
-            value={costDir}
-            onChange={(v) => setCostDir(v as SortDir)}
+          <CustomSelect id="sort-cost" value={costDir} onChange={(v) => setCostDir(v as SortDir)}
             options={[
               { value: "",     label: "All Cost / Unit" },
               { value: "asc",  label: "Low → High"      },
               { value: "desc", label: "High → Low"      },
-            ]}
-          />
+            ]} />
         </div>
-
         <div className="bg-white rounded-sm">
-          <CustomSelect
-            id="sort-reorder"
-            value={reorderDir}
-            onChange={(v) => setReorderDir(v as SortDir)}
+          <CustomSelect id="sort-reorder" value={reorderDir} onChange={(v) => setReorderDir(v as SortDir)}
             options={[
               { value: "",     label: "All Reorder Level" },
               { value: "asc",  label: "Low → High"        },
               { value: "desc", label: "High → Low"        },
-            ]}
-          />
+            ]} />
         </div>
-
-        {/* Search — last card */}
         <div className="flex items-center gap-2 bg-white rounded-sm border border-black px-3 py-2">
           <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
           </svg>
-          <input
-            id="product-search"
-            name="product-search"
-            type="text"
-            placeholder="Search Name"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 min-w-0 text-[11px] font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal bg-transparent outline-none"
-          />
+          <input id="product-search" name="product-search" type="text" placeholder="Search Name"
+            value={search} onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 min-w-0 text-[11px] font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal bg-transparent outline-none" />
           {search && (
-            <button type="button" onClick={() => setSearch("")} aria-label="Clear search"
-              className="text-slate-300 hover:text-black transition shrink-0">
+            <button type="button" onClick={() => setSearch("")} aria-label="Clear search" className="text-slate-300 hover:text-black transition shrink-0">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           )}
         </div>
+      </div>
 
+      {/* Mobile filters — Filters button + Search */}
+      <div className="flex lg:hidden gap-2">
+        {/* Filters dropdown */}
+        <div className="relative" ref={filtersRef}>
+          {(() => {
+            const activeCount = [categoryFilter, costDir, reorderDir].filter(Boolean).length;
+            return (
+              <button type="button" onClick={() => setFiltersOpen((v) => !v)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-sm border text-[11px] font-bold tracking-widest uppercase transition ${
+                  filtersOpen ? "bg-black text-white border-black" : "bg-white text-slate-700 border-black hover:bg-slate-50"
+                }`}>
+                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                </svg>
+                Filters
+                {activeCount > 0 && (
+                  <span className="flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold bg-orange-500 text-white">
+                    {activeCount}
+                  </span>
+                )}
+              </button>
+            );
+          })()}
+
+          {filtersOpen && (
+            <div className="absolute top-full left-0 mt-1 z-50 w-64 bg-white border border-black rounded-sm shadow-xl p-3 space-y-3">
+              <p className="text-[9px] font-bold tracking-widest uppercase text-slate-400">Filters &amp; Sorting</p>
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-semibold text-slate-500">Category</p>
+                <CustomSelect id="mob-filter-category" value={categoryFilter} onChange={setCategoryFilter}
+                  options={[
+                    { value: "",            label: "All Categories" },
+                    { value: "Accessories", label: "Accessories"    },
+                    { value: "Fasteners",   label: "Fasteners"      },
+                  ]} />
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-semibold text-slate-500">Cost / Unit</p>
+                <CustomSelect id="mob-sort-cost" value={costDir} onChange={(v) => setCostDir(v as SortDir)}
+                  options={[
+                    { value: "",     label: "All Cost / Unit" },
+                    { value: "asc",  label: "Low → High"      },
+                    { value: "desc", label: "High → Low"      },
+                  ]} />
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-semibold text-slate-500">Reorder Level</p>
+                <CustomSelect id="mob-sort-reorder" value={reorderDir} onChange={(v) => setReorderDir(v as SortDir)}
+                  options={[
+                    { value: "",     label: "All Reorder Level" },
+                    { value: "asc",  label: "Low → High"        },
+                    { value: "desc", label: "High → Low"        },
+                  ]} />
+              </div>
+              {[categoryFilter, costDir, reorderDir].some(Boolean) && (
+                <button type="button"
+                  onClick={() => { setCategoryFilter(""); setCostDir(""); setReorderDir(""); }}
+                  className="w-full py-1.5 text-[10px] font-bold tracking-widest uppercase text-red-500 border border-red-200 rounded-sm hover:bg-red-50 transition">
+                  Clear All
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Search */}
+        <div className="flex-1 flex items-center gap-2 bg-white rounded-sm border border-black px-3 py-2">
+          <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+          <input type="text" placeholder="Search Name" value={search} onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 min-w-0 text-[11px] font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal bg-transparent outline-none" />
+          {search && (
+            <button type="button" onClick={() => setSearch("")} aria-label="Clear search" className="text-slate-300 hover:text-black transition shrink-0">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Table */}
