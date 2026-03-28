@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { InventoryRecord } from "@/src/types/inventory.types";
 import { ringStyle } from "./utils/constants";

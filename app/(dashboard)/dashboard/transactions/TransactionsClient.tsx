@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -57,6 +56,47 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
   const [pendingExportItems, setPendingExportItems] = useState<TemplateItem[]>([]);
   const [pendingExportType, setPendingExportType] = useState<"Sale" | "Receive">("Sale");
   const templateRef = useRef<HTMLDivElement>(null);
+
+  // Print logic for floating menu
+  const handlePrint = async (t: Transaction) => {
+    if (!t) return;
+    const printItems = t.items.map((item) => {
+      const rec = inventory.find((r: InventoryRecord) => r.id === item.inventory);
+      return {
+        barcode: rec?.product_details.barcode ?? "",
+        product_name: item.product_name,
+        unit: "Pcs",
+        quantity: item.quantity,
+      };
+    });
+    setPendingExportItems(printItems);
+    setPendingExportType(t.transaction_type);
+    await waitTwoFrames();
+    try {
+      const face = new FontFace("KantumruyPro", "url(/fonts/KantumruyPro-Regular.ttf)");
+      document.fonts.add(await face.load());
+      await document.fonts.ready;
+    } catch (err) {
+      console.error("Font loading error:", err);
+    }
+    const html2canvas = (await import("html2canvas")).default;
+    const node = templateRef.current;
+    if (!node) return;
+    const canvas = await html2canvas(node, {
+      scale: 3, useCORS: true, backgroundColor: "#ffffff",
+      logging: false, width: node.scrollWidth, height: node.scrollHeight,
+    });
+    const { default: jsPDF } = await import("jspdf");
+    const doc = new jsPDF({ orientation: "portrait", format: "a5", unit: "mm", compress: true });
+    const pdfW = doc.internal.pageSize.getWidth();
+    const pdfH = doc.internal.pageSize.getHeight();
+    doc.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, pdfW, pdfH);
+    const pdfBlob = doc.output("blob");
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    window.open(pdfUrl, "_blank");
+    setMenuOpenId(null);
+    setPendingExportItems([]);
+  };
 
   const [viewTarget, setViewTarget] = useState<Transaction | null>(null);
 
@@ -477,7 +517,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
       </div>
 
       {/* Overview */}
-      <div className="flex flex-col sm:flex-row rounded-sm border border-black overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-black">
+      <div className="flex flex-col sm:flex-row rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-slate-200">
 
         {/* Today */}
         <div className="flex-1 bg-white p-4 sm:p-5 flex flex-col justify-between gap-3">
@@ -802,7 +842,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
                                     <p className="font-semibold text-gray-800 truncate max-w-28">{rec?.product_details.product_name ?? "—"}</p>
                                     <p className="text-[10px] text-gray-400 truncate">{rec?.site}</p>
                                   </td>
-                                  <td className="px-3 py-3 text-center font-bold text-gray-700">{i.quantity}</td>
+                                  <td className="px-4 py-3 text-gray-600 tabular-nums">{i.quantity}</td>
                                   <td className={`px-4 py-3 text-right font-bold tabular-nums ${valCol}`}>
                                     {sign}${lineTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                   </td>
@@ -909,6 +949,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
                       const pdfUrl = URL.createObjectURL(pdfBlob);
                       window.open(pdfUrl, "_blank");
                     } catch (err) {
+                      console.error("Error saving and printing transaction:", err);
                       setFormError("Failed to save and print transaction.");
                     } finally {
                       setSaving(false);
@@ -960,43 +1001,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
               </button>
               <button
                 type="button"
-                onClick={async () => {
-                  // Print logic: open PDF in new tab
-                  const items = t.items.map((item) => {
-                    const rec = inventory.find((r) => r.id === item.inventory);
-                    return {
-                      barcode: rec?.product_details.barcode ?? "",
-                      product_name: item.product_name,
-                      unit: "Pcs",
-                      quantity: item.quantity,
-                    };
-                  });
-                  setPendingExportItems(items);
-                  setPendingExportType(t.transaction_type);
-                  await waitTwoFrames();
-                  try {
-                    const face = new FontFace("KantumruyPro", "url(/fonts/KantumruyPro-Regular.ttf)");
-                    document.fonts.add(await face.load());
-                    await document.fonts.ready;
-                  } catch {}
-                  const html2canvas = (await import("html2canvas")).default;
-                  const node = templateRef.current;
-                  if (!node) return;
-                  const canvas = await html2canvas(node, {
-                    scale: 3, useCORS: true, backgroundColor: "#ffffff",
-                    logging: false, width: node.scrollWidth, height: node.scrollHeight,
-                  });
-                  const { default: jsPDF } = await import("jspdf");
-                  const doc = new jsPDF({ orientation: "portrait", format: "a5", unit: "mm", compress: true });
-                  const pdfW = doc.internal.pageSize.getWidth();
-                  const pdfH = doc.internal.pageSize.getHeight();
-                  doc.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, pdfW, pdfH);
-                  const pdfBlob = doc.output("blob");
-                  const pdfUrl = URL.createObjectURL(pdfBlob);
-                  window.open(pdfUrl, "_blank");
-                  setMenuOpenId(null);
-                  setPendingExportItems([]);
-                }}
+                onClick={() => handlePrint(t)}
                 className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest uppercase text-blue-600 hover:bg-blue-50 transition"
               >
                 Print
@@ -1013,6 +1018,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
           </>
         );
       })()}
+
 
       {/* View Modal */}
       {viewTarget && (
@@ -1267,7 +1273,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
                                     <p className="font-semibold text-gray-800 truncate max-w-28">{rec?.product_details.product_name ?? "—"}</p>
                                     <p className="text-[10px] text-gray-400 truncate">{rec?.site}</p>
                                   </td>
-                                  <td className="px-3 py-3 text-center font-bold text-gray-700">{i.quantity}</td>
+                                  <td className="px-4 py-3 text-gray-600 tabular-nums">{i.quantity}</td>
                                   <td className={`px-4 py-3 text-right font-bold tabular-nums ${valCol}`}>
                                     {sign}${lineTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                   </td>
