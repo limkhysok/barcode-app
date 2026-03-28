@@ -41,10 +41,10 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
 
 
 
-      <div className="h-14 px-4 md:px-6 flex items-center justify-between gap-4">
+      <div className="h-14 px-3 md:px-3 flex items-center justify-between gap-4">
 
         {/* Left — logo + title + mobile hamburger */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-0">
           {/* Hamburger — mobile only */}
           <button
             onClick={onMenuClick}

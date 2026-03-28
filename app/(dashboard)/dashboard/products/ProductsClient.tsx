@@ -422,6 +422,9 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
         const msg = Array.isArray(raw) ? raw[0] : (raw ?? "Failed to save. Please check your inputs.");
         setFormError(msg);
         toast.error("Validation Error", { description: msg });
+      } else if (err?.code === "ECONNABORTED" || !err?.response) {
+        setFormError("Request timed out. Please try again.");
+        toast.error("Connection Error", { description: "The server took too long to respond. Please try again." });
       } else {
         setFormError("Failed to save. Please check your inputs.");
         toast.error("Save Failed", { description: "Please check your inputs and try again." });
@@ -460,16 +463,18 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
   const saveLabel = getSaveLabel(saving, editing);
 
   return (
-    <div className="px-3 py-4 sm:px-8 sm:py-8 space-y-6">
-      <Toaster
+    <>
+      <Toaster 
         position="top-right"
         richColors
         closeButton
         duration={4000}
+        style={{ fontFamily: "var(--font-roboto)" }}
         toastOptions={{
-          style: { fontFamily: "inherit", fontSize: "12px", borderRadius: "5px", border: "1px solid black" },
+          style: { fontFamily: "var(--font-roboto)", fontSize: "12px", borderRadius: "3px" },
         }}
       />
+      <div className="px-3 py-4 sm:px-8 sm:py-8 space-y-6">
 
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -835,6 +840,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
         </div>
       )}
 
-    </div>
+      </div>
+    </>
   );
 }
