@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast, Toaster } from "sonner";
 import type { Product, ProductPayload } from "@/src/types/product.types";
 import { getProducts, createProduct, updateProduct, deleteProduct } from "@/src/services/product.service";
 
@@ -318,7 +319,6 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
 
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState("");
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -392,8 +392,14 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
           return;
         }
         await updateProduct(editing.id, form);
+        toast.success("Product Updated", {
+          description: `${form.product_name} has been saved successfully.`,
+        });
       } else {
         await createProduct(form);
+        toast.success("Product Created", {
+          description: `${form.product_name} has been added to your catalog.`,
+        });
       }
       setModalOpen(false);
       fetchProducts();
@@ -401,13 +407,18 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
       const data = err?.response?.data;
       const status = err?.response?.status;
       if (status === 404) {
-        setFormError(data?.detail ?? "This product no longer exists. Please refresh the page.");
+        const msg = data?.detail ?? "This product no longer exists. Please refresh the page.";
+        setFormError(msg);
+        toast.error("Product Not Found", { description: msg });
       } else if (status === 400 && data) {
         const firstKey = Object.keys(data)[0];
         const raw = data[firstKey];
-        setFormError(Array.isArray(raw) ? raw[0] : (raw ?? "Failed to save. Please check your inputs."));
+        const msg = Array.isArray(raw) ? raw[0] : (raw ?? "Failed to save. Please check your inputs.");
+        setFormError(msg);
+        toast.error("Validation Error", { description: msg });
       } else {
         setFormError("Failed to save. Please check your inputs.");
+        toast.error("Save Failed", { description: "Please check your inputs and try again." });
       }
     } finally {
       setSaving(false);
@@ -417,10 +428,13 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
   async function handleDelete() {
     if (!deleteTarget) return;
     setDeleting(true);
-    setDeleteError("");
     try {
       await deleteProduct(deleteTarget.id);
+      toast.success("Product Deleted", {
+        description: `${deleteTarget.product_name} has been permanently removed.`,
+      });
       setDeleteTarget(null);
+      setDeleting(false);
       fetchProducts();
     } catch (err: any) {
       const data = err?.response?.data;
@@ -428,10 +442,12 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
       if (status === 404) {
         setDeleteTarget(null);
         fetchProducts();
-      } else if (status === 400) {
-        setDeleteError(data?.detail ?? "Cannot delete this product.");
+      } else if (status === 409) {
+        toast.error("Cannot Delete Product", {
+          description: data?.detail ?? "This product has linked transactions and cannot be removed.",
+        });
       } else {
-        setDeleteError("Failed to delete. Please try again.");
+        toast.error("Delete Failed", { description: "Something went wrong. Please try again." });
       }
       setDeleting(false);
     }
@@ -440,7 +456,16 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
   const saveLabel = getSaveLabel(saving, editing);
 
   return (
-    <div className="px-4 py-5 sm:px-8 sm:py-8 space-y-6">
+    <div className="px-3 py-4 sm:px-8 sm:py-8 space-y-6">
+      <Toaster
+        position="top-right"
+        richColors
+        closeButton
+        duration={4000}
+        toastOptions={{
+          style: { fontFamily: "inherit", fontSize: "12px", borderRadius: "5px", border: "1px solid black" },
+        }}
+      />
 
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -792,11 +817,8 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
                 <span className="font-semibold">{deleteTarget.product_name}</span> will be permanently removed.
               </p>
             </div>
-            {deleteError && (
-              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-sm px-3 py-2">{deleteError}</p>
-            )}
             <div className="flex gap-3">
-              <button onClick={() => { setDeleteTarget(null); setDeleteError(""); }}
+              <button onClick={() => setDeleteTarget(null)}
                 className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
                 Cancel
               </button>

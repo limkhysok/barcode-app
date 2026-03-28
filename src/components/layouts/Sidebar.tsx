@@ -143,12 +143,9 @@ function SidebarContent({
         }}
       >
         {/* Logo mark */}
-        <div
-          className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-black text-[11px] shrink-0 select-none"
-          style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}
-        >
-          C
-        </div>
+       
+          
+       
 
         {/* Brand text */}
         <div
