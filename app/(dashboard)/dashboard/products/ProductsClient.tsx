@@ -318,6 +318,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
 
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -397,8 +398,14 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
       setModalOpen(false);
       fetchProducts();
     } catch (err: any) {
-      if (err?.response?.status === 404) {
-        setFormError("This product no longer exists. Please refresh the page.");
+      const data = err?.response?.data;
+      const status = err?.response?.status;
+      if (status === 404) {
+        setFormError(data?.detail ?? "This product no longer exists. Please refresh the page.");
+      } else if (status === 400 && data) {
+        const firstKey = Object.keys(data)[0];
+        const raw = data[firstKey];
+        setFormError(Array.isArray(raw) ? raw[0] : (raw ?? "Failed to save. Please check your inputs."));
       } else {
         setFormError("Failed to save. Please check your inputs.");
       }
@@ -410,15 +417,21 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
   async function handleDelete() {
     if (!deleteTarget) return;
     setDeleting(true);
+    setDeleteError("");
     try {
       await deleteProduct(deleteTarget.id);
       setDeleteTarget(null);
       fetchProducts();
     } catch (err: any) {
-      if (err?.response?.status === 404) {
-        alert("This product was already deleted or does not exist.");
+      const data = err?.response?.data;
+      const status = err?.response?.status;
+      if (status === 404) {
         setDeleteTarget(null);
         fetchProducts();
+      } else if (status === 400) {
+        setDeleteError(data?.detail ?? "Cannot delete this product.");
+      } else {
+        setDeleteError("Failed to delete. Please try again.");
       }
       setDeleting(false);
     }
@@ -779,8 +792,11 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
                 <span className="font-semibold">{deleteTarget.product_name}</span> will be permanently removed.
               </p>
             </div>
+            {deleteError && (
+              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-sm px-3 py-2">{deleteError}</p>
+            )}
             <div className="flex gap-3">
-              <button onClick={() => setDeleteTarget(null)}
+              <button onClick={() => { setDeleteTarget(null); setDeleteError(""); }}
                 className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
                 Cancel
               </button>
