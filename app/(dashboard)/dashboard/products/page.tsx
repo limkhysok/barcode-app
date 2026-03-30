@@ -1,23 +1,10 @@
 import { serverFetch } from "@/src/lib/server-fetch";
-import type { Product } from "@/src/types/product.types";
+import { getProducts } from "@/src/services/product.service";
 import ProductsClient from "./ProductsClient";
 
 export default async function ProductsPage() {
-  let products: Product[] = [];
-  try {
-    const data = await serverFetch<any>("/api/v1/products/");
-
-    // Defensive: handle both array and object (e.g., { results: [...] })
-    if (Array.isArray(data)) {
-      products = data;
-    } else if (data && Array.isArray(data.results)) {
-      products = data.results;
-    } else {
-      products = [];
-    }
-  } catch {
-    /* render empty, client can retry */
-  }
+  // Pass serverFetch to the universal service when calling from a Server Component
+  const products = await getProducts(serverFetch);
 
   return <ProductsClient initialProducts={products} />;
 }

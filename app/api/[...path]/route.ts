@@ -7,8 +7,15 @@ async function proxy(
   { params }: { params: Promise<{ path: string[] }> }
 ) {
   const search = req.nextUrl.search;
-  const relativePath = req.nextUrl.pathname.replace(/^\/api/, "");
+  let relativePath = req.nextUrl.pathname.replace(/^\/api/, "");
+  
+  // Ensure trailing slash for general endpoints, but exclude users/auth
+  if (!relativePath.endsWith("/") && !search && !relativePath.includes("/users")) {
+    relativePath += "/";
+  }
+
   const target = `${DJANGO}/api${relativePath}${search}`;
+  console.log(`[PROXY] ${req.method} ${req.nextUrl.pathname} -> ${target}`);
 
   const headers = new Headers(req.headers);
   headers.delete("host");
