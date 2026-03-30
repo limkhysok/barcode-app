@@ -53,16 +53,16 @@ const stats = [
 ];
 
 const recentOrders = [
-  { id: "#ORD-0128", part: "Brake Pad Set",       date: "Mar 23, 2026", status: "Delivered" },
-  { id: "#ORD-0127", part: "Engine Oil Filter",   date: "Mar 21, 2026", status: "Pending"   },
-  { id: "#ORD-0126", part: "Timing Belt Kit",     date: "Mar 18, 2026", status: "Delivered" },
-  { id: "#ORD-0125", part: "Alternator",          date: "Mar 15, 2026", status: "Delivered" },
-  { id: "#ORD-0124", part: "Air Filter",          date: "Mar 12, 2026", status: "Delivered" },
+  { id: "#ORD-0128", part: "Brake Pad Set", date: "Mar 23, 2026", status: "Delivered" },
+  { id: "#ORD-0127", part: "Engine Oil Filter", date: "Mar 21, 2026", status: "Pending" },
+  { id: "#ORD-0126", part: "Timing Belt Kit", date: "Mar 18, 2026", status: "Delivered" },
+  { id: "#ORD-0125", part: "Alternator", date: "Mar 15, 2026", status: "Delivered" },
+  { id: "#ORD-0124", part: "Air Filter", date: "Mar 12, 2026", status: "Delivered" },
 ];
 
 const statusStyle: Record<string, string> = {
   Delivered: "bg-green-50 text-green-700 border-green-200",
-  Pending:   "bg-orange-50 text-orange-600 border-orange-200",
+  Pending: "bg-orange-50 text-orange-600 border-orange-200",
   Cancelled: "bg-red-50 text-red-600 border-red-200",
 };
 

@@ -6,9 +6,9 @@ async function proxy(
   req: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const { path } = await params;
   const search = req.nextUrl.search;
-  const target = `${DJANGO}/api/${path.join("/")}${search}`;
+  const relativePath = req.nextUrl.pathname.replace(/^\/api/, "");
+  const target = `${DJANGO}/api${relativePath}${search}`;
 
   const headers = new Headers(req.headers);
   headers.delete("host");
@@ -32,8 +32,8 @@ async function proxy(
   });
 }
 
-export const GET    = proxy;
-export const POST   = proxy;
-export const PUT    = proxy;
-export const PATCH  = proxy;
+export const GET = proxy;
+export const POST = proxy;
+export const PUT = proxy;
+export const PATCH = proxy;
 export const DELETE = proxy;
