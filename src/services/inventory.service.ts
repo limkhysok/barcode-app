@@ -35,11 +35,11 @@ export async function updateInventory(id: number, payload: Partial<InventoryPayl
   if (site !== undefined) cleanPayload.site = site;
   if (location !== undefined) cleanPayload.location = location;
   if (quantity_on_hand !== undefined) cleanPayload.quantity_on_hand = quantity_on_hand;
-  const { data } = await api.patch<InventoryRecord>(`/api/inventory/${id}`, cleanPayload);
+  const { data } = await api.patch<InventoryRecord>(`/api/inventory/${id}/`, cleanPayload);
   return data;
 }
 
 
 export async function deleteInventory(id: number): Promise<void> {
-  await api.delete(`/api/inventory/${id}`);
+  await api.delete(`/api/inventory/${id}/`);
 }

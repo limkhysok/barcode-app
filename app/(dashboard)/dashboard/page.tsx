@@ -69,7 +69,7 @@ const statusStyle: Record<string, string> = {
 export default async function DashboardPage() {
   let user: User | null = null;
   try {
-    user = await serverFetch<User>("/api/auth/me");
+    user = await serverFetch<User>("/api/users/me");
   } catch { /* keep null */ }
 
   return (

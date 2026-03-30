@@ -21,7 +21,7 @@ export async function updateTransaction(id: number, payload: TransactionPayload)
 }
 
 export async function deleteTransaction(id: number): Promise<void> {
-  await api.delete(`/api/transactions/${id}`);
+  await api.delete(`/api/transactions/${id}/`);
 }
 
 export interface ScanTransactionPayload {
@@ -32,6 +32,6 @@ export interface ScanTransactionPayload {
 }
 
 export async function scanTransaction(payload: ScanTransactionPayload): Promise<Transaction> {
-  const { data } = await api.post<Transaction>("/api/transactions/scan", payload);
+  const { data } = await api.post<Transaction>("/api/transactions/scan/", payload);
   return data;
 }

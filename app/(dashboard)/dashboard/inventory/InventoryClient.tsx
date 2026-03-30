@@ -130,7 +130,7 @@ function FilterDropdown({
       </button>
 
       {open && (
-        <div className="absolute z-200 top-full mt-1 right-0 min-w-[220px] bg-white border border-black rounded-sm shadow-lg overflow-hidden pb-2">
+        <div className="absolute z-200 top-full mt-1 right-0 min-w-55 bg-white border border-black rounded-sm shadow-lg overflow-hidden pb-2">
           <FilterSection
             title="Site"
             options={siteSectionOptions}
@@ -687,7 +687,7 @@ export default function InventoryClient({
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-2.5">
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="relative flex-1 min-w-50">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
           </svg>

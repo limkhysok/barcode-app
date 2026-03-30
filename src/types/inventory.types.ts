@@ -31,7 +31,7 @@ export interface InventoryPayload {
   quantity_on_hand: number;
 }
 
-/** Response from GET /api/inventory/scan/?barcode=<value> */
+/** Response from GET /api/inventory/scan?barcode=<value> */
 export interface ScanResult {
   found: boolean;
   product?: InventoryProductDetails;

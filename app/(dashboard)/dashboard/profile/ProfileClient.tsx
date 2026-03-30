@@ -27,7 +27,7 @@ export default function ProfileClient({ initialUser }: Readonly<{ initialUser: U
     setSuccess("");
     setError("");
     try {
-      await api.patch<User>("/api/auth/me", { name: form.name, email: form.email });
+      await api.patch<User>("/api/users/me", { name: form.name, email: form.email });
       setSuccess("Profile updated successfully.");
     } catch {
       setError("Failed to update profile.");
@@ -46,7 +46,7 @@ export default function ProfileClient({ initialUser }: Readonly<{ initialUser: U
     setSuccess("");
     setError("");
     try {
-      await api.patch("/api/auth/me", { password: passwords.newPass });
+      await api.patch("/api/users/me", { password: passwords.newPass });
       setPasswords({ newPass: "", confirm: "" });
       setSuccess("Password changed successfully.");
     } catch {
