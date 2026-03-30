@@ -1,12 +1,14 @@
 import api from "./api";
 import type { Transaction, TransactionPayload } from "@/src/types/transaction.types";
+import type { PaginatedTransactions } from "@/src/types/api.types";
 
 export async function getTransactions(params?: {
   type?: string;
   barcode?: string;
   search?: string;
-}): Promise<Transaction[]> {
-  const { data } = await api.get<Transaction[]>("/api/v1/transactions/", { params });
+  page?: number;
+}): Promise<PaginatedTransactions> {
+  const { data } = await api.get<PaginatedTransactions>("/api/v1/transactions/", { params });
   return data;
 }
 

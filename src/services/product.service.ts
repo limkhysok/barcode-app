@@ -1,31 +1,23 @@
 import api from "./api";
 import type { Product, ProductPayload } from "@/src/types/product.types";
+import type { PaginatedProducts } from "@/src/types/api.types";
 
 /**
  * Universal product getter. 
- * On server: Pass 'serverFetch' from "@/src/lib/server-fetch".
- * On client: Call without arguments.
+ * @param page Optional page number
+ * @param fetcher Server-side fetcher
  */
-export async function getProducts(fetcher?: <T>(path: string) => Promise<T>): Promise<Product[]> {
+export async function getProducts(page = 1, fetcher?: <T>(path: string) => Promise<T>): Promise<PaginatedProducts> {
+  const path = `/api/v1/products/?page=${page}`;
   try {
-    let data: any;
-
     if (fetcher) {
-      // Server-side: Use the passed fetcher (usually serverFetch)
-      data = await fetcher("/api/v1/products/");
-    } else {
-      // Client-side: Use the standard axios api instance
-      const res = await api.get("/api/v1/products/");
-      data = res.data;
+      return await fetcher(path);
     }
-
-    // Defensive handling: support both direct array and DRF's { results: [] } wrapper
-    if (Array.isArray(data)) return data;
-    if (data && Array.isArray(data.results)) return data.results;
-    return [];
+    const { data } = await api.get<PaginatedProducts>(path);
+    return data;
   } catch (error) {
     console.error("Failed to fetch products:", error);
-    return [];
+    return { count: 0, next: null, previous: null, results: [] };
   }
 }
 

@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast, Toaster } from "sonner";
 import type { Product, ProductPayload } from "@/src/types/product.types";
 import { getProducts, createProduct, updateProduct, deleteProduct } from "@/src/services/product.service";
+import type { PaginatedProducts } from "@/src/types/api.types";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const REORDER_PRESETS = new Set([5, 10, 15, 20]);
 
@@ -305,8 +307,14 @@ function getSaveLabel(saving: boolean, editing: Product | null) {
   return editing ? "Save Changes" : "Add Product";
 }
 
-export default function ProductsClient({ initialProducts }: Readonly<{ initialProducts: Product[] }>) {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+export default function ProductsClient({ initialPaginated }: Readonly<{ initialPaginated: PaginatedProducts }>) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentPage = Number.parseInt(searchParams.get("page") ?? "1") || 1;
+
+  const [paginated, setPaginated] = useState<PaginatedProducts>(initialPaginated);
+  const products = paginated.results;
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -356,13 +364,20 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
     [products, debouncedSearch, categoryFilter, costDir, reorderDir],
   );
 
-  function fetchProducts() {
+  function fetchProducts(page = currentPage) {
     setLoading(true);
     setError("");
-    getProducts()
-      .then((data) => setProducts(data))
+    getProducts(page)
+      .then((data) => setPaginated(data))
       .catch(() => setError("Failed to load products."))
       .finally(() => setLoading(false));
+  }
+
+  function handlePageChange(newPage: number) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(newPage));
+    router.push(`?${params.toString()}`);
+    fetchProducts(newPage);
   }
 
   function openCreate() {
@@ -789,10 +804,32 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
       </div>
 
       {!loading && !error && (
-        <p className="text-xs text-gray-400 px-1 ">
-          Showing <span className="font-bold text-gray-600">{displayed.length}</span> of{" "}
-          <span className="font-bold text-gray-600">{products.length}</span> products
-        </p>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1">
+          <p className="text-xs text-gray-400">
+            Showing <span className="font-bold text-gray-600">{products.length}</span> of{" "}
+            <span className="font-bold text-gray-600">{paginated.count}</span> products
+          </p>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={!paginated.previous || loading}
+              className="px-4 py-2 text-[10px] font-bold tracking-widest uppercase border border-black rounded-sm bg-white hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-white transition"
+            >
+              Previous
+            </button>
+            <div className="px-3 py-2 text-[10px] font-bold border border-black rounded-sm bg-slate-50">
+              Page {currentPage}
+            </div>
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={!paginated.next || loading}
+              className="px-4 py-2 text-[10px] font-bold tracking-widest uppercase border border-black rounded-sm bg-white hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-white transition"
+            >
+              Next
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Add / Edit Modal */}

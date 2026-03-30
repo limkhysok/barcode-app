@@ -282,7 +282,7 @@ function SubmitStatusBanner({ status, onDismiss }: Readonly<{ status: SubmitStat
 
 const TYPE_CFG = {
     Receive: { bg: "bg-green-50", text: "text-green-600", dot: "bg-green-500" },
-    Sale:    { bg: "bg-red-50",   text: "text-red-600",   dot: "bg-red-500"   },
+    Sale: { bg: "bg-red-50", text: "text-red-600", dot: "bg-red-500" },
 };
 
 function fmtDate(ts: string) {
@@ -333,11 +333,11 @@ function RecentTransactionsPanel({ transactions, loading }: Readonly<{ transacti
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                             {transactions.map((t) => {
-                                const cfg    = TYPE_CFG[t.transaction_type];
+                                const cfg = TYPE_CFG[t.transaction_type];
                                 const valCol = t.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
-                                const sign   = t.transaction_type === "Receive" ? "+" : "−";
-                                const first  = t.items[0];
-                                const more   = t.items.length - 1;
+                                const sign = t.transaction_type === "Receive" ? "+" : "−";
+                                const first = t.items[0];
+                                const more = t.items.length - 1;
                                 return (
                                     <tr key={t.id} className="hover:bg-gray-50 transition-colors">
                                         <td className="px-4 py-3 text-xs font-bold text-gray-400">#{t.id}</td>
@@ -376,25 +376,25 @@ function RecentTransactionsPanel({ transactions, loading }: Readonly<{ transacti
 // ── Main page ────────────────────────────────────────────────────────────────
 
 export default function ScanPage() {
-    const [scannedBarcode, setScannedBarcode]       = useState<string>("");
-    const [scanResult, setScanResult]               = useState<ScanResult | null>(null);
-    const [scanLoading, setScanLoading]             = useState(false);
-    const [scanError, setScanError]                 = useState<string | null>(null);
+    const [scannedBarcode, setScannedBarcode] = useState<string>("");
+    const [scanResult, setScanResult] = useState<ScanResult | null>(null);
+    const [scanLoading, setScanLoading] = useState(false);
+    const [scanError, setScanError] = useState<string | null>(null);
 
     const [selectedInventory, setSelectedInventory] = useState<InventoryRecord | null>(null);
-    const [txType, setTxType]                       = useState<TxType>("Receive");
-    const [quantity, setQuantity]                   = useState<string>("1");
-    const [submitting, setSubmitting]               = useState(false);
-    const [submitStatus, setSubmitStatus]           = useState<SubmitStatus>(null);
+    const [txType, setTxType] = useState<TxType>("Receive");
+    const [quantity, setQuantity] = useState<string>("1");
+    const [submitting, setSubmitting] = useState(false);
+    const [submitStatus, setSubmitStatus] = useState<SubmitStatus>(null);
 
-    const [recentTxs, setRecentTxs]   = useState<Transaction[]>([]);
+    const [recentTxs, setRecentTxs] = useState<Transaction[]>([]);
     const [txsLoading, setTxsLoading] = useState(true);
 
-    const lastScannedRef  = useRef<string>("");
+    const lastScannedRef = useRef<string>("");
 
     function fetchTxs() {
         setTxsLoading(true);
-        getTransactions().then(setRecentTxs).catch(() => {}).finally(() => setTxsLoading(false));
+        getTransactions().then((res) => setRecentTxs(res.results)).catch(() => { }).finally(() => setTxsLoading(false));
     }
 
     useEffect(() => { fetchTxs(); }, []);
@@ -462,36 +462,36 @@ export default function ScanPage() {
 
     return (
         <div className="px-6 py-8 space-y-8">
-        <div className="max-w-xl space-y-6">
-            <div className="space-y-0.5">
-                <p className="text-xs font-medium tracking-[0.25em] uppercase italic" style={{ color: "#FA4900" }}>Barcode Scanner</p>
-                <h1 className="text-2xl font-bold text-gray-900">Scan</h1>
+            <div className="max-w-xl space-y-6">
+                <div className="space-y-0.5">
+                    <p className="text-xs font-medium tracking-[0.25em] uppercase italic" style={{ color: "#FA4900" }}>Barcode Scanner</p>
+                    <h1 className="text-2xl font-bold text-gray-900">Scan</h1>
+                </div>
+
+                <BarcodeScanner onScan={(decoded) => {
+                    if (decoded === lastScannedRef.current) return;
+                    lastScannedRef.current = decoded;
+                    setScannedBarcode(decoded);
+                }} />
+
+                <ScanResultPanel
+                    result={scanResult}
+                    scanLoading={scanLoading}
+                    scanError={scanError}
+                    scannedBarcode={scannedBarcode}
+                    selectedInventory={selectedInventory}
+                    txType={txType}
+                    quantity={quantity}
+                    submitting={submitting}
+                    onSelectInventory={setSelectedInventory}
+                    onTxType={setTxType}
+                    onQuantity={setQuantity}
+                    onSubmit={handleSubmit}
+                    onReset={handleReset}
+                />
+
+                <SubmitStatusBanner status={submitStatus} onDismiss={() => setSubmitStatus(null)} />
             </div>
-
-            <BarcodeScanner onScan={(decoded) => {
-                if (decoded === lastScannedRef.current) return;
-                lastScannedRef.current = decoded;
-                setScannedBarcode(decoded);
-            }} />
-
-            <ScanResultPanel
-                result={scanResult}
-                scanLoading={scanLoading}
-                scanError={scanError}
-                scannedBarcode={scannedBarcode}
-                selectedInventory={selectedInventory}
-                txType={txType}
-                quantity={quantity}
-                submitting={submitting}
-                onSelectInventory={setSelectedInventory}
-                onTxType={setTxType}
-                onQuantity={setQuantity}
-                onSubmit={handleSubmit}
-                onReset={handleReset}
-            />
-
-            <SubmitStatusBanner status={submitStatus} onDismiss={() => setSubmitStatus(null)} />
-        </div>
 
             <RecentTransactionsPanel transactions={recentTxs} loading={txsLoading} />
 

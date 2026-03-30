@@ -1,13 +1,15 @@
 import api from "./api";
 import type { InventoryRecord, InventoryPayload, ScanResult } from "@/src/types/inventory.types";
+import type { PaginatedInventory } from "@/src/types/api.types";
 
 
 export async function getInventory(params?: {
   product_id?: number;
   site?: string;
   search?: string;
-}): Promise<InventoryRecord[]> {
-  const { data } = await api.get<InventoryRecord[]>("/api/v1/inventory/", { params });
+  page?: number;
+}): Promise<PaginatedInventory> {
+  const { data } = await api.get<PaginatedInventory>("/api/v1/inventory/", { params });
   return data;
 }
 

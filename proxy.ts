@@ -28,8 +28,8 @@ export async function proxy(request: NextRequest) {
   if (pathname.startsWith("/api/")) {
     let relativePath = pathname.replace(/^\/api/, "");
     
-    // Ensure trailing slash for general endpoints, but exclude users/auth
-    if (!relativePath.endsWith("/") && !search && !relativePath.includes("/users")) {
+    // Ensure trailing slash for general endpoints (Django requirement)
+    if (!relativePath.endsWith("/") && !relativePath.includes("/users") && !relativePath.includes(".")) {
       relativePath += "/";
     }
 

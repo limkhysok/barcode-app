@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { InventoryRecord, InventoryPayload } from "@/src/types/inventory.types";
-import type { Product } from "@/src/types/product.types";
 import { getInventory, createInventory, updateInventory, deleteInventory } from "@/src/services/inventory.service";
 import { getProducts } from "@/src/services/product.service";
+import type { PaginatedInventory, PaginatedProducts } from "@/src/types/api.types";
+import { useRouter, useSearchParams } from "next/navigation";
 import { InventoryModal, DeleteModal } from "./InventoryModal";
 
 // ─── Types & constants ────────────────────────────────────────────────────────
@@ -314,15 +315,22 @@ function formatDateTime(dateStr: string): string {
 // ─── InventoryClient ──────────────────────────────────────────────────────────
 
 export default function InventoryClient({
-  initialRecords,
-  initialProducts,
+  initialPaginatedRecords,
+  initialPaginatedProducts,
 }: Readonly<{
-  initialRecords: InventoryRecord[];
-  initialProducts: Product[];
+  initialPaginatedRecords: PaginatedInventory;
+  initialPaginatedProducts: PaginatedProducts;
 }>) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentPage = Number.parseInt(searchParams.get("page") ?? "1") || 1;
+
   // ── Data state ──────────────────────────────────────────────────────────────
-  const [records, setRecords] = useState<InventoryRecord[]>(initialRecords);
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [paginated, setPaginated] = useState<PaginatedInventory>(initialPaginatedRecords);
+  const records = paginated.results;
+
+  const [paginatedProducts, setPaginatedProducts] = useState<PaginatedProducts>(initialPaginatedProducts);
+  const products = paginatedProducts.results;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -347,13 +355,24 @@ export default function InventoryClient({
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
-  function fetchInventory() {
+  function fetchInventory(page = currentPage) {
     setLoading(true);
     setError("");
-    getInventory()
-      .then(setRecords)
+    getInventory({
+      page,
+      search: search || undefined,
+      site: siteFilter || undefined,
+    })
+      .then(setPaginated)
       .catch(() => setError("Failed to load inventory."))
       .finally(() => setLoading(false));
+  }
+
+  function handlePageChange(newPage: number) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(newPage));
+    router.push(`?${params.toString()}`);
+    fetchInventory(newPage);
   }
 
   function openCreate() {
@@ -388,7 +407,7 @@ export default function InventoryClient({
       }
       setModalOpen(false);
       fetchInventory();
-      getProducts().then(setProducts).catch(() => { });
+      getProducts().then(setPaginatedProducts).catch(() => { });
     } catch {
       setFormError("Failed to save. Please check your inputs.");
     } finally {
@@ -737,6 +756,35 @@ export default function InventoryClient({
       <div className="rounded-sm border border-black overflow-hidden bg-white">
         {tableContent}
       </div>
+
+      {!loading && !error && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1">
+          <p className="text-xs text-gray-400">
+            Showing <span className="font-bold text-gray-600">{records.length}</span> of{" "}
+            <span className="font-bold text-gray-600">{paginated.count}</span> records
+          </p>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={!paginated.previous || loading}
+              className="px-4 py-2 text-[10px] font-bold tracking-widest uppercase border border-black rounded-sm bg-white hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-white transition"
+            >
+              Previous
+            </button>
+            <div className="px-3 py-2 text-[10px] font-bold border border-black rounded-sm bg-slate-50">
+              Page {currentPage}
+            </div>
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={!paginated.next || loading}
+              className="px-4 py-2 text-[10px] font-bold tracking-widest uppercase border border-black rounded-sm bg-white hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-white transition"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Modals */}
       <InventoryModal

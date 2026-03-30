@@ -5,6 +5,8 @@ import type { Transaction, TransactionPayload } from "@/src/types/transaction.ty
 import type { InventoryRecord } from "@/src/types/inventory.types";
 import { getTransactions, createTransaction, updateTransaction, deleteTransaction } from "@/src/services/transaction.service";
 import { getInventory } from "@/src/services/inventory.service";
+import type { PaginatedTransactions, PaginatedInventory } from "@/src/types/api.types";
+import { useRouter, useSearchParams } from "next/navigation";
 import TransactionTemplate from "@/src/components/features/export/TransactionTemplate";
 import { formatDateTime, isToday, fmtValue, submitLabel } from "./utils/helpers";
 import { ringStyle, TYPE_CONFIG, TxTypeFilter, ItemDraft, TemplateItem, getNextItemId, emptyItem } from "./utils/constants";
@@ -24,13 +26,24 @@ import TypeFilterSelect from "./TypeFilterSelect";
 // ─── TransactionsClient ───────────────────────────────────────────────────────
 
 type TransactionsClientProps = Readonly<{
-  initialTransactions: Transaction[];
-  initialInventory: InventoryRecord[];
+  initialPaginatedTransactions: PaginatedTransactions;
+  initialPaginatedInventory: PaginatedInventory;
 }>;
 
-const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransactions, initialInventory }) => {
-  const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
-  const [inventory, setInventory] = useState<InventoryRecord[]>(initialInventory);
+const TransactionsClient: React.FC<TransactionsClientProps> = ({ 
+  initialPaginatedTransactions, 
+  initialPaginatedInventory 
+}) => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentPage = Number.parseInt(searchParams.get("page") ?? "1") || 1;
+
+  const [paginated, setPaginated] = useState<PaginatedTransactions>(initialPaginatedTransactions);
+  const transactions = paginated.results;
+
+  const [paginatedInventory, setPaginatedInventory] = useState<PaginatedInventory>(initialPaginatedInventory);
+  const inventory = paginatedInventory.results;
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -118,13 +131,24 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
     return () => window.removeEventListener("scroll", onScroll, true);
   }, [menuOpenId]);
 
-  function fetchAll() {
+  function fetchAll(page = currentPage) {
     setLoading(true);
     setError("");
-    getTransactions()
-      .then(setTransactions)
+    getTransactions({
+      page,
+      type: typeFilter || undefined,
+      search: debouncedSearch || undefined,
+    })
+      .then(setPaginated)
       .catch(() => setError("Failed to load transactions."))
       .finally(() => setLoading(false));
+  }
+
+  function handlePageChange(newPage: number) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(newPage));
+    router.push(`?${params.toString()}`);
+    fetchAll(newPage);
   }
 
   function openModal() {
@@ -189,7 +213,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
       await createTransaction(payload);
       setModalOpen(false);
       fetchAll();
-      getInventory().then(setInventory).catch(() => { });
+      getInventory().then(setPaginatedInventory).catch(() => { });
       if (andExport) {
         const templateItems: TemplateItem[] = valid.map((i) => {
           const rec = inventory.find((r) => r.id === i.inventory);
@@ -299,7 +323,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
       await updateTransaction(editTarget.id, payload);
       setEditTarget(null);
       fetchAll();
-      getInventory().then(setInventory).catch(() => { });
+      getInventory().then(setPaginatedInventory).catch(() => { });
     } catch (err: unknown) {
       type ApiErr = { response?: { data?: { detail?: string; items?: Array<{ quantity?: string }> } } };
       const data = (err as ApiErr)?.response?.data;
@@ -622,10 +646,32 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
       </div>
 
       {!loading && !error && (
-        <p className="text-xs text-gray-400">
-          Showing <span className="font-bold text-gray-600">{displayed.length}</span> of{" "}
-          <span className="font-bold text-gray-600">{transactions.length}</span> transactions
-        </p>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1">
+          <p className="text-xs text-gray-400">
+            Showing <span className="font-bold text-gray-600">{transactions.length}</span> of{" "}
+            <span className="font-bold text-gray-600">{paginated.count}</span> transactions
+          </p>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={!paginated.previous || loading}
+              className="px-4 py-2 text-[10px] font-bold tracking-widest uppercase border border-black rounded-sm bg-white hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-white transition"
+            >
+              Previous
+            </button>
+            <div className="px-3 py-2 text-[10px] font-bold border border-black rounded-sm bg-slate-50">
+              Page {currentPage}
+            </div>
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={!paginated.next || loading}
+              className="px-4 py-2 text-[10px] font-bold tracking-widest uppercase border border-black rounded-sm bg-white hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-white transition"
+            >
+              Next
+            </button>
+          </div>
+        </div>
       )}
 
       {/* New Transaction Modal — two-panel */}
@@ -911,7 +957,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
                       await createTransaction(payload);
                       setModalOpen(false);
                       fetchAll();
-                      getInventory().then(setInventory).catch(() => { });
+                      getInventory().then(setPaginatedInventory).catch(() => { });
                       // Prepare template items
                       const templateItems = valid.map((i) => {
                         const rec = inventory.find((r) => r.id === i.inventory);
