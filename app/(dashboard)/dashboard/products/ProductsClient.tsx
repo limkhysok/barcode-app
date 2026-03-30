@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast, Toaster } from "sonner";
 import type { Product, ProductPayload } from "@/src/types/product.types";
 import { getProducts, getProductStats, createProduct, updateProduct, deleteProduct } from "@/src/services/product.service";
+import type { ProductFilters } from "@/src/services/product.service";
 import type { PaginatedProducts, ProductStats } from "@/src/types/api.types";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -11,35 +12,29 @@ const REORDER_PRESETS = new Set([5, 10, 15, 20]);
 
 type SortDir = "asc" | "desc" | "";
 
-function filterAndSort(
-  products: Product[],
-  search: string,
-  category: string,
-  costDir: SortDir,
-  reorderDir: SortDir,
-): Product[] {
-  let list = [...products];
-  if (search) {
-    const q = search.toLowerCase();
-    list = list.filter((p) => p.product_name.toLowerCase().includes(q) || p.supplier.toLowerCase().includes(q));
-  }
-  if (category) list = list.filter((p) => p.category === category);
-  if (costDir || reorderDir) {
-    list.sort((a, b) => {
-      if (costDir) {
-        const av = Number.parseFloat(a.cost_per_unit);
-        const bv = Number.parseFloat(b.cost_per_unit);
-        if (av !== bv) return costDir === "asc" ? av - bv : bv - av;
-      }
-      if (reorderDir) {
-        const av = a.reorder_level;
-        const bv = b.reorder_level;
-        if (av !== bv) return reorderDir === "asc" ? av - bv : bv - av;
-      }
-      return 0;
-    });
-  }
-  return list;
+function getSortParam(costDir: SortDir, reorderDir: SortDir): string | undefined {
+  if (costDir === "asc") return "cost_per_unit";
+  if (costDir === "desc") return "-cost_per_unit";
+  if (reorderDir === "asc") return "reorder_level";
+  if (reorderDir === "desc") return "-reorder_level";
+  return undefined;
+}
+
+function sortProducts(products: Product[], costDir: SortDir, reorderDir: SortDir): Product[] {
+  if (!costDir && !reorderDir) return products;
+  return [...products].sort((a, b) => {
+    if (costDir) {
+      const av = Number.parseFloat(a.cost_per_unit);
+      const bv = Number.parseFloat(b.cost_per_unit);
+      if (av !== bv) return costDir === "asc" ? av - bv : bv - av;
+    }
+    if (reorderDir) {
+      const av = a.reorder_level;
+      const bv = b.reorder_level;
+      if (av !== bv) return reorderDir === "asc" ? av - bv : bv - av;
+    }
+    return 0;
+  });
 }
 
 function totalCost(list: Product[]): number {
@@ -85,16 +80,15 @@ function CustomSelect({ id, label, value, onChange, options, placeholder, openUp
     <div className={label ? "space-y-1.5" : ""} ref={ref}>
       {label && (
         <label htmlFor={id} className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase text-gray-400">
-          <span className="inline-block w-1 h-3 rounded-full" style={{ background: "#FA4900" }} /> 
+          <span className="inline-block w-1 h-3 rounded-full" style={{ background: "#FA4900" }} />
           {label}
         </label>
       )}
       <div className="relative">
         <button
           id={id} type="button" onClick={() => setOpen((v) => !v)}
-          className={`w-full px-3 py-3 rounded-sm border text-sm font-medium text-left flex items-center justify-between gap-2 transition focus:outline-none bg-gray-50 ${
-            open ? "border-black ring-1 ring-black" : "border-black hover:bg-slate-50"
-          } ${selected && String(selected.value) !== "" ? "text-slate-900" : "text-slate-400"}`}
+          className={`w-full px-3 py-3 rounded-sm border text-sm font-medium text-left flex items-center justify-between gap-2 transition focus:outline-none bg-gray-50 ${open ? "border-black ring-1 ring-black" : "border-black hover:bg-slate-50"
+            } ${selected && String(selected.value) !== "" ? "text-slate-900" : "text-slate-400"}`}
         >
           <span className="truncate">{selected ? selected.label : (placeholder ?? "Select…")}</span>
           <svg className="w-3.5 h-3.5 text-slate-500 shrink-0 transition-transform duration-200"
@@ -111,9 +105,8 @@ function CustomSelect({ id, label, value, onChange, options, placeholder, openUp
                 <li key={opt.value} className="border-b border-black last:border-b-0">
                   <button type="button"
                     onClick={() => { onChange(String(opt.value)); setOpen(false); }}
-                    className={`w-full text-left px-3 py-2.5 text-[11px] font-semibold tracking-wide flex items-center justify-between gap-2 transition ${
-                      active ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
-                    }`}>
+                    className={`w-full text-left px-3 py-2.5 text-[11px] font-semibold tracking-wide flex items-center justify-between gap-2 transition ${active ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
+                      }`}>
                     {opt.label}
                     {active && (
                       <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -317,13 +310,15 @@ export default function ProductsClient({
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentPage = Number.parseInt(searchParams.get("page") ?? "1") || 1;
+  const initialPageSize = searchParams.get("page_size") ?? "20";
 
   const [paginated, setPaginated] = useState<PaginatedProducts>(initialPaginated);
   const products = paginated.results;
 
   const [stats, setStats] = useState<ProductStats | null>(initialStats);
-  
+
   const [loading, setLoading] = useState(false);
+  const [pageSize, setPageSize] = useState<number | string>(initialPageSize === "all" ? "all" : (Number.parseInt(initialPageSize) || 20));
   const [error, setError] = useState("");
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -337,17 +332,44 @@ export default function ProductsClient({
   const [deleting, setDeleting] = useState(false);
 
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [minCost, setMinCost] = useState("");
+  const [maxCost, setMaxCost] = useState("");
+  const [minReorder, setMinReorder] = useState("");
+  const [maxReorder, setMaxReorder] = useState("");
+  const [needsReorder, setNeedsReorder] = useState(false);
   const [costDir, setCostDir] = useState<SortDir>("");
   const [reorderDir, setReorderDir] = useState<SortDir>("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const filtersRef = useRef<HTMLDivElement>(null);
+  const filtersMounted = useRef(false);
 
+  // Debounce API filter changes and re-fetch from page 1
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search.trim()), 200);
+    if (!filtersMounted.current) { filtersMounted.current = true; return; }
+    const t = setTimeout(() => {
+      const sorting = getSortParam(costDir, reorderDir);
+
+      const filters: ProductFilters = {
+        search: search.trim() || undefined,
+        category: categoryFilter || undefined,
+        min_cost: minCost || undefined,
+        max_cost: maxCost || undefined,
+        min_reorder: minReorder || undefined,
+        max_reorder: maxReorder || undefined,
+        needs_reorder: needsReorder || undefined,
+        ordering: sorting,
+      };
+      router.push("?page=1");
+      setLoading(true);
+      setError("");
+      getProducts(1, undefined, filters, pageSize)
+        .then(setPaginated)
+        .catch(() => setError("Failed to load products."))
+        .finally(() => setLoading(false));
+    }, 300);
     return () => clearTimeout(t);
-  }, [search]);
+  }, [search, categoryFilter, minCost, maxCost, minReorder, maxReorder, needsReorder, pageSize, costDir, reorderDir]);
 
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -363,9 +385,9 @@ export default function ProductsClient({
       const fasCost = stats.by_category.Fasteners?.total_value ?? 0;
       return {
         accessories: { count: stats.by_category.Accessories?.count ?? 0, cost: accCost },
-        fasteners:   { count: stats.by_category.Fasteners?.count ?? 0, cost: fasCost },
-        total:       stats.total_products ?? 0,
-        totalValue:  stats.total_value ?? (accCost + fasCost),
+        fasteners: { count: stats.by_category.Fasteners?.count ?? 0, cost: fasCost },
+        total: stats.total_products ?? 0,
+        totalValue: stats.total_value ?? (accCost + fasCost),
       };
     }
     // Fallback if stats not fully loaded
@@ -375,34 +397,60 @@ export default function ProductsClient({
     const fasCost = totalCost(fas);
     return {
       accessories: { count: acc.length, cost: accCost },
-      fasteners:   { count: fas.length, cost: fasCost },
-      total:       products.length,
-      totalValue:  accCost + fasCost,
+      fasteners: { count: fas.length, cost: fasCost },
+      total: products.length,
+      totalValue: accCost + fasCost,
     };
   }, [stats, products]);
 
   const displayed = useMemo(
-    () => filterAndSort(products, debouncedSearch, categoryFilter, costDir, reorderDir),
-    [products, debouncedSearch, categoryFilter, costDir, reorderDir],
+    () => sortProducts(products, costDir, reorderDir),
+    [products, costDir, reorderDir],
   );
+
+  function buildFilters(): ProductFilters {
+    const sorting = getSortParam(costDir, reorderDir);
+
+    return {
+      search: search.trim() || undefined,
+      category: categoryFilter || undefined,
+      min_cost: minCost || undefined,
+      max_cost: maxCost || undefined,
+      min_reorder: minReorder || undefined,
+      max_reorder: maxReorder || undefined,
+      needs_reorder: needsReorder || undefined,
+      ordering: sorting,
+    };
+  }
 
   function fetchProducts(page = currentPage) {
     setLoading(true);
     setError("");
-    getProducts(page)
+    getProducts(page, undefined, buildFilters(), pageSize)
       .then((data) => setPaginated(data))
       .catch(() => setError("Failed to load products."))
       .finally(() => setLoading(false));
-    
+
     // Also refresh stats
-    getProductStats().then(setStats).catch(() => {});
+    getProductStats().then(setStats).catch(() => { });
   }
 
   function handlePageChange(newPage: number) {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", String(newPage));
+    params.set("page_size", String(pageSize));
     router.push(`?${params.toString()}`);
     fetchProducts(newPage);
+  }
+
+  function handlePageSizeChange(newSize: string) {
+    const size = newSize === "all" || newSize === "ALL" ? "all" : Number.parseInt(newSize);
+    setPageSize(size);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", "1");
+    params.set("page_size", String(size));
+    router.push(`?${params.toString()}`);
+    // fetchProducts(1) will be triggered by useEffect
   }
 
   function openCreate() {
@@ -419,12 +467,12 @@ export default function ProductsClient({
     const isCustom = !REORDER_PRESETS.has(product.reorder_level);
     setReorderCustom(isCustom);
     setForm({
-      barcode:       product.barcode,
-      product_name:  product.product_name,
-      category:      product.category,
+      barcode: product.barcode,
+      product_name: product.product_name,
+      category: product.category,
       cost_per_unit: Number.parseFloat(product.cost_per_unit),
       reorder_level: product.reorder_level,
-      supplier:      product.supplier,
+      supplier: product.supplier,
     });
     setFormError("");
     setModalOpen(true);
@@ -514,7 +562,7 @@ export default function ProductsClient({
 
   return (
     <>
-      <Toaster 
+      <Toaster
         position="top-right"
         richColors
         closeButton
@@ -526,475 +574,550 @@ export default function ProductsClient({
       />
       <div className="px-4 py-4 sm:px-8 sm:py-8 space-y-6">
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-0.5">
-          <p className="text-xs font-medium tracking-[0.25em] uppercase" style={{ color: "#FA4900" }}>Product</p>
-          <h1 className="text-2xl font-bold text-gray-900 uppercase">Management</h1>
-        </div>
-        <button onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2 sm:px-5 rounded-sm text-xs font-bold tracking-widest uppercase bg-orange-500 text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <p className="text-xs font-medium tracking-[0.25em] uppercase" style={{ color: "#FA4900" }}>Product</p>
+            <h1 className="text-2xl font-bold text-gray-900 uppercase">Management</h1>
+          </div>
+          <button onClick={openCreate}
+            className="flex items-center gap-2 px-4 py-2 sm:px-5 rounded-sm text-xs font-bold tracking-widest uppercase bg-orange-500 text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
           >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          <span className="hidden sm:inline">Add Product</span>
-          <span className="sm:hidden">Add</span>
-        </button>
-      </div>
-
-      {/* Category stat cards — mobile: compact summary / desktop: stitched cards */}
-
-      {/* Mobile compact summary */}
-      <div className="sm:hidden rounded-sm border border-black overflow-hidden bg-white">
-        {/* Accent header */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-black" >
-          <p className="text-[11px] font-bold tracking-widest uppercase text-black ">Products Overview</p>
-          <p className="text-sm font-bold text-black tabular-nums">{categoryStats.total} <span className="text-[10px] font-normal opacity-80">items</span></p>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            <span className="hidden sm:inline">Add Product</span>
+            <span className="sm:hidden">Add</span>
+          </button>
         </div>
 
-        {/* Category rows */}
-        <div className="divide-y divide-black/10">
-          {/* Accessories */}
-          <div className="px-4 py-3 space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold tracking-widest uppercase text-orange-500">Accessories</span>
-              <div className="text-right">
-                <span className="text-sm font-bold text-slate-900 tabular-nums">{categoryStats.accessories.count}</span>
-                <span className="text-[10px] text-slate-400 ml-1">units</span>
+        {/* Category stat cards — mobile: compact summary / desktop: stitched cards */}
+
+        {/* Mobile compact summary */}
+        <div className="sm:hidden rounded-sm border border-black overflow-hidden bg-white">
+          {/* Accent header */}
+          <div className="flex items-center justify-between px-4 py-2.5 border-b border-black" >
+            <p className="text-[11px] font-bold tracking-widest uppercase text-black ">Products Overview</p>
+            <p className="text-sm font-bold text-black tabular-nums">{categoryStats.total} <span className="text-[10px] font-normal opacity-80">items</span></p>
+          </div>
+
+          {/* Category rows */}
+          <div className="divide-y divide-black/10">
+            {/* Accessories */}
+            <div className="px-4 py-3 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold tracking-widest uppercase text-orange-500">Accessories</span>
+                <div className="text-right">
+                  <span className="text-sm font-bold text-slate-900 tabular-nums">{categoryStats.accessories.count}</span>
+                  <span className="text-[10px] text-slate-400 ml-1">units</span>
+                </div>
+              </div>
+              <div className="h-1 w-full rounded-full bg-slate-100 overflow-hidden">
+                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.round((categoryStats.accessories.count / Math.max(categoryStats.total, 1)) * 100)}%`, background: "#FA4900" }} />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] text-slate-400">{Math.round((categoryStats.accessories.count / Math.max(categoryStats.total, 1)) * 100)}% of total</span>
+                <span className="text-[10px] font-semibold text-slate-600 tabular-nums">${categoryStats.accessories.cost.toFixed(2)}</span>
               </div>
             </div>
-            <div className="h-1 w-full rounded-full bg-slate-100 overflow-hidden">
-              <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.round((categoryStats.accessories.count / Math.max(categoryStats.total, 1)) * 100)}%`, background: "#FA4900" }} />
+
+            {/* Fasteners */}
+            <div className="px-4 py-3 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold tracking-widest uppercase text-slate-500">Fasteners</span>
+                <div className="text-right">
+                  <span className="text-sm font-bold text-slate-900 tabular-nums">{categoryStats.fasteners.count}</span>
+                  <span className="text-[10px] text-slate-400 ml-1">units</span>
+                </div>
+              </div>
+              <div className="h-1 w-full rounded-full bg-slate-100 overflow-hidden">
+                <div className="h-full rounded-full bg-slate-400 transition-all duration-700" style={{ width: `${Math.round((categoryStats.fasteners.count / Math.max(categoryStats.total, 1)) * 100)}%` }} />
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] text-slate-400">{Math.round((categoryStats.fasteners.count / Math.max(categoryStats.total, 1)) * 100)}% of total</span>
+                <span className="text-[10px] font-semibold text-slate-600 tabular-nums">${categoryStats.fasteners.cost.toFixed(2)}</span>
+              </div>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[9px] text-slate-400">{Math.round((categoryStats.accessories.count / Math.max(categoryStats.total, 1)) * 100)}% of total</span>
-              <span className="text-[10px] font-semibold text-slate-600 tabular-nums">${categoryStats.accessories.cost.toFixed(2)}</span>
+          </div>
+
+          {/* Total value footer */}
+          <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-t border-black/10">
+            <p className="text-[9px] font-bold tracking-widest uppercase text-slate-400">Total Value</p>
+            <p className="text-sm font-bold text-slate-900 tabular-nums">${categoryStats.totalValue.toFixed(2)}</p>
+          </div>
+        </div>
+
+        {/* Desktop stitched cards */}
+        <div className="hidden sm:flex rounded-sm border border-black overflow-hidden divide-x divide-black">
+
+          {/* Accessories */}
+          <div className="flex-1 bg-white p-3 space-y-6">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="inline-block text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5 rounded-none">Accessories</p>
+                <p className="text-3xl font-bold text-slate-900 mt-2 leading-none tabular-nums">{categoryStats.accessories.count}</p>
+                <p className="text-xs text-slate-400 mt-1">products</p>
+              </div>
+              <div className="w-9 h-9 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
+                </svg>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-500">Total cost / unit</span>
+                <span className="font-semibold text-slate-900 tabular-nums">${categoryStats.accessories.cost.toFixed(2)}</span>
+              </div>
+              <div className="h-1 w-full rounded-full bg-slate-100 overflow-hidden">
+                <div className="h-full rounded-full bg-black transition-all duration-700"
+                  style={{ width: `${Math.round((categoryStats.accessories.count / Math.max(categoryStats.total, 1)) * 100)}%` }} />
+              </div>
+              <p className="text-[11px] text-slate-400 text-right">
+                {Math.round((categoryStats.accessories.count / Math.max(categoryStats.total, 1)) * 100)}% of total
+              </p>
             </div>
           </div>
 
           {/* Fasteners */}
-          <div className="px-4 py-3 space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold tracking-widest uppercase text-slate-500">Fasteners</span>
-              <div className="text-right">
-                <span className="text-sm font-bold text-slate-900 tabular-nums">{categoryStats.fasteners.count}</span>
-                <span className="text-[10px] text-slate-400 ml-1">units</span>
+          <div className="flex-1 bg-white p-3 space-y-6">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="inline-block text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5 rounded-none">Fasteners</p>
+                <p className="text-3xl font-bold text-slate-900 mt-2 leading-none tabular-nums">{categoryStats.fasteners.count}</p>
+                <p className="text-xs text-slate-400 mt-1">products</p>
               </div>
-            </div>
-            <div className="h-1 w-full rounded-full bg-slate-100 overflow-hidden">
-              <div className="h-full rounded-full bg-slate-400 transition-all duration-700" style={{ width: `${Math.round((categoryStats.fasteners.count / Math.max(categoryStats.total, 1)) * 100)}%` }} />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[9px] text-slate-400">{Math.round((categoryStats.fasteners.count / Math.max(categoryStats.total, 1)) * 100)}% of total</span>
-              <span className="text-[10px] font-semibold text-slate-600 tabular-nums">${categoryStats.fasteners.cost.toFixed(2)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Total value footer */}
-        <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-t border-black/10">
-          <p className="text-[9px] font-bold tracking-widest uppercase text-slate-400">Total Value</p>
-          <p className="text-sm font-bold text-slate-900 tabular-nums">${categoryStats.totalValue.toFixed(2)}</p>
-        </div>
-      </div>
-
-      {/* Desktop stitched cards */}
-      <div className="hidden sm:flex rounded-sm border border-black overflow-hidden divide-x divide-black">
-
-        {/* Accessories */}
-        <div className="flex-1 bg-white p-3 space-y-6">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="inline-block text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5 rounded-none">Accessories</p>
-              <p className="text-3xl font-bold text-slate-900 mt-2 leading-none tabular-nums">{categoryStats.accessories.count}</p>
-              <p className="text-xs text-slate-400 mt-1">products</p>
-            </div>
-            <div className="w-9 h-9 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
-              <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
-              </svg>
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500">Total cost / unit</span>
-              <span className="font-semibold text-slate-900 tabular-nums">${categoryStats.accessories.cost.toFixed(2)}</span>
-            </div>
-            <div className="h-1 w-full rounded-full bg-slate-100 overflow-hidden">
-              <div className="h-full rounded-full bg-black transition-all duration-700"
-                style={{ width: `${Math.round((categoryStats.accessories.count / Math.max(categoryStats.total, 1)) * 100)}%` }} />
-            </div>
-            <p className="text-[11px] text-slate-400 text-right">
-              {Math.round((categoryStats.accessories.count / Math.max(categoryStats.total, 1)) * 100)}% of total
-            </p>
-          </div>
-        </div>
-
-        {/* Fasteners */}
-        <div className="flex-1 bg-white p-3 space-y-6">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="inline-block text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5 rounded-none">Fasteners</p>
-              <p className="text-3xl font-bold text-slate-900 mt-2 leading-none tabular-nums">{categoryStats.fasteners.count}</p>
-              <p className="text-xs text-slate-400 mt-1">products</p>
-            </div>
-            <div className="w-9 h-9 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
-              <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 11-3.586-3.586l8.684-7.152c.833-.736.995-1.874.904-2.95a4.5 4.5 0 016.336-4.486l-3.276 3.276a3.004 3.004 0 002.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852z" />
-              </svg>
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-500">Total cost / unit</span>
-              <span className="font-semibold text-slate-900 tabular-nums">${categoryStats.fasteners.cost.toFixed(2)}</span>
-            </div>
-            <div className="h-1 w-full rounded-full bg-slate-100 overflow-hidden">
-              <div className="h-full rounded-full bg-black transition-all duration-700"
-                style={{ width: `${Math.round((categoryStats.fasteners.count / Math.max(categoryStats.total, 1)) * 100)}%` }} />
-            </div>
-            <p className="text-[11px] text-slate-400 text-right">
-              {Math.round((categoryStats.fasteners.count / Math.max(categoryStats.total, 1)) * 100)}% of total
-            </p>
-          </div>
-        </div>
-
-        {/* Total Value */}
-        <div className="flex-1 bg-white p-3 space-y-6">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="inline-block text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5 rounded-none">Total Value</p>
-              <p className="text-3xl font-bold text-slate-900 mt-2 leading-none tabular-nums">
-                ${categoryStats.totalValue.toFixed(2)}
-              </p>
-              <p className="text-xs text-slate-400 mt-1">combined cost / unit</p>
-            </div>
-            <div className="w-9 h-9 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
-              <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-          <div className="space-y-2 text-xs">
-            <div className="flex items-center justify-between text-slate-500">
-              <span>Accessories</span>
-              <span className="font-semibold text-slate-900 tabular-nums">${categoryStats.accessories.cost.toFixed(2)}</span>
-            </div>
-            <div className="h-px w-full bg-slate-100" />
-            <div className="flex items-center justify-between text-slate-500">
-              <span>Fasteners</span>
-              <span className="font-semibold text-slate-900 tabular-nums">${categoryStats.fasteners.cost.toFixed(2)}</span>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* Toolbar */}
-      {/* Filters — four card tiles */}
-      {/* Desktop filters — 4 columns */}
-      <div className="hidden lg:grid grid-cols-4 gap-2.5">
-        <div className="bg-white rounded-sm">
-          <CustomSelect id="filter-category" value={categoryFilter} onChange={setCategoryFilter}
-            options={[
-              { value: "",            label: "All Categories" },
-              { value: "Accessories", label: "Accessories"    },
-              { value: "Fasteners",   label: "Fasteners"      },
-            ]} />
-        </div>
-        <div className="bg-white rounded-sm">
-          <CustomSelect id="sort-cost" value={costDir} onChange={(v) => setCostDir(v as SortDir)}
-            options={[
-              { value: "",     label: "All Cost / Unit" },
-              { value: "asc",  label: "Low → High"      },
-              { value: "desc", label: "High → Low"      },
-            ]} />
-        </div>
-        <div className="bg-white rounded-sm">
-          <CustomSelect id="sort-reorder" value={reorderDir} onChange={(v) => setReorderDir(v as SortDir)}
-            options={[
-              { value: "",     label: "All Reorder Level" },
-              { value: "asc",  label: "Low → High"        },
-              { value: "desc", label: "High → Low"        },
-            ]} />
-        </div>
-        <div className="flex items-center gap-2 bg-white rounded-sm border border-black px-3 py-2">
-          <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-          </svg>
-          <input id="product-search" name="product-search" type="text" placeholder="Search Name"
-            value={search} onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 min-w-0 text-sm font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal bg-transparent outline-none" />
-          {search && (
-            <button type="button" onClick={() => setSearch("")} aria-label="Clear search" className="text-slate-300 hover:text-black transition shrink-0">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Mobile filters — Filters button + Search */}
-      <div className="flex lg:hidden gap-2">
-        {/* Filters dropdown */}
-        <div className="relative" ref={filtersRef}>
-          {(() => {
-            const activeCount = [categoryFilter, costDir, reorderDir].filter(Boolean).length;
-            return (
-              <button type="button" onClick={() => setFiltersOpen((v) => !v)}
-                className={`flex items-center gap-2 px-3 py-3 rounded-sm border text-[11px] font-bold tracking-widest uppercase transition ${
-                  filtersOpen ? "bg-black text-white border-black" : "bg-white text-slate-700 border-black hover:bg-slate-50"
-                }`}>
-                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+              <div className="w-9 h-9 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 11-3.586-3.586l8.684-7.152c.833-.736.995-1.874.904-2.95a4.5 4.5 0 016.336-4.486l-3.276 3.276a3.004 3.004 0 002.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852z" />
                 </svg>
-                Filters
-                {activeCount > 0 && (
-                  <span className="flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold bg-orange-500 text-white">
-                    {activeCount}
-                  </span>
-                )}
-              </button>
-            );
-          })()}
-
-          {filtersOpen && (
-            <div className="absolute top-full left-0 mt-1 z-50 w-64 bg-white border border-black rounded-sm shadow-xl p-3 space-y-3">
-              <p className="text-[9px] font-bold tracking-widest uppercase text-slate-400">Filters &amp; Sorting</p>
-              <div className="space-y-1.5">
-                <p className="text-[10px] font-semibold text-slate-500">Category</p>
-                <CustomSelect id="mob-filter-category" value={categoryFilter} onChange={setCategoryFilter}
-                  options={[
-                    { value: "",            label: "All Categories" },
-                    { value: "Accessories", label: "Accessories"    },
-                    { value: "Fasteners",   label: "Fasteners"      },
-                  ]} />
               </div>
-              <div className="space-y-1.5">
-                <p className="text-[10px] font-semibold text-slate-500">Cost / Unit</p>
-                <CustomSelect id="mob-sort-cost" value={costDir} onChange={(v) => setCostDir(v as SortDir)}
-                  options={[
-                    { value: "",     label: "All Cost / Unit" },
-                    { value: "asc",  label: "Low → High"      },
-                    { value: "desc", label: "High → Low"      },
-                  ]} />
-              </div>
-              <div className="space-y-1.5">
-                <p className="text-[10px] font-semibold text-slate-500">Reorder Level</p>
-                <CustomSelect id="mob-sort-reorder" value={reorderDir} onChange={(v) => setReorderDir(v as SortDir)}
-                  options={[
-                    { value: "",     label: "All Reorder Level" },
-                    { value: "asc",  label: "Low → High"        },
-                    { value: "desc", label: "High → Low"        },
-                  ]} />
-              </div>
-              {[categoryFilter, costDir, reorderDir].some(Boolean) && (
-                <button type="button"
-                  onClick={() => { setCategoryFilter(""); setCostDir(""); setReorderDir(""); }}
-                  className="w-full py-1.5 text-[10px] font-bold tracking-widest uppercase text-red-500 border border-red-200 rounded-sm hover:bg-red-50 transition">
-                  Clear All
-                </button>
-              )}
             </div>
-          )}
-        </div>
-
-        {/* Search */}
-        <div className="flex-1 flex items-center gap-2 bg-white rounded-sm border border-black px-3 py-2">
-          <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-          </svg>
-          <input id="product-search-mobile" name="product-search" type="text" placeholder="Search Name" value={search} onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 min-w-0 text-sm font-medium text-slate-800 placeholder:text-slate-400 placeholder:font-normal bg-transparent outline-none" />
-          {search && (
-            <button type="button" onClick={() => setSearch("")} aria-label="Clear search" className="text-slate-300 hover:text-black transition shrink-0">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="rounded-sm border border-black overflow-hidden bg-white ">
-        <ProductTable
-          loading={loading} error={error}
-          displayed={displayed} products={products}
-          costDir={costDir} reorderDir={reorderDir}
-          onEdit={openEdit} onDelete={setDeleteTarget}
-        />
-      </div>
-
-      {!loading && !error && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1">
-          <p className="text-xs text-gray-400">
-            Showing <span className="font-bold text-gray-600">{products.length}</span> of{" "}
-            <span className="font-bold text-gray-600">{paginated.count}</span> products
-          </p>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={!paginated.previous || loading}
-              className="px-4 py-2 text-[10px] font-bold tracking-widest uppercase border border-black rounded-sm bg-white hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-white transition"
-            >
-              Previous
-            </button>
-            <div className="px-3 py-2 text-[10px] font-bold border border-black rounded-sm bg-slate-50">
-              Page {currentPage}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-500">Total cost / unit</span>
+                <span className="font-semibold text-slate-900 tabular-nums">${categoryStats.fasteners.cost.toFixed(2)}</span>
+              </div>
+              <div className="h-1 w-full rounded-full bg-slate-100 overflow-hidden">
+                <div className="h-full rounded-full bg-black transition-all duration-700"
+                  style={{ width: `${Math.round((categoryStats.fasteners.count / Math.max(categoryStats.total, 1)) * 100)}%` }} />
+              </div>
+              <p className="text-[11px] text-slate-400 text-right">
+                {Math.round((categoryStats.fasteners.count / Math.max(categoryStats.total, 1)) * 100)}% of total
+              </p>
             </div>
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={!paginated.next || loading}
-              className="px-4 py-2 text-[10px] font-bold tracking-widest uppercase border border-black rounded-sm bg-white hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-white transition"
-            >
-              Next
-            </button>
           </div>
-        </div>
-      )}
 
-      {/* Add / Edit Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4">
-          <div className="w-full sm:max-w-lg max-h-[95vh] overflow-y-auto bg-white rounded-t-sm sm:rounded-sm shadow-2xl flex flex-col">
-
-            {/* Orange accent strip + header */}
-            <div className="relative px-6 pt-6 pb-5">
-              <div className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl sm:rounded-t-2xl" style={{ background: "#FA4900" }} />
-              {/* Mobile drag handle */}
-              <div className="flex justify-center sm:hidden mb-4">
-                <div className="w-10 h-1 rounded-full bg-gray-200" />
+          {/* Total Value */}
+          <div className="flex-1 bg-white p-3 space-y-6">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="inline-block text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5 rounded-none">Total Value</p>
+                <p className="text-3xl font-bold text-slate-900 mt-2 leading-none tabular-nums">
+                  ${categoryStats.totalValue.toFixed(2)}
+                </p>
+                <p className="text-xs text-slate-400 mt-1">combined cost / unit</p>
               </div>
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <span className="inline-block text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full mb-2"
-                    style={{ background: "#FFF0E8", color: "#FA4900" }}>
-                    {editing ? "Editing" : "New"}
-                  </span>
-                  <h2 className="text-xl font-bold text-gray-900">{editing ? "Edit Product" : "Add Product"}</h2>
-                  <p className="text-xs text-gray-400 mt-0.5">Fill in the fields below and save.</p>
-                </div>
-                <button onClick={() => setModalOpen(false)}
-                  className="mt-1 p-2 rounded-sm text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition shrink-0">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <div className="w-9 h-9 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+            <div className="space-y-2 text-xs">
+              <div className="flex items-center justify-between text-slate-500">
+                <span>Accessories</span>
+                <span className="font-semibold text-slate-900 tabular-nums">${categoryStats.accessories.cost.toFixed(2)}</span>
+              </div>
+              <div className="h-px w-full bg-slate-100" />
+              <div className="flex items-center justify-between text-slate-500">
+                <span>Fasteners</span>
+                <span className="font-semibold text-slate-900 tabular-nums">${categoryStats.fasteners.cost.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Toolbar */}
+        {/* Desktop filters */}
+        <div className="hidden lg:block space-y-2">
+          {/* Row 1: category, sort, search */}
+          <div className="grid grid-cols-4 gap-2.5">
+            <div className="bg-white rounded-sm">
+              <CustomSelect id="filter-category" value={categoryFilter} onChange={setCategoryFilter}
+                options={[
+                  { value: "", label: "All Categories" },
+                  { value: "Accessories", label: "Accessories" },
+                  { value: "Fasteners", label: "Fasteners" },
+                ]} />
+            </div>
+            <div className="bg-white rounded-sm">
+              <CustomSelect id="sort-cost" value={costDir} onChange={(v) => setCostDir(v as SortDir)}
+                options={[
+                  { value: "", label: "Cost / Unit (sort)" },
+                  { value: "asc", label: "Low → High" },
+                  { value: "desc", label: "High → Low" },
+                ]} />
+            </div>
+            <div className="bg-white rounded-sm">
+              <CustomSelect id="sort-reorder" value={reorderDir} onChange={(v) => setReorderDir(v as SortDir)}
+                options={[
+                  { value: "", label: "Reorder Level (sort)" },
+                  { value: "asc", label: "Low → High" },
+                  { value: "desc", label: "High → Low" },
+                ]} />
+            </div>
+            <div className="flex items-center gap-2 bg-white rounded-sm border border-black px-3 py-2">
+              <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+              </svg>
+              <input id="product-search" name="product-search" type="text" placeholder="Search name, barcode, supplier"
+                value={search} onChange={(e) => setSearch(e.target.value)}
+                className="flex-1 min-w-0 text-sm font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal bg-transparent outline-none" />
+              {search && (
+                <button type="button" onClick={() => setSearch("")} aria-label="Clear search" className="text-slate-300 hover:text-black transition shrink-0">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
+              )}
+            </div>
+          </div>
+          {/* Row 2: range filters + needs_reorder */}
+          <div className="grid grid-cols-5 gap-2.5">
+            {[
+              { id: "min-cost", placeholder: "Min cost", value: minCost, set: setMinCost },
+              { id: "max-cost", placeholder: "Max cost", value: maxCost, set: setMaxCost },
+              { id: "min-reorder", placeholder: "Min reorder", value: minReorder, set: setMinReorder },
+              { id: "max-reorder", placeholder: "Max reorder", value: maxReorder, set: setMaxReorder },
+            ].map(({ id, placeholder, value, set }) => (
+              <div key={id} className="flex items-center gap-2 bg-white rounded-sm border border-black px-3 py-2">
+                <input id={id} type="number" min={0} placeholder={placeholder} value={value}
+                  onChange={(e) => set(e.target.value)}
+                  className="flex-1 min-w-0 text-sm font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal bg-transparent outline-none" />
               </div>
+            ))}
+            <button type="button"
+              onClick={() => setNeedsReorder((v) => !v)}
+              className={`flex items-center justify-center gap-2 px-3 py-2 rounded-sm border text-[11px] font-bold tracking-widest uppercase transition ${needsReorder ? "bg-orange-500 text-white border-orange-500" : "bg-white text-slate-500 border-black hover:bg-slate-50"
+                }`}>
+              {needsReorder && <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>}
+              Needs Reorder
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile filters — Filters button + Search */}
+        <div className="flex lg:hidden gap-2">
+          {/* Filters dropdown */}
+          <div className="relative" ref={filtersRef}>
+            {(() => {
+              const activeCount = [categoryFilter, costDir, reorderDir, minCost, maxCost, minReorder, maxReorder, needsReorder ? "1" : ""].filter(Boolean).length;
+              return (
+                <button type="button" onClick={() => setFiltersOpen((v) => !v)}
+                  className={`flex items-center gap-2 px-3 py-3 rounded-sm border text-[11px] font-bold tracking-widest uppercase transition ${filtersOpen ? "bg-black text-white border-black" : "bg-white text-slate-700 border-black hover:bg-slate-50"
+                    }`}>
+                  <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                  </svg>
+                  Filters
+                  {activeCount > 0 && (
+                    <span className="flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold bg-orange-500 text-white">
+                      {activeCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })()}
+
+            {filtersOpen && (
+              <div className="absolute top-full left-0 mt-1 z-50 w-64 bg-white border border-black rounded-sm shadow-xl p-3 space-y-3">
+                <p className="text-[9px] font-bold tracking-widest uppercase text-slate-400">Filters &amp; Sorting</p>
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-semibold text-slate-500">Category</p>
+                  <CustomSelect id="mob-filter-category" value={categoryFilter} onChange={setCategoryFilter}
+                    options={[
+                      { value: "", label: "All Categories" },
+                      { value: "Accessories", label: "Accessories" },
+                      { value: "Fasteners", label: "Fasteners" },
+                    ]} />
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-semibold text-slate-500">Cost / Unit (sort)</p>
+                  <CustomSelect id="mob-sort-cost" value={costDir} onChange={(v) => setCostDir(v as SortDir)}
+                    options={[
+                      { value: "", label: "Default" },
+                      { value: "asc", label: "Low → High" },
+                      { value: "desc", label: "High → Low" },
+                    ]} />
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-semibold text-slate-500">Reorder Level (sort)</p>
+                  <CustomSelect id="mob-sort-reorder" value={reorderDir} onChange={(v) => setReorderDir(v as SortDir)}
+                    options={[
+                      { value: "", label: "Default" },
+                      { value: "asc", label: "Low → High" },
+                      { value: "desc", label: "High → Low" },
+                    ]} />
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-semibold text-slate-500">Cost Range</p>
+                  <div className="flex gap-1.5">
+                    <input type="number" min={0} placeholder="Min" value={minCost} onChange={(e) => setMinCost(e.target.value)}
+                      className="w-full px-2 py-1.5 rounded-sm border border-black text-sm text-slate-900 placeholder:text-slate-400 bg-gray-50 outline-none" />
+                    <input type="number" min={0} placeholder="Max" value={maxCost} onChange={(e) => setMaxCost(e.target.value)}
+                      className="w-full px-2 py-1.5 rounded-sm border border-black text-sm text-slate-900 placeholder:text-slate-400 bg-gray-50 outline-none" />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-semibold text-slate-500">Reorder Level Range</p>
+                  <div className="flex gap-1.5">
+                    <input type="number" min={0} placeholder="Min" value={minReorder} onChange={(e) => setMinReorder(e.target.value)}
+                      className="w-full px-2 py-1.5 rounded-sm border border-black text-sm text-slate-900 placeholder:text-slate-400 bg-gray-50 outline-none" />
+                    <input type="number" min={0} placeholder="Max" value={maxReorder} onChange={(e) => setMaxReorder(e.target.value)}
+                      className="w-full px-2 py-1.5 rounded-sm border border-black text-sm text-slate-900 placeholder:text-slate-400 bg-gray-50 outline-none" />
+                  </div>
+                </div>
+                <button type="button"
+                  onClick={() => setNeedsReorder((v) => !v)}
+                  className={`w-full flex items-center justify-center gap-2 py-1.5 text-[10px] font-bold tracking-widest uppercase rounded-sm border transition ${needsReorder ? "bg-orange-500 text-white border-orange-500" : "text-slate-600 border-black hover:bg-slate-50"
+                    }`}>
+                  {needsReorder && <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>}
+                  Needs Reorder Only
+                </button>
+                {[categoryFilter, costDir, reorderDir, minCost, maxCost, minReorder, maxReorder, needsReorder ? "1" : ""].some(Boolean) && (
+                  <button type="button"
+                    onClick={() => { setCategoryFilter(""); setCostDir(""); setReorderDir(""); setMinCost(""); setMaxCost(""); setMinReorder(""); setMaxReorder(""); setNeedsReorder(false); }}
+                    className="w-full py-1.5 text-[10px] font-bold tracking-widest uppercase text-red-500 border border-red-200 rounded-sm hover:bg-red-50 transition">
+                    Clear All
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Search */}
+          <div className="flex-1 flex items-center gap-2 bg-white rounded-sm border border-black px-3 py-2">
+            <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+            </svg>
+            <input id="product-search-mobile" name="product-search" type="text" placeholder="Search Name" value={search} onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 min-w-0 text-sm font-medium text-slate-800 placeholder:text-slate-400 placeholder:font-normal bg-transparent outline-none" />
+            {search && (
+              <button type="button" onClick={() => setSearch("")} aria-label="Clear search" className="text-slate-300 hover:text-black transition shrink-0">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Pagination & Count — moved to top and refactored with page size dropdown */}
+        {!loading && !error && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1 pb-4">
+            <div className="flex flex-col gap-1 items-center sm:items-start">
+              <p className="text-[10px] font-bold tracking-widest uppercase text-slate-400">Total Results</p>
+              <p className="text-sm font-bold text-slate-900 tabular-nums">
+                Showing {products.length} <span className="font-normal text-slate-400">of</span> {paginated.count} <span className="font-normal text-slate-400 text-[11px] uppercase tracking-wide">products</span>
+              </p>
             </div>
 
-            {/* Form */}
-            <form onSubmit={handleSave} className="px-6 pb-6 space-y-4 flex-1">
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Field label="Product Name" id="product_name" value={form.product_name} placeholder="Engine Oil Filter"
-                  onChange={(v) => setForm((f) => ({ ...f, product_name: v }))} />
-                <Field label="Barcode" id="barcode" value={form.barcode} placeholder="SN-ABC123"
-                  onChange={(v) => setForm((f) => ({ ...f, barcode: v }))} />
+            <div className="flex items-center gap-2">
+              {/* Page Size Dropdown */}
+              <div className="bg-white min-w-[120px]">
+                <CustomSelect
+                  id="page-size-selector"
+                  value={pageSize === "all" ? "all" : String(pageSize)}
+                  onChange={handlePageSizeChange}
+                  options={[
+                    { value: "20", label: "Show 20" },
+                    { value: "50", label: "Show 50" },
+                    { value: "100", label: "Show 100" },
+                    { value: "200", label: "Show 200" },
+                    { value: "500", label: "Show 500" },
+                    { value: "1000", label: "Show 1000" },
+                    { value: "all", label: "Show ALL" },
+                  ]}
+                />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <CustomSelect id="category" label="Category" value={form.category} placeholder="Select…"
-                  onChange={(v) => setForm((f) => ({ ...f, category: v }))}
-                  options={[
-                    { value: "Accessories", label: "Accessories" },
-                    { value: "Fasteners",   label: "Fasteners"   },
-                  ]} />
-                <div className="space-y-1.5">
-                  <CustomSelect id="reorder_level" label="Reorder Level" openUp
-                    value={reorderCustom ? "custom" : form.reorder_level} placeholder="Select…"
-                    onChange={(v) => {
-                      if (v === "custom") {
-                        setReorderCustom(true);
-                        setForm((f) => ({ ...f, reorder_level: 0 }));
-                      } else {
-                        setReorderCustom(false);
-                        setForm((f) => ({ ...f, reorder_level: Number.parseInt(v) }));
-                      }
-                    }}
-                    options={[
-                      { value: 5,        label: "5"       },
-                      { value: 10,       label: "10"      },
-                      { value: 15,       label: "15"      },
-                      { value: 20,       label: "20"      },
-                      { value: "custom", label: "Custom…" },
-                    ]} />
-                  {reorderCustom && (
-                    <input type="number" min={1} placeholder="Enter value" required
-                      value={form.reorder_level || ""}
-                      onChange={(e) => setForm((f) => ({ ...f, reorder_level: Number.parseInt(e.target.value) || 0 }))}
-                      className={`${inputCls} mt-1`} style={ringStyle} />
-                  )}
+              {/* Pagination controls still exist for multi-page results */}
+              <div className="flex items-center gap-1.5 h-[46px]">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={!paginated.previous || loading}
+                  title="Previous Page"
+                  className="w-[46px] h-full flex items-center justify-center border border-black rounded-sm bg-white hover:bg-slate-50 disabled:opacity-20 disabled:cursor-not-allowed transition"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                </button>
+                <div className="px-5 h-full flex items-center justify-center text-[11px] font-black tracking-widest uppercase border border-black rounded-sm bg-slate-50 text-slate-900">
+                  Page {currentPage}
+                </div>
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={!paginated.next || loading}
+                  title="Next Page"
+                  className="w-[46px] h-full flex items-center justify-center border border-black rounded-sm bg-white hover:bg-slate-50 disabled:opacity-20 disabled:cursor-not-allowed transition"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Table */}
+        <div className="rounded-sm border border-black overflow-hidden bg-white ">
+          <ProductTable
+            loading={loading} error={error}
+            displayed={displayed} products={products}
+            costDir={costDir} reorderDir={reorderDir}
+            onEdit={openEdit} onDelete={setDeleteTarget}
+          />
+        </div>
+
+
+        {/* Add / Edit Modal */}
+        {modalOpen && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4">
+            <div className="w-full sm:max-w-lg max-h-[95vh] overflow-y-auto bg-white rounded-t-sm sm:rounded-sm shadow-2xl flex flex-col">
+
+              {/* Orange accent strip + header */}
+              <div className="relative px-6 pt-6 pb-5">
+                <div className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl sm:rounded-t-2xl" style={{ background: "#FA4900" }} />
+                {/* Mobile drag handle */}
+                <div className="flex justify-center sm:hidden mb-4">
+                  <div className="w-10 h-1 rounded-full bg-gray-200" />
+                </div>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <span className="inline-block text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full mb-2"
+                      style={{ background: "#FFF0E8", color: "#FA4900" }}>
+                      {editing ? "Editing" : "New"}
+                    </span>
+                    <h2 className="text-xl font-bold text-gray-900">{editing ? "Edit Product" : "Add Product"}</h2>
+                    <p className="text-xs text-gray-400 mt-0.5">Fill in the fields below and save.</p>
+                  </div>
+                  <button onClick={() => setModalOpen(false)}
+                    className="mt-1 p-2 rounded-sm text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition shrink-0">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Field label="Supplier" id="supplier" value={form.supplier} placeholder="CTK Supply Co."
-                  onChange={(v) => setForm((f) => ({ ...f, supplier: v }))} />
-                <Field label="Cost / Unit ($)" id="cost_per_unit" type="number" value={form.cost_per_unit} placeholder="12.50"
-                  onChange={(v) => setForm((f) => ({ ...f, cost_per_unit: Number.parseFloat(v) || 0 }))} />
+              {/* Form */}
+              <form onSubmit={handleSave} className="px-6 pb-6 space-y-4 flex-1">
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="Product Name" id="product_name" value={form.product_name} placeholder="Engine Oil Filter"
+                    onChange={(v) => setForm((f) => ({ ...f, product_name: v }))} />
+                  <Field label="Barcode" id="barcode" value={form.barcode} placeholder="SN-ABC123"
+                    onChange={(v) => setForm((f) => ({ ...f, barcode: v }))} />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <CustomSelect id="category" label="Category" value={form.category} placeholder="Select…"
+                    onChange={(v) => setForm((f) => ({ ...f, category: v }))}
+                    options={[
+                      { value: "Accessories", label: "Accessories" },
+                      { value: "Fasteners", label: "Fasteners" },
+                    ]} />
+                  <div className="space-y-1.5">
+                    <CustomSelect id="reorder_level" label="Reorder Level" openUp
+                      value={reorderCustom ? "custom" : form.reorder_level} placeholder="Select…"
+                      onChange={(v) => {
+                        if (v === "custom") {
+                          setReorderCustom(true);
+                          setForm((f) => ({ ...f, reorder_level: 0 }));
+                        } else {
+                          setReorderCustom(false);
+                          setForm((f) => ({ ...f, reorder_level: Number.parseInt(v) }));
+                        }
+                      }}
+                      options={[
+                        { value: 5, label: "5" },
+                        { value: 10, label: "10" },
+                        { value: 15, label: "15" },
+                        { value: 20, label: "20" },
+                        { value: "custom", label: "Custom…" },
+                      ]} />
+                    {reorderCustom && (
+                      <input type="number" min={1} placeholder="Enter value" required
+                        value={form.reorder_level || ""}
+                        onChange={(e) => setForm((f) => ({ ...f, reorder_level: Number.parseInt(e.target.value) || 0 }))}
+                        className={`${inputCls} mt-1`} style={ringStyle} />
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="Supplier" id="supplier" value={form.supplier} placeholder="CTK Supply Co."
+                    onChange={(v) => setForm((f) => ({ ...f, supplier: v }))} />
+                  <Field label="Cost / Unit ($)" id="cost_per_unit" type="number" value={form.cost_per_unit} placeholder="12.50"
+                    onChange={(v) => setForm((f) => ({ ...f, cost_per_unit: Number.parseFloat(v) || 0 }))} />
+                </div>
+
+                {formError && (
+                  <p className="text-xs font-medium text-red-500 bg-red-50 border border-red-100 px-4 py-2.5">
+                    {formError}
+                  </p>
+                )}
+
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={() => setModalOpen(false)}
+                    className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={saving}
+                    className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition disabled:opacity-60"
+                    style={{ background: "#FA4900" }}>
+                    {saveLabel}
+                  </button>
+                </div>
+
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirm Modal */}
+        {deleteTarget && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
+            <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm px-5 pt-4 pb-8 sm:p-7 space-y-5 text-center">
+              {/* drag handle mobile only */}
+              <div className="flex justify-center sm:hidden mb-1">
+                <div className="w-10 h-1 rounded-full bg-gray-200" />
               </div>
-
-              {formError && (
-                <p className="text-xs font-medium text-red-500 bg-red-50 border border-red-100 px-4 py-2.5">
-                  {formError}
+              <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto">
+                <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round"
+                    d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+              </div>
+              <div className="space-y-1">
+                <h2 className="text-base font-bold text-gray-900">Delete Product?</h2>
+                <p className="text-sm text-gray-500">
+                  <span className="font-semibold">{deleteTarget.product_name}</span> will be permanently removed.
                 </p>
-              )}
-
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setModalOpen(false)}
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => setDeleteTarget(null)}
                   className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
                   Cancel
                 </button>
-                <button type="submit" disabled={saving}
-                  className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition disabled:opacity-60"
-                  style={{ background: "#FA4900" }}>
-                  {saveLabel}
+                <button onClick={handleDelete} disabled={deleting}
+                  className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-white bg-red-500 hover:bg-red-600 active:scale-[0.97] transition disabled:opacity-60">
+                  {deleting ? "Deleting…" : "Delete"}
                 </button>
               </div>
-
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirm Modal */}
-      {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
-          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm px-5 pt-4 pb-8 sm:p-7 space-y-5 text-center">
-            {/* drag handle mobile only */}
-            <div className="flex justify-center sm:hidden mb-1">
-              <div className="w-10 h-1 rounded-full bg-gray-200" />
-            </div>
-            <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto">
-              <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round"
-                  d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-              </svg>
-            </div>
-            <div className="space-y-1">
-              <h2 className="text-base font-bold text-gray-900">Delete Product?</h2>
-              <p className="text-sm text-gray-500">
-                <span className="font-semibold">{deleteTarget.product_name}</span> will be permanently removed.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <button onClick={() => setDeleteTarget(null)}
-                className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
-                Cancel
-              </button>
-              <button onClick={handleDelete} disabled={deleting}
-                className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-white bg-red-500 hover:bg-red-600 active:scale-[0.97] transition disabled:opacity-60">
-                {deleting ? "Deleting…" : "Delete"}
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
       </div>
     </>

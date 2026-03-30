@@ -109,7 +109,35 @@ CRUD operations on products. **All endpoints require authentication with a JWT a
   - `DELETE /api/v1/products/{id}/` — Delete a product → `204 No Content`
 
 ### List Products (GET)
-`GET /api/v1/products/` — returns page 1 by default (20 items). Use `?page=2` for the next page.
+`GET /api/v1/products/` — returns page 1 by default (20 rows per page).
+
+#### Query Parameters
+
+**Pagination**
+| Param | Options | Default |
+|-------|---------|---------|
+| `page=<n>` | Any page number | `1` |
+| `page_size=<n>` | `20`, `50`, `100`, `200`, `500`, `1000`, `all` | `20` |
+
+**Filter**
+| Param | Options |
+|-------|---------|
+| `category=<name>` | `Fasteners`, `Accessories` |
+
+**Ordering**
+| Param | Description |
+|-------|-------------|
+| `ordering=cost_per_unit` | Cost per unit — Low to High |
+| `ordering=-cost_per_unit` | Cost per unit — High to Low |
+| `ordering=reorder_level` | Reorder level — Low to High |
+| `ordering=-reorder_level` | Reorder level — High to Low |
+
+**Examples**
+```
+GET /api/v1/products?page_size=50
+GET /api/v1/products?category=Fasteners&ordering=cost_per_unit
+GET /api/v1/products?category=Accessories&ordering=-reorder_level&page_size=all
+```
 
 #### Response (200 OK)
 ```json
@@ -133,6 +161,40 @@ CRUD operations on products. **All endpoints require authentication with a JWT a
   ]
 }
 ```
+
+---
+
+### Product Stats (GET)
+`GET /api/v1/products/stats` — returns aggregate overview for the dashboard. Not paginated.
+
+#### Response (200 OK)
+```json
+{
+  "total_products": 85,
+  "total_value": "13250.00",
+  "by_category": {
+    "Fasteners": {
+      "count": 60,
+      "total_value": "9800.00"
+    },
+    "Accessories": {
+      "count": 25,
+      "total_value": "3450.00"
+    }
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `total_products` | Total number of products in the system |
+| `total_value` | Sum of all inventory `stock_value` across all categories |
+| `by_category.*.count` | Number of products in that category |
+| `by_category.*.total_value` | Sum of inventory `stock_value` for that category |
+
+> `total_value` is derived from `quantity_on_hand × cost_per_unit` per inventory record, kept up to date on every transaction.
+
+---
 
 > **Note:** The `<id>` in the URL is the product's `id` field (the primary key in the database and in API responses).
 
@@ -235,6 +297,44 @@ Track stock levels across sites and locations. **All endpoints require authentic
 
 - **Base Endpoint:** `/api/v1/inventory/`
 - **Methods:** `GET` / `POST` / `PUT` / `PATCH` / `DELETE`
+- **Extra:** `GET /api/v1/inventory/stats` — Overview stats (not paginated) → `200 OK`
+
+### Inventory Stats (GET)
+`GET /api/v1/inventory/stats` — returns aggregate overview for the dashboard. Not paginated.
+
+#### Response (200 OK)
+```json
+{
+  "total_records": 42,
+  "total_quantity_on_hand": 12500,
+  "total_stock_value": "13250.00",
+  "needs_reorder": 5,
+  "by_site": {
+    "Warehouse A": {
+      "records": 25,
+      "total_quantity_on_hand": 8000,
+      "total_stock_value": "8500.00"
+    },
+    "Warehouse B": {
+      "records": 17,
+      "total_quantity_on_hand": 4500,
+      "total_stock_value": "4750.00"
+    }
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `total_records` | Total number of inventory records |
+| `total_quantity_on_hand` | Sum of all stock quantities across all sites |
+| `total_stock_value` | Sum of all `stock_value` across all records |
+| `needs_reorder` | Count of records where `reorder_status = "Yes"` |
+| `by_site.*.records` | Number of inventory records at that site |
+| `by_site.*.total_quantity_on_hand` | Total stock quantity at that site |
+| `by_site.*.total_stock_value` | Total stock value at that site |
+
+---
 
 ### List Inventory (GET)
 `GET /api/v1/inventory/` — returns page 1 by default (20 items). Use `?page=2` for the next page.
@@ -399,11 +499,40 @@ Log stock movements. A single transaction has **one type** (`Receive` or `Sale`)
 - **Base Endpoint:** `/api/v1/transactions/`
 - **Methods:**
   - `GET /api/v1/transactions/` — List all transactions (paginated)
+  - `GET /api/v1/transactions/stats` — Overview stats (not paginated) → `200 OK`
   - `POST /api/v1/transactions/` — Create a new transaction with items
   - `GET /api/v1/transactions/<id>/` — Retrieve a transaction by id
   - `PUT /api/v1/transactions/<id>/` — Replace a transaction by id
   - `PATCH /api/v1/transactions/<id>/` — Update part of a transaction by id
   - `DELETE /api/v1/transactions/<id>/` — Delete a transaction by id
+
+### Transaction Stats (GET)
+`GET /api/v1/transactions/stats` — returns aggregate overview for the dashboard. Not paginated.
+
+#### Response (200 OK)
+```json
+{
+  "total_transactions": 200,
+  "by_type": {
+    "Receive": {
+      "count": 120,
+      "total_value": "48500.00"
+    },
+    "Sale": {
+      "count": 80,
+      "total_value": "32000.00"
+    }
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `total_transactions` | Total number of transactions |
+| `by_type.*.count` | Number of transactions of that type |
+| `by_type.*.total_value` | Sum of `quantity × cost_per_unit` across all items of that type |
+
+---
 
 ### List Transactions (GET)
 `GET /api/v1/transactions/` — returns page 1 by default (20 items). Use `?page=2` for the next page.

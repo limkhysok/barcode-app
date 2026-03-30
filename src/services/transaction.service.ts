@@ -7,9 +7,34 @@ export async function getTransactions(params?: {
   barcode?: string;
   search?: string;
   page?: number;
-}): Promise<PaginatedTransactions> {
-  const { data } = await api.get<PaginatedTransactions>("/api/v1/transactions/", { params });
+  page_size?: number | string;
+}, fetcher?: <T>(path: string) => Promise<T>): Promise<PaginatedTransactions> {
+  const query = new URLSearchParams();
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.page_size) query.set("page_size", String(params.page_size));
+  if (params?.type) query.set("type", params.type);
+  if (params?.barcode) query.set("barcode", params.barcode);
+  if (params?.search) query.set("search", params.search);
+
+  const path = `/api/v1/transactions/?${query.toString()}`;
+  if (fetcher) return await fetcher(path);
+
+  const { data } = await api.get<PaginatedTransactions>(path);
   return data;
+}
+
+export async function getTransactionStats(fetcher?: <T>(path: string) => Promise<T>): Promise<any> {
+  const path = "/api/v1/transactions/stats/";
+  try {
+    if (fetcher) {
+      return await fetcher(path);
+    }
+    const { data } = await api.get<any>(path);
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch transaction stats:", error);
+    return null;
+  }
 }
 
 export async function createTransaction(payload: TransactionPayload): Promise<Transaction> {

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { serverFetch } from "@/src/lib/server-fetch";
 import type { User } from "@/src/types/auth.types";
 
@@ -69,7 +71,7 @@ const statusStyle: Record<string, string> = {
 export default async function DashboardPage() {
   let user: User | null = null;
   try {
-    user = await serverFetch<User>("/api/v1/users/me/");
+    user = await serverFetch<User>("/api/v1/users/me");
 
 
   } catch { /* keep null */ }

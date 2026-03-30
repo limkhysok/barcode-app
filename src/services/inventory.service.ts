@@ -8,9 +8,34 @@ export async function getInventory(params?: {
   site?: string;
   search?: string;
   page?: number;
-}): Promise<PaginatedInventory> {
-  const { data } = await api.get<PaginatedInventory>("/api/v1/inventory/", { params });
+  page_size?: number | string;
+}, fetcher?: <T>(path: string) => Promise<T>): Promise<PaginatedInventory> {
+  const query = new URLSearchParams();
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.page_size) query.set("page_size", String(params.page_size));
+  if (params?.product_id) query.set("product_id", String(params.product_id));
+  if (params?.site) query.set("site", params.site);
+  if (params?.search) query.set("search", params.search);
+
+  const path = `/api/v1/inventory/?${query.toString()}`;
+  if (fetcher) return await fetcher(path);
+
+  const { data } = await api.get<PaginatedInventory>(path);
   return data;
+}
+
+export async function getInventoryStats(fetcher?: <T>(path: string) => Promise<T>): Promise<any> {
+  const path = "/api/v1/inventory/stats/";
+  try {
+    if (fetcher) {
+      return await fetcher(path);
+    }
+    const { data } = await api.get<any>(path);
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch inventory stats:", error);
+    return null;
+  }
 }
 
 

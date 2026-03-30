@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { serverFetch } from "@/src/lib/server-fetch";
 import type { PaginatedTransactions, PaginatedInventory } from "@/src/types/api.types";
 import TransactionsClient from "./TransactionsClient";

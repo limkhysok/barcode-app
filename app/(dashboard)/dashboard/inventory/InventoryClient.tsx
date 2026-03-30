@@ -8,6 +8,74 @@ import type { PaginatedInventory, PaginatedProducts } from "@/src/types/api.type
 import { useRouter, useSearchParams } from "next/navigation";
 import { InventoryModal, DeleteModal } from "./InventoryModal";
 
+function CustomSelect({ id, label, value, onChange, options, placeholder, openUp }: Readonly<{
+  id: string; label?: string; value: string | number;
+  onChange: (v: string) => void;
+  options: { value: string | number; label: string }[];
+  placeholder?: string;
+  openUp?: boolean;
+}>) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const selected = options.find((o) => String(o.value) === String(value));
+
+  return (
+    <div className={label ? "space-y-1.5" : ""} ref={ref}>
+      {label && (
+        <label htmlFor={id} className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase text-gray-400">
+          <span className="inline-block w-1 h-3 rounded-full" style={{ background: "#FA4900" }} />
+          {label}
+        </label>
+      )}
+      <div className="relative">
+        <button
+          id={id} type="button" onClick={() => setOpen((v) => !v)}
+          className={`w-full px-3 py-3 rounded-sm border text-sm font-medium text-left flex items-center justify-between gap-2 transition focus:outline-none bg-gray-50 ${open ? "border-black ring-1 ring-black" : "border-black hover:bg-slate-50"
+            } ${selected && String(selected.value) !== "" ? "text-slate-900" : "text-slate-400"}`}
+        >
+          <span className="truncate">{selected ? selected.label : (placeholder ?? "Select…")}</span>
+          <svg className="w-3.5 h-3.5 text-slate-500 shrink-0 transition-transform duration-200"
+            style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+            fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
+        {open && (
+          <ul className={`absolute z-200 w-full bg-white border border-black rounded-sm shadow-lg overflow-hidden ${openUp ? "bottom-full mb-1" : "top-full mt-1"}`}>
+            {options.map((opt) => {
+              const active = String(opt.value) === String(value);
+              return (
+                <li key={opt.value} className="border-b border-black last:border-b-0">
+                  <button type="button"
+                    onClick={() => { onChange(String(opt.value)); setOpen(false); }}
+                    className={`w-full text-left px-3 py-2.5 text-[11px] font-semibold tracking-wide flex items-center justify-between gap-2 transition ${active ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
+                      }`}>
+                    {opt.label}
+                    {active && (
+                      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                      </svg>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Types & constants ────────────────────────────────────────────────────────
 
 type StockStatus = "healthy" | "moderate" | "low";
@@ -317,13 +385,16 @@ function formatDateTime(dateStr: string): string {
 export default function InventoryClient({
   initialPaginatedRecords,
   initialPaginatedProducts,
+  initialStats,
 }: Readonly<{
   initialPaginatedRecords: PaginatedInventory;
   initialPaginatedProducts: PaginatedProducts;
+  initialStats?: any;
 }>) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentPage = Number.parseInt(searchParams.get("page") ?? "1") || 1;
+  const initialPageSize = searchParams.get("page_size") ?? "20";
 
   // ── Data state ──────────────────────────────────────────────────────────────
   const [paginated, setPaginated] = useState<PaginatedInventory>(initialPaginatedRecords);
@@ -332,7 +403,9 @@ export default function InventoryClient({
   const [paginatedProducts, setPaginatedProducts] = useState<PaginatedProducts>(initialPaginatedProducts);
   const products = paginatedProducts.results;
   const [loading, setLoading] = useState(false);
+  const [pageSize, setPageSize] = useState<number | string>(initialPageSize === "all" ? "all" : (Number.parseInt(initialPageSize) || 20));
   const [error, setError] = useState("");
+  const [backendStats] = useState<any>(initialStats);
 
   // ── Filter / sort state ──────────────────────────────────────────────────────
   const [siteFilter, setSiteFilter] = useState("");
@@ -360,6 +433,7 @@ export default function InventoryClient({
     setError("");
     getInventory({
       page,
+      page_size: pageSize,
       search: search || undefined,
       site: siteFilter || undefined,
     })
@@ -371,8 +445,19 @@ export default function InventoryClient({
   function handlePageChange(newPage: number) {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", String(newPage));
+    params.set("page_size", String(pageSize));
     router.push(`?${params.toString()}`);
     fetchInventory(newPage);
+  }
+
+  function handlePageSizeChange(newSize: string) {
+    const size = newSize === "all" || newSize === "ALL" ? "all" : Number.parseInt(newSize);
+    setPageSize(size);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", "1");
+    params.set("page_size", String(size));
+    router.push(`?${params.toString()}`);
+    // fetchInventory(1) will be handled by useEffect or explicit call
   }
 
   function openCreate() {
@@ -430,6 +515,18 @@ export default function InventoryClient({
   // ── Derived values ───────────────────────────────────────────────────────────
 
   const stats = useMemo(() => {
+    if (backendStats) {
+      return {
+        total: backendStats.total_items,
+        healthy: backendStats.total_items - backendStats.low_stock_count, // rough estimate if moderate is not separated
+        moderate: 0,
+        low: backendStats.low_stock_count,
+        totalValue: backendStats.total_value,
+        totalQty: backendStats.total_quantity,
+        needsReorder: backendStats.low_stock_count,
+        sites: new Set(records.map((r) => r.site)).size,
+      };
+    }
     const total = records.length;
     const healthy = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "healthy").length;
     const moderate = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "moderate").length;
@@ -439,7 +536,7 @@ export default function InventoryClient({
     const needsReorder = records.filter((r) => r.reorder_status === "Yes").length;
     const sites = new Set(records.map((r) => r.site)).size;
     return { total, healthy, moderate, low, totalValue, totalQty, needsReorder, sites };
-  }, [records]);
+  }, [records, backendStats]);
 
   const siteOptions = useMemo(
     () => Array.from(new Set(records.map((r) => r.site))).sort((a, b) => a.localeCompare(b)),
@@ -752,39 +849,66 @@ export default function InventoryClient({
         />
       </div>
 
+      {/* Pagination & Count — moved to top and refactored with page size dropdown */}
+      {!loading && !error && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1 pb-4">
+          <div className="flex flex-col gap-1 items-center sm:items-start">
+            <p className="text-[10px] font-bold tracking-widest uppercase text-slate-400">Total Results</p>
+            <p className="text-sm font-bold text-slate-900 tabular-nums">
+              Showing {records.length} <span className="font-normal text-slate-400">of</span> {paginated.count} <span className="font-normal text-slate-400 text-[11px] uppercase tracking-wide">records</span>
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Page Size Dropdown */}
+            <div className="bg-white min-w-[120px]">
+              <CustomSelect
+                id="page-size-selector"
+                value={pageSize === "all" ? "all" : String(pageSize)}
+                onChange={handlePageSizeChange}
+                options={[
+                  { value: "20", label: "Show 20" },
+                  { value: "50", label: "Show 50" },
+                  { value: "100", label: "Show 100" },
+                  { value: "200", label: "Show 200" },
+                  { value: "500", label: "Show 500" },
+                  { value: "1000", label: "Show 1000" },
+                  { value: "all", label: "Show ALL" },
+                ]}
+              />
+            </div>
+
+            {/* Navigation controls */}
+            <div className="flex items-center gap-1.5 h-[46px]">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={!paginated.previous || loading}
+                title="Previous Page"
+                className="w-[46px] h-full flex items-center justify-center border border-black rounded-sm bg-white hover:bg-slate-50 disabled:opacity-20 disabled:cursor-not-allowed transition"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+              </button>
+              <div className="px-5 h-full flex items-center justify-center text-[11px] font-black tracking-widest uppercase border border-black rounded-sm bg-slate-50 text-slate-900">
+                Page {currentPage}
+              </div>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={!paginated.next || loading}
+                title="Next Page"
+                className="w-[46px] h-full flex items-center justify-center border border-black rounded-sm bg-white hover:bg-slate-50 disabled:opacity-20 disabled:cursor-not-allowed transition"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       <div className="rounded-sm border border-black overflow-hidden bg-white">
         {tableContent}
       </div>
 
-      {!loading && !error && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1">
-          <p className="text-xs text-gray-400">
-            Showing <span className="font-bold text-gray-600">{records.length}</span> of{" "}
-            <span className="font-bold text-gray-600">{paginated.count}</span> records
-          </p>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={!paginated.previous || loading}
-              className="px-4 py-2 text-[10px] font-bold tracking-widest uppercase border border-black rounded-sm bg-white hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-white transition"
-            >
-              Previous
-            </button>
-            <div className="px-3 py-2 text-[10px] font-bold border border-black rounded-sm bg-slate-50">
-              Page {currentPage}
-            </div>
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={!paginated.next || loading}
-              className="px-4 py-2 text-[10px] font-bold tracking-widest uppercase border border-black rounded-sm bg-white hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-white transition"
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Modals */}
       <InventoryModal
