@@ -1,62 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import api from "@/src/services/api";
+import { useRouter } from "next/navigation";
+import { toast, Toaster } from "sonner";
 import type { User } from "@/src/types/auth.types";
 
 export default function ProfileClient({ initialUser }: Readonly<{ initialUser: User | null }>) {
-  const [form, setForm] = useState({
-    name: initialUser?.name ?? "",
-    email: initialUser?.email ?? "",
-    username: initialUser?.username ?? "",
-  });
-  const [passwords, setPasswords] = useState({ newPass: "", confirm: "" });
-  const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState("");
-  const [error, setError] = useState("");
+  const router = useRouter();
 
-  useEffect(() => {
-    if (initialUser) {
-      setForm({ name: initialUser.name, email: initialUser.email, username: initialUser.username });
-    }
-  }, [initialUser]);
+  if (!initialUser) return null;
 
-  async function handleSaveProfile(e: React.SyntheticEvent) {
-    e.preventDefault();
-    setSaving(true);
-    setSuccess("");
-    setError("");
-    try {
-      await api.patch<User>("/api/v1/users/me/", { name: form.name, email: form.email });
-
-      setSuccess("Profile updated successfully.");
-    } catch {
-      setError("Failed to update profile.");
-    } finally {
-      setSaving(false);
-    }
+  async function handleLogout() {
+    toast.info("Logging out...");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    setTimeout(() => {
+      router.push("/login");
+      router.refresh();
+    }, 800);
   }
 
-  async function handleChangePassword(e: React.SyntheticEvent) {
-    e.preventDefault();
-    if (passwords.newPass !== passwords.confirm) {
-      setError("New passwords do not match.");
-      return;
-    }
-    setSaving(true);
-    setSuccess("");
-    setError("");
-    try {
-      await api.patch("/api/v1/users/me/", { password: passwords.newPass });
-
-      setPasswords({ newPass: "", confirm: "" });
-      setSuccess("Password changed successfully.");
-    } catch {
-      setError("Failed to change password.");
-    } finally {
-      setSaving(false);
-    }
-  }
+  // Role calculation
+  let roleLabel = "General User";
+  if (initialUser.is_superuser) roleLabel = "System Admin";
+  else if (initialUser.is_boss) roleLabel = "Main Manager";
+  else if (initialUser.is_staff) roleLabel = "Staff Member";
 
   const initials = (initialUser?.name || initialUser?.username || "U")
     .split(" ")
@@ -66,111 +33,74 @@ export default function ProfileClient({ initialUser }: Readonly<{ initialUser: U
     .toUpperCase();
 
   return (
-    <div className="px-8 py-8 space-y-8 max-w-2xl">
+    <div className="p-6 sm:p-8 max-w-2xl mx-auto lg:mx-0">
+      <Toaster position="top-right" richColors closeButton duration={3000} />
 
       {/* Header */}
-      <div className="space-y-0.5">
-        <p className="text-xs font-medium tracking-[0.25em] uppercase italic" style={{ color: "#FA4900" }}>Account</p>
-        <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
+      <div className="mb-6 space-y-0.5">
+        <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-orange-500">Account</p>
+        <h1 className="text-xl font-bold text-black uppercase">My Profile</h1>
       </div>
 
-      {/* Avatar + name */}
-      <div className="flex items-center gap-5">
-        <div
-          className="w-16 h-16 rounded-2xl flex items-center justify-center text-white text-xl font-bold shrink-0"
-          style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}
-        >
-          {initials}
-        </div>
-        <div>
-          <p className="text-base font-bold text-gray-900">{initialUser?.name || initialUser?.username}</p>
-          <p className="text-sm text-gray-400">{initialUser?.email}</p>
-          <p className="text-xs font-medium tracking-widest uppercase text-gray-300 mt-0.5">@{initialUser?.username}</p>
-        </div>
-      </div>
+      {/* Main Stats Card */}
+      <div className="rounded-sm border border-black bg-white overflow-hidden shadow-sm">
 
-      {/* Alerts */}
-      {success && (
-        <p className="text-xs font-medium text-green-600 bg-green-50 border border-green-100 rounded-xl px-4 py-2.5">
-          {success}
-        </p>
-      )}
-      {error && (
-        <p className="text-xs font-medium text-red-500 bg-red-50 border border-red-100 rounded-xl px-4 py-2.5">
-          {error}
-        </p>
-      )}
+        {/* Top Header - Identity */}
+        <div className="p-6 border-b border-black flex flex-col sm:flex-row items-center gap-6 bg-slate-50">
+          <div
+            className="w-16 h-16 rounded-sm border border-black flex items-center justify-center text-white text-xl font-bold bg-black"
+          >
+            {initials}
+          </div>
+          <div className="text-center sm:text-left space-y-1">
+            <h2 className="text-base font-bold text-black uppercase">{initialUser.name || "User"}</h2>
+            <div className="flex items-center justify-center sm:justify-start gap-2">
+              <span className="text-[10px] font-bold px-2 py-0.5 border border-black bg-white text-black uppercase">
+                {roleLabel}
+              </span>
 
-      {/* Edit Profile */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5">
-        <h2 className="text-sm font-bold text-gray-900">Edit Profile</h2>
-        <form onSubmit={handleSaveProfile} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label htmlFor="prof-name" className="text-xs font-bold tracking-widest uppercase text-gray-500">Full Name</label>
-              <input
-                id="prof-name" type="text" value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition"
-                style={{ "--tw-ring-color": "#FA4900" } as React.CSSProperties}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label htmlFor="prof-username" className="text-xs font-bold tracking-widest uppercase text-gray-500">Username</label>
-              <input
-                id="prof-username" type="text" value={form.username} disabled
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-100 text-sm bg-gray-50 text-gray-400 cursor-not-allowed"
-              />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <label htmlFor="prof-email" className="text-xs font-bold tracking-widest uppercase text-gray-500">Email</label>
-            <input
-              id="prof-email" type="email" value={form.email}
-              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition"
-              style={{ "--tw-ring-color": "#FA4900" } as React.CSSProperties}
-            />
-          </div>
+        </div>
+
+        {/* Info Grid */}
+        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6">
+          <InfoItem label="Username" value={`@${initialUser.username}`} />
+          <InfoItem label="Email" value={initialUser.email} />
+          <InfoItem label="Member Since" value={new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' })} />
+          <InfoItem label="Status" value="Verified" highlight />
+        </div>
+
+        {/* Footer Actions */}
+        <div className="p-6 border-t border-black bg-zinc-50 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest text-center sm:text-left">
+            Security protocol active
+          </p>
           <button
-            type="submit" disabled={saving}
-            className="px-6 py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase text-white hover:opacity-90 transition shadow-sm disabled:opacity-60"
-            style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}
+            onClick={handleLogout}
+            className="w-full sm:w-auto px-6 py-2.5 bg-white text-black text-[10px] font-bold tracking-[0.2em] uppercase border border-black rounded-sm hover:bg-black hover:text-white transition-colors"
           >
-            {saving ? "Saving…" : "Save Changes"}
+            Sign Out
           </button>
-        </form>
+        </div>
       </div>
 
-      {/* Change Password */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5">
-        <h2 className="text-sm font-bold text-gray-900">Change Password</h2>
-        <form onSubmit={handleChangePassword} className="space-y-4">
-          {[
-            { id: "new-pass",  label: "New Password",     key: "newPass",  val: passwords.newPass  },
-            { id: "conf-pass", label: "Confirm Password", key: "confirm",  val: passwords.confirm  },
-          ].map(({ id, label, key, val }) => (
-            <div key={id} className="space-y-1.5">
-              <label htmlFor={id} className="text-xs font-bold tracking-widest uppercase text-gray-500">{label}</label>
-              <input
-                id={id} type="password" value={val} placeholder="••••••••"
-                onChange={(e) => setPasswords((p) => ({ ...p, [key]: e.target.value }))}
-                required
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:border-transparent transition"
-                style={{ "--tw-ring-color": "#FA4900" } as React.CSSProperties}
-              />
-            </div>
-          ))}
-          <button
-            type="submit" disabled={saving}
-            className="px-6 py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase text-white hover:opacity-90 transition shadow-sm disabled:opacity-60"
-            style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}
-          >
-            {saving ? "Updating…" : "Update Password"}
-          </button>
-        </form>
+      <div className="mt-8 text-center sm:text-left">
+        <p className="text-[8px] font-bold text-gray-300 uppercase tracking-[0.4em]">
+          All data encrypted • Barcode App {new Date().getFullYear()}
+        </p>
       </div>
+    </div>
+  );
+}
 
+function InfoItem({ label, value, highlight }: Readonly<{ label: string; value: string; highlight?: boolean }>) {
+  return (
+    <div className="space-y-1">
+      <p className="text-[9px] font-bold tracking-widest uppercase text-gray-400">{label}</p>
+      <div className={`text-sm font-bold ${highlight ? "text-orange-500" : "text-black"}`}>
+        {value}
+      </div>
     </div>
   );
 }

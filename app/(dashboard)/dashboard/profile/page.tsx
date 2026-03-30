@@ -5,7 +5,7 @@ import ProfileClient from "./ProfileClient";
 export default async function ProfilePage() {
   let user: User | null = null;
   try {
-    user = await serverFetch<User>("/api/v1/users/me/");
+    user = await serverFetch<User>("/api/v1/users/me");
 
 
   } catch { /* keep null */ }

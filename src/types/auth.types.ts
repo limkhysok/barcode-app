@@ -3,6 +3,9 @@ export interface User {
   username: string;
   email: string;
   name: string;
+  is_boss: boolean;
+  is_staff: boolean;
+  is_superuser: boolean;
 }
 
 export interface AuthTokens {
