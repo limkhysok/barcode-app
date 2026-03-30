@@ -295,11 +295,11 @@ export function InventoryModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4">
-      <div className="w-full sm:max-w-lg max-h-[95vh] overflow-y-auto bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl flex flex-col">
+      <div className="w-full sm:max-w-lg max-h-[95vh] overflow-y-auto bg-white rounded-t-sm sm:rounded-sm shadow-2xl flex flex-col">
 
         {/* Orange accent strip + header */}
         <div className="relative px-6 pt-6 pb-5">
-          <div className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl sm:rounded-t-2xl" style={{ background: "#FA4900" }} />
+          <div className="absolute top-0 left-0 right-0 h-1 rounded-t-sm sm:rounded-t-sm" style={{ background: "#FA4900" }} />
           {/* Mobile drag handle */}
           <div className="flex justify-center sm:hidden mb-4">
             <div className="w-10 h-1 rounded-full bg-gray-200" />
