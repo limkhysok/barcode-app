@@ -7,13 +7,13 @@ export async function getInventory(params?: {
   site?: string;
   search?: string;
 }): Promise<InventoryRecord[]> {
-  const { data } = await api.get<InventoryRecord[]>("/api/inventory/", { params });
+  const { data } = await api.get<InventoryRecord[]>("/api/v1/inventory/", { params });
   return data;
 }
 
 
 export async function scanBarcode(barcode: string): Promise<ScanResult> {
-  const { data } = await api.get<ScanResult>("/api/inventory/scan/", { params: { barcode } });
+  const { data } = await api.get<ScanResult>("/api/v1/inventory/scan/", { params: { barcode } });
   return data;
 }
 
@@ -22,7 +22,7 @@ export async function createInventory(payload: InventoryPayload): Promise<Invent
   // Only send allowed fields per API_DOCS.md
   const { product, site, location, quantity_on_hand } = payload;
   const cleanPayload = { product, site, location, quantity_on_hand };
-  const { data } = await api.post<InventoryRecord>("/api/inventory/", cleanPayload);
+  const { data } = await api.post<InventoryRecord>("/api/v1/inventory/", cleanPayload);
   return data;
 }
 
@@ -35,11 +35,11 @@ export async function updateInventory(id: number, payload: Partial<InventoryPayl
   if (site !== undefined) cleanPayload.site = site;
   if (location !== undefined) cleanPayload.location = location;
   if (quantity_on_hand !== undefined) cleanPayload.quantity_on_hand = quantity_on_hand;
-  const { data } = await api.patch<InventoryRecord>(`/api/inventory/${id}/`, cleanPayload);
+  const { data } = await api.patch<InventoryRecord>(`/api/v1/inventory/${id}/`, cleanPayload);
   return data;
 }
 
 
 export async function deleteInventory(id: number): Promise<void> {
-  await api.delete(`/api/inventory/${id}/`);
+  await api.delete(`/api/v1/inventory/${id}/`);
 }

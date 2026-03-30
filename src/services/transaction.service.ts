@@ -6,22 +6,22 @@ export async function getTransactions(params?: {
   barcode?: string;
   search?: string;
 }): Promise<Transaction[]> {
-  const { data } = await api.get<Transaction[]>("/api/transactions/", { params });
+  const { data } = await api.get<Transaction[]>("/api/v1/transactions/", { params });
   return data;
 }
 
 export async function createTransaction(payload: TransactionPayload): Promise<Transaction> {
-  const { data } = await api.post<Transaction>("/api/transactions/", payload);
+  const { data } = await api.post<Transaction>("/api/v1/transactions/", payload);
   return data;
 }
 
 export async function updateTransaction(id: number, payload: TransactionPayload): Promise<Transaction> {
-  const { data } = await api.patch<Transaction>(`/api/transactions/${id}/`, payload);
+  const { data } = await api.patch<Transaction>(`/api/v1/transactions/${id}/`, payload);
   return data;
 }
 
 export async function deleteTransaction(id: number): Promise<void> {
-  await api.delete(`/api/transactions/${id}/`);
+  await api.delete(`/api/v1/transactions/${id}/`);
 }
 
 export interface ScanTransactionPayload {
@@ -32,6 +32,6 @@ export interface ScanTransactionPayload {
 }
 
 export async function scanTransaction(payload: ScanTransactionPayload): Promise<Transaction> {
-  const { data } = await api.post<Transaction>("/api/transactions/scan/", payload);
+  const { data } = await api.post<Transaction>("/api/v1/transactions/scan/", payload);
   return data;
 }

@@ -5,7 +5,8 @@ import ProductsClient from "./ProductsClient";
 export default async function ProductsPage() {
   let products: Product[] = [];
   try {
-    const data = await serverFetch<any>("/api/products/");
+    const data = await serverFetch<any>("/api/v1/products/");
+
     // Defensive: handle both array and object (e.g., { results: [...] })
     if (Array.isArray(data)) {
       products = data;
