@@ -517,13 +517,13 @@ export default function InventoryClient({
   const stats = useMemo(() => {
     if (backendStats) {
       return {
-        total: backendStats.total_items,
-        healthy: backendStats.total_items - backendStats.low_stock_count, // rough estimate if moderate is not separated
+        total: backendStats.total_records,
+        healthy: backendStats.total_records - backendStats.needs_reorder,
         moderate: 0,
-        low: backendStats.low_stock_count,
-        totalValue: backendStats.total_value,
-        totalQty: backendStats.total_quantity,
-        needsReorder: backendStats.low_stock_count,
+        low: backendStats.needs_reorder,
+        totalValue: Number(backendStats.total_stock_value),
+        totalQty: backendStats.total_quantity_on_hand,
+        needsReorder: backendStats.needs_reorder,
         sites: new Set(records.map((r) => r.site)).size,
       };
     }

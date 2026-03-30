@@ -25,7 +25,7 @@ export async function getInventory(params?: {
 }
 
 export async function getInventoryStats(fetcher?: <T>(path: string) => Promise<T>): Promise<any> {
-  const path = "/api/v1/inventory/stats/";
+  const path = "/api/v1/inventory/stats";
   try {
     if (fetcher) {
       return await fetcher(path);
