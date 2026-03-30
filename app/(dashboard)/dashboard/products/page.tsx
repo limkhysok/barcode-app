@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { serverFetch } from "@/src/lib/server-fetch";
-import { getProducts, getProductStats } from "@/src/services/product.service";
+import { getProducts } from "@/src/services/product.service";
 import ProductsClient from "./ProductsClient";
 
 export default async function ProductsPage({
@@ -18,11 +18,7 @@ export default async function ProductsPage({
   const page_size = pageSizeStr || "20";
   const filters = { search, category };
 
-  // Fetch initial data + stats
-  const [paginated, stats] = await Promise.all([
-    getProducts(serverFetch, filters, page_size),
-    getProductStats(serverFetch),
-  ]);
+  const paginated = await getProducts(serverFetch, filters, page_size);
 
-  return <ProductsClient initialPaginated={paginated} initialStats={stats} />;
+  return <ProductsClient initialPaginated={paginated} initialStats={null} />;
 }

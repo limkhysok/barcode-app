@@ -75,7 +75,7 @@ export async function createProduct(payload: ProductPayload): Promise<Product> {
 }
 
 export async function updateProduct(id: number, payload: Partial<ProductPayload>): Promise<Product> {
-  const { data } = await api.patch<Product>(`/api/v1/products/${id}/`, payload);
+  const { data } = await api.put<Product>(`/api/v1/products/${id}/`, payload);
   return data;
 }
 
