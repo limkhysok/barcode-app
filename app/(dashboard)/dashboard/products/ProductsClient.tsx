@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast, Toaster } from "sonner";
 import type { Product, ProductPayload } from "@/src/types/product.types";
-import { getProducts, getProductStats, createProduct, updateProduct, deleteProduct } from "@/src/services/product.service";
+import { getProducts, createProduct, updateProduct, deleteProduct } from "@/src/services/product.service";
 import type { ProductFilters } from "@/src/services/product.service";
 import type { PaginatedProducts, ProductStats } from "@/src/types/api.types";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -125,20 +125,21 @@ function CustomSelect({ id, label, value, onChange, options, placeholder, openUp
   );
 }
 
-function Field({ label, id, type = "text", value, onChange, placeholder }: Readonly<{
+function Field({ label, id, type = "text", value, onChange, placeholder, disabled }: Readonly<{
   label: string; id: string; type?: string;
-  value: string | number; onChange: (v: string) => void; placeholder?: string;
+  value: string | number; onChange: (v: string) => void; placeholder?: string; disabled?: boolean;
 }>) {
   return (
     <div className="space-y-1.5">
       <label htmlFor={id} className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase text-gray-400">
         <span className="inline-block w-1 h-3 rounded-full" style={{ background: "#FA4900" }} />
         {label}
+        {disabled && <span className="ml-1 normal-case tracking-normal font-normal text-gray-300">(locked)</span>}
       </label>
       <input
-        id={id} type={type} placeholder={placeholder} value={value} required
+        id={id} type={type} placeholder={placeholder} value={value} required={!disabled} disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className={inputCls} style={ringStyle}
+        className={`${inputCls} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`} style={ringStyle}
       />
     </div>
   );
@@ -315,7 +316,7 @@ export default function ProductsClient({
   const [paginated, setPaginated] = useState<PaginatedProducts>(initialPaginated);
   const products = paginated.results;
 
-  const [stats, setStats] = useState<ProductStats | null>(initialStats);
+  const [stats] = useState<ProductStats | null>(initialStats);
 
   const [loading, setLoading] = useState(false);
   const [pageSize, setPageSize] = useState<number | string>(initialPageSize === "all" ? "all" : (Number.parseInt(initialPageSize) || 20));
@@ -415,7 +416,6 @@ export default function ProductsClient({
       .catch(() => setError("Failed to load products."))
       .finally(() => setLoading(false));
 
-    getProductStats().then(setStats).catch(() => {});
   }
 
   function handlePageSizeChange(newSize: string) {
@@ -926,7 +926,7 @@ export default function ProductsClient({
                   <Field label="Product Name" id="product_name" value={form.product_name} placeholder="Engine Oil Filter"
                     onChange={(v) => setForm((f) => ({ ...f, product_name: v }))} />
                   <Field label="Barcode" id="barcode" value={form.barcode} placeholder="SN-ABC123"
-                    onChange={(v) => setForm((f) => ({ ...f, barcode: v }))} />
+                    onChange={(v) => setForm((f) => ({ ...f, barcode: v }))} disabled={!!editing} />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
