@@ -38,7 +38,7 @@ export async function getProducts(fetcher?: <T>(path: string) => Promise<T>, fil
  * Get product analytics/stats. 
  */
 export async function getProductStats(fetcher?: <T>(path: string) => Promise<T>): Promise<ProductStats | null> {
-  const path = "/api/v1/products/stats";
+  const path = "/api/v1/products/stats/";
   try {
     if (fetcher) {
       return await fetcher(path);
@@ -68,9 +68,7 @@ export async function getProduct(id: number, fetcher?: <T>(path: string) => Prom
 }
 
 export async function createProduct(payload: ProductPayload): Promise<Product> {
-  const body: Partial<ProductPayload> = { ...payload };
-  if (!body.barcode) delete body.barcode;
-  const { data } = await api.post<Product>("/api/v1/products/", body);
+  const { data } = await api.post<Product>("/api/v1/products/", payload);
   return data;
 }
 

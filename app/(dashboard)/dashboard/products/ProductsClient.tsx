@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast, Toaster } from "sonner";
 import type { Product, ProductPayload } from "@/src/types/product.types";
-import { getProducts, createProduct, updateProduct, deleteProduct } from "@/src/services/product.service";
+import { getProducts, getProductStats, createProduct, updateProduct, deleteProduct } from "@/src/services/product.service";
 import type { ProductFilters } from "@/src/services/product.service";
 import type { PaginatedProducts, ProductStats } from "@/src/types/api.types";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -315,7 +315,7 @@ export default function ProductsClient({
   const [paginated, setPaginated] = useState<PaginatedProducts>(initialPaginated);
   const products = paginated.results;
 
-  const [stats] = useState<ProductStats | null>(initialStats);
+  const [stats, setStats] = useState<ProductStats | null>(initialStats);
 
   const [loading, setLoading] = useState(false);
   const [pageSize, setPageSize] = useState<number | string>(initialPageSize === "all" ? "all" : (Number.parseInt(initialPageSize) || 20));
@@ -415,6 +415,7 @@ export default function ProductsClient({
       .catch(() => setError("Failed to load products."))
       .finally(() => setLoading(false));
 
+    getProductStats().then(setStats).catch(() => {});
   }
 
   function handlePageSizeChange(newSize: string) {
