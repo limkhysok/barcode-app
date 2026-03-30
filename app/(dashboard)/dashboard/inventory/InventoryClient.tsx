@@ -10,6 +10,10 @@ import { InventoryModal, DeleteModal } from "./InventoryModal";
 // ─── Types & constants ────────────────────────────────────────────────────────
 
 type StockStatus = "healthy" | "moderate" | "low";
+type QuantitySort = "" | "asc" | "desc";
+type StockValueMode = "" | "asc" | "desc" | "low_only" | "high_only";
+type DateSort = "" | "asc";
+
 
 export function getStatus(qty: number, reorderLevel: number): StockStatus {
   if (qty >= reorderLevel * 2) return "healthy";
@@ -21,9 +25,9 @@ export const STATUS_CONFIG: Record<
   StockStatus,
   { label: string; bg: string; text: string; dot: string }
 > = {
-  healthy:  { label: "Healthy",   bg: "bg-green-50", text: "text-green-600", dot: "bg-green-500" },
-  moderate: { label: "Moderate",  bg: "bg-amber-50",  text: "text-amber-600", dot: "bg-amber-400" },
-  low:      { label: "Low Stock", bg: "bg-red-50",    text: "text-red-600",   dot: "bg-red-500"   },
+  healthy: { label: "Healthy", bg: "bg-green-50", text: "text-green-600", dot: "bg-green-500" },
+  moderate: { label: "Moderate", bg: "bg-amber-50", text: "text-amber-600", dot: "bg-amber-400" },
+  low: { label: "Low Stock", bg: "bg-red-50", text: "text-red-600", dot: "bg-red-500" },
 };
 
 const emptyForm: InventoryPayload = {
@@ -56,9 +60,8 @@ function FilterSection({
             key={o.value}
             type="button"
             onClick={() => onChange(o.value)}
-            className={`w-full text-left px-3 py-2 text-[11px] font-semibold tracking-wide flex items-center justify-between gap-2 transition ${
-              active ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
-            }`}
+            className={`w-full text-left px-3 py-2 text-[11px] font-semibold tracking-wide flex items-center justify-between gap-2 transition ${active ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
+              }`}
           >
             {o.label}
             {active && (
@@ -82,9 +85,10 @@ function FilterDropdown({
   dateSort, setDateSort,
 }: Readonly<{
   siteFilter: string; setSiteFilter: (v: string) => void; siteOptions: string[];
-  quantitySort: "" | "asc" | "desc"; setQuantitySort: (v: "" | "asc" | "desc") => void;
-  stockValueMode: "" | "asc" | "desc" | "low_only" | "high_only"; setStockValueMode: (v: "" | "asc" | "desc" | "low_only" | "high_only") => void;
-  dateSort: "" | "asc"; setDateSort: (v: "" | "asc") => void;
+  quantitySort: QuantitySort; setQuantitySort: (v: QuantitySort) => void;
+  stockValueMode: StockValueMode; setStockValueMode: (v: StockValueMode) => void;
+  dateSort: DateSort; setDateSort: (v: DateSort) => void;
+
 }>) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -109,9 +113,8 @@ function FilterDropdown({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`px-4 py-3 rounded-sm border text-sm font-medium flex items-center gap-2 transition focus:outline-none bg-gray-50 whitespace-nowrap ${
-          open ? "border-black ring-1 ring-black" : "border-black hover:bg-slate-50"
-        } ${activeCount > 0 ? "text-slate-900" : "text-slate-400"}`}
+        className={`px-4 py-3 rounded-sm border text-sm font-medium flex items-center gap-2 transition focus:outline-none bg-gray-50 whitespace-nowrap ${open ? "border-black ring-1 ring-black" : "border-black hover:bg-slate-50"
+          } ${activeCount > 0 ? "text-slate-900" : "text-slate-400"}`}
       >
         <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
@@ -141,35 +144,38 @@ function FilterDropdown({
           <FilterSection
             title="Quantity"
             options={[
-              { value: "",     label: "All Quantity"    },
-              { value: "asc",  label: "Qty: Low → High" },
+              { value: "", label: "All Quantity" },
+              { value: "asc", label: "Qty: Low → High" },
               { value: "desc", label: "Qty: High → Low" },
             ]}
             value={quantitySort}
-            onChange={(v) => setQuantitySort(v as "" | "asc" | "desc")}
+            onChange={(v) => setQuantitySort(v as QuantitySort)}
+
           />
           <div className="h-px bg-slate-100 mx-3 my-1" />
           <FilterSection
             title="Stock Value"
             options={[
-              { value: "",          label: "All Stock Value"   },
-              { value: "asc",       label: "Value: Low → High" },
-              { value: "desc",      label: "Value: High → Low" },
-              { value: "low_only",  label: "Low Stock Only"    },
-              { value: "high_only", label: "High Stock Only"   },
+              { value: "", label: "All Stock Value" },
+              { value: "asc", label: "Value: Low → High" },
+              { value: "desc", label: "Value: High → Low" },
+              { value: "low_only", label: "Low Stock Only" },
+              { value: "high_only", label: "High Stock Only" },
             ]}
             value={stockValueMode}
-            onChange={(v) => setStockValueMode(v as "" | "asc" | "desc" | "low_only" | "high_only")}
+            onChange={(v) => setStockValueMode(v as StockValueMode)}
+
           />
           <div className="h-px bg-slate-100 mx-3 my-1" />
           <FilterSection
             title="Date"
             options={[
-              { value: "",    label: "Newest → Oldest" },
+              { value: "", label: "Newest → Oldest" },
               { value: "asc", label: "Oldest → Newest" },
             ]}
             value={dateSort}
-            onChange={(v) => setDateSort(v as "" | "asc")}
+            onChange={(v) => setDateSort(v as DateSort)}
+
           />
         </div>
       )}
@@ -214,8 +220,14 @@ function InventoryBarChart({ records }: Readonly<{ records: InventoryRecord[] }>
   const yTicks = Array.from(new Set([half, maxCount].filter((v) => v > 0)));
 
   return (
-    <div className="w-full px-1" onMouseLeave={() => setHovered(null)}>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ overflow: "visible" }}>
+    <div className="w-full px-1">
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="w-full"
+        style={{ overflow: "visible" }}
+        onMouseLeave={() => setHovered(null)}
+      >
+
         {/* Y grid lines + labels */}
         {yTicks.map((val) => {
           const y = pt + ch * (1 - val / maxCount);
@@ -238,14 +250,22 @@ function InventoryBarChart({ records }: Readonly<{ records: InventoryRecord[] }>
           const isHovered = hovered === i;
           const showLabel = i === 0 || i === 6 || i === 13 || i === 20 || i === 29;
 
+          let barFill = "#FA4900";
+          if (d.count === 0) {
+            barFill = "#f1f5f9";
+          } else if (isHovered) {
+            barFill = "#c2410c";
+          }
+
           return (
             <g key={d.date} onMouseEnter={() => setHovered(i)}>
               <rect
                 x={x} y={y} width={bw} height={barH}
-                fill={d.count === 0 ? "#f1f5f9" : isHovered ? "#c2410c" : "#FA4900"}
+                fill={barFill}
                 rx={1}
                 style={{ transition: "fill 0.15s" }}
               />
+
               {showLabel && (
                 <text x={x + bw / 2} y={pt + ch + 13} textAnchor="middle" fontSize={7} fill="#94a3b8">
                   {d.shortLabel}
@@ -280,14 +300,14 @@ function InventoryBarChart({ records }: Readonly<{ records: InventoryRecord[] }>
 
 function formatDateTime(dateStr: string): string {
   const d = new Date(dateStr);
-  const day   = String(d.getDate()).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
   const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year  = d.getFullYear();
-  const h24   = d.getHours();
-  const mins  = d.getMinutes();
-  const ampm  = h24 >= 12 ? "PM" : "AM";
-  const h12   = h24 % 12 || 12;
-  const time  = mins === 0 ? `${h12}${ampm}` : `${h12}:${String(mins).padStart(2, "0")}${ampm}`;
+  const year = d.getFullYear();
+  const h24 = d.getHours();
+  const mins = d.getMinutes();
+  const ampm = h24 >= 12 ? "PM" : "AM";
+  const h12 = h24 % 12 || 12;
+  const time = mins === 0 ? `${h12}${ampm}` : `${h12}:${String(mins).padStart(2, "0")}${ampm}`;
   return `${day}/${month}/${year} ${time}`;
 }
 
@@ -308,9 +328,10 @@ export default function InventoryClient({
 
   // ── Filter / sort state ──────────────────────────────────────────────────────
   const [siteFilter, setSiteFilter] = useState("");
-  const [quantitySort, setQuantitySort] = useState<"" | "asc" | "desc">("");
-  const [stockValueMode, setStockValueMode] = useState<"" | "asc" | "desc" | "low_only" | "high_only">("");
-  const [dateSort, setDateSort] = useState<"" | "asc">("");
+  const [quantitySort, setQuantitySort] = useState<QuantitySort>("");
+  const [stockValueMode, setStockValueMode] = useState<StockValueMode>("");
+  const [dateSort, setDateSort] = useState<DateSort>("");
+
   const [search, setSearch] = useState("");
 
   // ── Create / edit modal state ───────────────────────────────────────────────
@@ -367,7 +388,7 @@ export default function InventoryClient({
       }
       setModalOpen(false);
       fetchInventory();
-      getProducts().then(setProducts).catch(() => {});
+      getProducts().then(setProducts).catch(() => { });
     } catch {
       setFormError("Failed to save. Please check your inputs.");
     } finally {
@@ -390,14 +411,14 @@ export default function InventoryClient({
   // ── Derived values ───────────────────────────────────────────────────────────
 
   const stats = useMemo(() => {
-    const total        = records.length;
-    const healthy      = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "healthy").length;
-    const moderate     = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "moderate").length;
-    const low          = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "low").length;
-    const totalValue   = records.reduce((s, r) => s + r.quantity_on_hand * Number.parseFloat(r.product_details.cost_per_unit), 0);
-    const totalQty     = records.reduce((s, r) => s + r.quantity_on_hand, 0);
+    const total = records.length;
+    const healthy = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "healthy").length;
+    const moderate = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "moderate").length;
+    const low = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "low").length;
+    const totalValue = records.reduce((s, r) => s + r.quantity_on_hand * Number.parseFloat(r.product_details.cost_per_unit), 0);
+    const totalQty = records.reduce((s, r) => s + r.quantity_on_hand, 0);
     const needsReorder = records.filter((r) => r.reorder_status === "Yes").length;
-    const sites        = new Set(records.map((r) => r.site)).size;
+    const sites = new Set(records.map((r) => r.site)).size;
     return { total, healthy, moderate, low, totalValue, totalQty, needsReorder, sites };
   }, [records]);
 
@@ -548,7 +569,7 @@ export default function InventoryClient({
             <tbody className="divide-y divide-black bg-white text-[11px]">
               {displayed.map((r) => {
                 const status = getStatus(r.quantity_on_hand, r.product_details.reorder_level);
-                const cfg    = STATUS_CONFIG[status];
+                const cfg = STATUS_CONFIG[status];
                 return (
                   <tr key={r.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-3.5 text-xs font-bold text-gray-400">#{r.id}</td>
@@ -628,10 +649,10 @@ export default function InventoryClient({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-0.5">
-          <p className="text-xs font-medium tracking-[0.25em] uppercase italic" style={{ color: "#FA4900" }}>
+          <p className="text-xs font-medium tracking-[0.25em] uppercase" style={{ color: "#FA4900" }}>
             Inventory
           </p>
-          <h1 className="text-2xl font-bold text-gray-900 uppercase italic">MANAGEMENT</h1>
+          <h1 className="text-2xl font-bold text-gray-900 uppercase">MANAGEMENT</h1>
         </div>
         <button
           onClick={openCreate}

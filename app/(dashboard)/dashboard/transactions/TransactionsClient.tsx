@@ -189,7 +189,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
       await createTransaction(payload);
       setModalOpen(false);
       fetchAll();
-      getInventory().then(setInventory).catch(() => {});
+      getInventory().then(setInventory).catch(() => { });
       if (andExport) {
         const templateItems: TemplateItem[] = valid.map((i) => {
           const rec = inventory.find((r) => r.id === i.inventory);
@@ -299,7 +299,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
       await updateTransaction(editTarget.id, payload);
       setEditTarget(null);
       fetchAll();
-      getInventory().then(setInventory).catch(() => {});
+      getInventory().then(setInventory).catch(() => { });
     } catch (err: unknown) {
       type ApiErr = { response?: { data?: { detail?: string; items?: Array<{ quantity?: string }> } } };
       const data = (err as ApiErr)?.response?.data;
@@ -325,9 +325,9 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
   // ── Derived ─────────────────────────────────────────────────────────────────
 
   const stats = useMemo(() => {
-    const total      = transactions.length;
-    const receives   = transactions.filter((t) => t.transaction_type === "Receive").length;
-    const sales      = transactions.filter((t) => t.transaction_type === "Sale").length;
+    const total = transactions.length;
+    const receives = transactions.filter((t) => t.transaction_type === "Receive").length;
+    const sales = transactions.filter((t) => t.transaction_type === "Sale").length;
     const todayCount = transactions.filter((t) => isToday(t.transaction_date)).length;
     return { total, receives, sales, todayCount };
   }, [transactions]);
@@ -375,11 +375,11 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
         {/* Mobile cards */}
         <div className="sm:hidden divide-y divide-black">
           {displayed.map((t) => {
-            const cfg     = TYPE_CONFIG[t.transaction_type];
-            const sign    = t.transaction_type === "Receive" ? "+" : "−";
-            const valCol  = t.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
-            const first   = t.items[0];
-            const more    = t.items.length - 1;
+            const cfg = TYPE_CONFIG[t.transaction_type];
+            const sign = t.transaction_type === "Receive" ? "+" : "−";
+            const valCol = t.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
+            const first = t.items[0];
+            const more = t.items.length - 1;
             return (
               <div key={t.id} className="px-4 py-4 flex items-start gap-3 active:bg-gray-50 transition-colors">
                 <div className="flex-1 min-w-0 space-y-1.5">
@@ -435,11 +435,11 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
             </thead>
             <tbody className="divide-y divide-black bg-white text-[11px]">
               {displayed.map((t) => {
-                const cfg    = TYPE_CONFIG[t.transaction_type];
-                const sign   = t.transaction_type === "Receive" ? "+" : "−";
+                const cfg = TYPE_CONFIG[t.transaction_type];
+                const sign = t.transaction_type === "Receive" ? "+" : "−";
                 const valCol = t.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
-                const first  = t.items[0];
-                const more   = t.items.length - 1;
+                const first = t.items[0];
+                const more = t.items.length - 1;
                 return (
                   <tr key={t.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-5 py-3.5 font-bold text-gray-400">#{t.id}</td>
@@ -497,8 +497,8 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-0.5">
-          <p className="text-xs font-medium tracking-[0.25em] uppercase italic" style={{ color: "#FA4900" }}>Transaction</p>
-          <h1 className="text-2xl font-bold text-gray-900 uppercase italic">Movement</h1>
+          <p className="text-xs font-medium tracking-[0.25em] uppercase" style={{ color: "#FA4900" }}>Transaction</p>
+          <h1 className="text-2xl font-bold text-gray-900 uppercase">Movement</h1>
         </div>
         <div className="flex items-center gap-2">
           {/* New Transaction button */}
@@ -592,7 +592,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
 
       </div>
 
-      
+
 
       {/* Toolbar */}
       <div className="grid grid-cols-2 gap-2.5">
@@ -675,9 +675,8 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
                           key={t}
                           type="button"
                           onClick={() => setTxType(t)}
-                          className={`py-2.5 rounded-sm text-sm font-bold border transition ${
-                            active ? activeCls : "bg-white border-black text-gray-500 hover:bg-slate-50"
-                          }`}
+                          className={`py-2.5 rounded-sm text-sm font-bold border transition ${active ? activeCls : "bg-white border-black text-gray-500 hover:bg-slate-50"
+                            }`}
                         >
                           {t === "Receive" ? "↓ Receive (+)" : "↑ Sale (−)"}
                         </button>
@@ -718,23 +717,22 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
                     />
                     <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
                       <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none">
-                        <rect x="2"    y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
-                        <rect x="5"    y="4" width="1"   height="16" rx="0.5" fill="currentColor" />
-                        <rect x="7.5"  y="4" width="2"   height="16" rx="0.5" fill="currentColor" />
-                        <rect x="11"   y="4" width="1"   height="16" rx="0.5" fill="currentColor" />
+                        <rect x="2" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
+                        <rect x="5" y="4" width="1" height="16" rx="0.5" fill="currentColor" />
+                        <rect x="7.5" y="4" width="2" height="16" rx="0.5" fill="currentColor" />
+                        <rect x="11" y="4" width="1" height="16" rx="0.5" fill="currentColor" />
                         <rect x="13.5" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
-                        <rect x="16.5" y="4" width="1"   height="16" rx="0.5" fill="currentColor" />
-                        <rect x="19"   y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
-                        <rect x="21.5" y="4" width="1"   height="16" rx="0.5" fill="currentColor" />
+                        <rect x="16.5" y="4" width="1" height="16" rx="0.5" fill="currentColor" />
+                        <rect x="19" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
+                        <rect x="21.5" y="4" width="1" height="16" rx="0.5" fill="currentColor" />
                       </svg>
                     </div>
                   </div>
                   {scanFeedback && (
-                    <p className={`text-xs font-medium px-3 py-1.5 rounded-sm border ${
-                      scanFeedback.ok
+                    <p className={`text-xs font-medium px-3 py-1.5 rounded-sm border ${scanFeedback.ok
                         ? "text-green-700 bg-green-50 border-green-100"
                         : "text-red-500 bg-red-50 border-red-100"
-                    }`}>
+                      }`}>
                       {scanFeedback.ok ? "✓" : "✗"} {scanFeedback.msg}
                     </p>
                   )}
@@ -815,7 +813,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
                         </div>
                       );
                     }
-                    const sign   = txType === "Receive" ? "+" : "−";
+                    const sign = txType === "Receive" ? "+" : "−";
                     const valCol = txType === "Receive" ? "text-green-600" : "text-red-500";
                     const grandTotal = filled.reduce((sum, i) => {
                       const rec = inventory.find((r) => r.id === i.inventory);
@@ -913,7 +911,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
                       await createTransaction(payload);
                       setModalOpen(false);
                       fetchAll();
-                      getInventory().then(setInventory).catch(() => {});
+                      getInventory().then(setInventory).catch(() => { });
                       // Prepare template items
                       const templateItems = valid.map((i) => {
                         const rec = inventory.find((r) => r.id === i.inventory);
@@ -931,7 +929,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
                         const face = new FontFace("KantumruyPro", "url(/fonts/KantumruyPro-Regular.ttf)");
                         document.fonts.add(await face.load());
                         await document.fonts.ready;
-                      } catch {}
+                      } catch { }
                       const html2canvas = (await import("html2canvas")).default;
                       const node = templateRef.current;
                       if (!node) return;
@@ -1164,9 +1162,8 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({ initialTransact
                           key={t}
                           type="button"
                           onClick={() => setEditTxType(t)}
-                          className={`py-2.5 rounded-sm text-sm font-bold border transition ${
-                            active ? activeCls : "bg-white border-black text-gray-500 hover:bg-slate-50"
-                          }`}
+                          className={`py-2.5 rounded-sm text-sm font-bold border transition ${active ? activeCls : "bg-white border-black text-gray-500 hover:bg-slate-50"
+                            }`}
                         >
                           {t === "Receive" ? "↓ Receive (+)" : "↑ Sale (−)"}
                         </button>
