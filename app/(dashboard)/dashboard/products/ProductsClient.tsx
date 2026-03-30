@@ -489,8 +489,8 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-0.5">
-          <p className="text-xs font-medium tracking-[0.25em] uppercase italic" style={{ color: "#FA4900" }}>Product</p>
-          <h1 className="text-2xl font-bold text-gray-900 uppercase italic">Management</h1>
+          <p className="text-xs font-medium tracking-[0.25em] uppercase" style={{ color: "#FA4900" }}>Product</p>
+          <h1 className="text-2xl font-bold text-gray-900 uppercase">Management</h1>
         </div>
         <button onClick={openCreate}
           className="flex items-center gap-2 px-4 py-2 sm:px-5 rounded-sm text-xs font-bold tracking-widest uppercase bg-orange-500 text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
