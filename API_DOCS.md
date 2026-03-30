@@ -102,6 +102,7 @@ CRUD operations on products. **All endpoints require authentication with a JWT a
 - **Base Endpoint:** `/api/v1/products/`
 - **Methods:**
   - `GET /api/v1/products/` — List all products (paginated) → `200 OK`
+  - `GET /api/v1/products/stats` — Overview stats (not paginated) → `200 OK`
   - `GET /api/v1/products/{id}/` — Retrieve a product → `200 OK`
   - `POST /api/v1/products/` — Create a new product → `201 Created`
   - `PUT /api/v1/products/{id}/` — Replace a product → `200 OK`

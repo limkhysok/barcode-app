@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast, Toaster } from "sonner";
 import type { Product, ProductPayload } from "@/src/types/product.types";
-import { getProducts, createProduct, updateProduct, deleteProduct } from "@/src/services/product.service";
-import type { PaginatedProducts } from "@/src/types/api.types";
+import { getProducts, getProductStats, createProduct, updateProduct, deleteProduct } from "@/src/services/product.service";
+import type { PaginatedProducts, ProductStats } from "@/src/types/api.types";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const REORDER_PRESETS = new Set([5, 10, 15, 20]);
@@ -307,13 +307,21 @@ function getSaveLabel(saving: boolean, editing: Product | null) {
   return editing ? "Save Changes" : "Add Product";
 }
 
-export default function ProductsClient({ initialPaginated }: Readonly<{ initialPaginated: PaginatedProducts }>) {
+export default function ProductsClient({
+  initialPaginated,
+  initialStats,
+}: Readonly<{
+  initialPaginated: PaginatedProducts;
+  initialStats: ProductStats | null;
+}>) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentPage = Number.parseInt(searchParams.get("page") ?? "1") || 1;
 
   const [paginated, setPaginated] = useState<PaginatedProducts>(initialPaginated);
   const products = paginated.results;
+
+  const [stats, setStats] = useState<ProductStats | null>(initialStats);
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -350,14 +358,28 @@ export default function ProductsClient({ initialPaginated }: Readonly<{ initialP
   }, []);
 
   const categoryStats = useMemo(() => {
+    if (stats?.by_category) {
+      const accCost = stats.by_category.Accessories?.total_value ?? 0;
+      const fasCost = stats.by_category.Fasteners?.total_value ?? 0;
+      return {
+        accessories: { count: stats.by_category.Accessories?.count ?? 0, cost: accCost },
+        fasteners:   { count: stats.by_category.Fasteners?.count ?? 0, cost: fasCost },
+        total:       stats.total_products ?? 0,
+        totalValue:  stats.total_value ?? (accCost + fasCost),
+      };
+    }
+    // Fallback if stats not fully loaded
     const acc = products.filter((p) => p.category === "Accessories");
     const fas = products.filter((p) => p.category === "Fasteners");
+    const accCost = totalCost(acc);
+    const fasCost = totalCost(fas);
     return {
-      accessories: { count: acc.length, cost: totalCost(acc) },
-      fasteners:   { count: fas.length, cost: totalCost(fas) },
+      accessories: { count: acc.length, cost: accCost },
+      fasteners:   { count: fas.length, cost: fasCost },
       total:       products.length,
+      totalValue:  accCost + fasCost,
     };
-  }, [products]);
+  }, [stats, products]);
 
   const displayed = useMemo(
     () => filterAndSort(products, debouncedSearch, categoryFilter, costDir, reorderDir),
@@ -371,6 +393,9 @@ export default function ProductsClient({ initialPaginated }: Readonly<{ initialP
       .then((data) => setPaginated(data))
       .catch(() => setError("Failed to load products."))
       .finally(() => setLoading(false));
+    
+    // Also refresh stats
+    getProductStats().then(setStats).catch(() => {});
   }
 
   function handlePageChange(newPage: number) {
@@ -570,7 +595,7 @@ export default function ProductsClient({ initialPaginated }: Readonly<{ initialP
         {/* Total value footer */}
         <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-t border-black/10">
           <p className="text-[9px] font-bold tracking-widest uppercase text-slate-400">Total Value</p>
-          <p className="text-sm font-bold text-slate-900 tabular-nums">${(categoryStats.accessories.cost + categoryStats.fasteners.cost).toFixed(2)}</p>
+          <p className="text-sm font-bold text-slate-900 tabular-nums">${categoryStats.totalValue.toFixed(2)}</p>
         </div>
       </div>
 
@@ -641,7 +666,7 @@ export default function ProductsClient({ initialPaginated }: Readonly<{ initialP
             <div>
               <p className="inline-block text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5 rounded-none">Total Value</p>
               <p className="text-3xl font-bold text-slate-900 mt-2 leading-none tabular-nums">
-                ${(categoryStats.accessories.cost + categoryStats.fasteners.cost).toFixed(2)}
+                ${categoryStats.totalValue.toFixed(2)}
               </p>
               <p className="text-xs text-slate-400 mt-1">combined cost / unit</p>
             </div>

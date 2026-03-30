@@ -1,5 +1,7 @@
+export const dynamic = "force-dynamic";
+
 import { serverFetch } from "@/src/lib/server-fetch";
-import { getProducts } from "@/src/services/product.service";
+import { getProducts, getProductStats } from "@/src/services/product.service";
 import ProductsClient from "./ProductsClient";
 
 export default async function ProductsPage({
@@ -10,8 +12,11 @@ export default async function ProductsPage({
   const { page: pageStr } = await searchParams;
   const page = Number.parseInt(pageStr ?? "1") || 1;
 
-  // Pass serverFetch to the universal service when calling from a Server Component
-  const paginated = await getProducts(page, serverFetch);
+  // Fetch initial data + stats
+  const [paginated, stats] = await Promise.all([
+    getProducts(page, serverFetch),
+    getProductStats(serverFetch),
+  ]);
 
-  return <ProductsClient initialPaginated={paginated} />;
+  return <ProductsClient initialPaginated={paginated} initialStats={stats} />;
 }

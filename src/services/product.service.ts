@@ -1,6 +1,6 @@
 import api from "./api";
 import type { Product, ProductPayload } from "@/src/types/product.types";
-import type { PaginatedProducts } from "@/src/types/api.types";
+import type { PaginatedProducts, ProductStats } from "@/src/types/api.types";
 
 /**
  * Universal product getter. 
@@ -18,6 +18,23 @@ export async function getProducts(page = 1, fetcher?: <T>(path: string) => Promi
   } catch (error) {
     console.error("Failed to fetch products:", error);
     return { count: 0, next: null, previous: null, results: [] };
+  }
+}
+
+/**
+ * Get product analytics/stats. 
+ */
+export async function getProductStats(fetcher?: <T>(path: string) => Promise<T>): Promise<ProductStats | null> {
+  const path = "/api/v1/products/stats";
+  try {
+    if (fetcher) {
+      return await fetcher(path);
+    }
+    const { data } = await api.get<ProductStats>(path);
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch product stats:", error);
+    return null;
   }
 }
 

@@ -12,3 +12,12 @@ export interface PaginatedResponse<T> {
 export type PaginatedProducts = PaginatedResponse<Product>;
 export type PaginatedInventory = PaginatedResponse<InventoryRecord>;
 export type PaginatedTransactions = PaginatedResponse<Transaction>;
+
+export interface ProductStats {
+  total_products: number;
+  total_value: number;
+  by_category: {
+    Accessories: { count: number; total_value: number };
+    Fasteners: { count: number; total_value: number };
+  };
+}
