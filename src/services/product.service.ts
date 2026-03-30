@@ -5,31 +5,20 @@ import type { PaginatedProducts, ProductStats } from "@/src/types/api.types";
 export interface ProductFilters {
   search?: string;
   category?: string;
-  min_cost?: string | number;
-  max_cost?: string | number;
-  min_reorder?: string | number;
-  max_reorder?: string | number;
-  needs_reorder?: boolean;
   ordering?: string;
 }
 
 /**
  * Universal product getter.
- * @param page Optional page number
  * @param fetcher Server-side fetcher
- * @param filters Optional server-side filter params
+ * @param filters Optional filter params
  * @param page_size Optional page size limit
  */
-export async function getProducts(page = 1, fetcher?: <T>(path: string) => Promise<T>, filters?: ProductFilters, page_size?: number | string): Promise<PaginatedProducts> {
-  const params = new URLSearchParams({ page: String(page) });
+export async function getProducts(fetcher?: <T>(path: string) => Promise<T>, filters?: ProductFilters, page_size?: number | string): Promise<PaginatedProducts> {
+  const params = new URLSearchParams();
   if (page_size) params.set("page_size", String(page_size));
   if (filters?.search) params.set("search", filters.search);
   if (filters?.category) params.set("category", filters.category);
-  if (filters?.min_cost !== undefined && filters.min_cost !== "") params.set("min_cost", String(filters.min_cost));
-  if (filters?.max_cost !== undefined && filters.max_cost !== "") params.set("max_cost", String(filters.max_cost));
-  if (filters?.min_reorder !== undefined && filters.min_reorder !== "") params.set("min_reorder", String(filters.min_reorder));
-  if (filters?.max_reorder !== undefined && filters.max_reorder !== "") params.set("max_reorder", String(filters.max_reorder));
-  if (filters?.needs_reorder) params.set("needs_reorder", "true");
   if (filters?.ordering) params.set("ordering", filters.ordering);
 
   const path = `/api/v1/products/?${params.toString()}`;

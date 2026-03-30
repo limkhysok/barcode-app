@@ -56,12 +56,13 @@ const inputCls =
   "w-full px-4 py-3 rounded-sm border border-black text-sm text-gray-800 placeholder:text-gray-300 outline-none focus:ring-2 focus:border-transparent bg-gray-50 focus:bg-white transition";
 const ringStyle = { "--tw-ring-color": "#FA4900" } as React.CSSProperties;
 
-function CustomSelect({ id, label, value, onChange, options, placeholder, openUp }: Readonly<{
+function CustomSelect({ id, label, value, onChange, options, placeholder, openUp, triggerLabel }: Readonly<{
   id: string; label?: string; value: string | number;
   onChange: (v: string) => void;
   options: { value: string | number; label: string }[];
   placeholder?: string;
   openUp?: boolean;
+  triggerLabel?: string;
 }>) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -90,7 +91,7 @@ function CustomSelect({ id, label, value, onChange, options, placeholder, openUp
           className={`w-full px-3 py-3 rounded-sm border text-sm font-medium text-left flex items-center justify-between gap-2 transition focus:outline-none bg-gray-50 ${open ? "border-black ring-1 ring-black" : "border-black hover:bg-slate-50"
             } ${selected && String(selected.value) !== "" ? "text-slate-900" : "text-slate-400"}`}
         >
-          <span className="truncate">{selected ? selected.label : (placeholder ?? "Select…")}</span>
+          <span className="truncate">{triggerLabel ?? (selected ? selected.label : (placeholder ?? "Select…"))}</span>
           <svg className="w-3.5 h-3.5 text-slate-500 shrink-0 transition-transform duration-200"
             style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
             fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -309,7 +310,6 @@ export default function ProductsClient({
 }>) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentPage = Number.parseInt(searchParams.get("page") ?? "1") || 1;
   const initialPageSize = searchParams.get("page_size") ?? "20";
 
   const [paginated, setPaginated] = useState<PaginatedProducts>(initialPaginated);
@@ -333,11 +333,6 @@ export default function ProductsClient({
 
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [minCost, setMinCost] = useState("");
-  const [maxCost, setMaxCost] = useState("");
-  const [minReorder, setMinReorder] = useState("");
-  const [maxReorder, setMaxReorder] = useState("");
-  const [needsReorder, setNeedsReorder] = useState(false);
   const [costDir, setCostDir] = useState<SortDir>("");
   const [reorderDir, setReorderDir] = useState<SortDir>("");
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -353,23 +348,17 @@ export default function ProductsClient({
       const filters: ProductFilters = {
         search: search.trim() || undefined,
         category: categoryFilter || undefined,
-        min_cost: minCost || undefined,
-        max_cost: maxCost || undefined,
-        min_reorder: minReorder || undefined,
-        max_reorder: maxReorder || undefined,
-        needs_reorder: needsReorder || undefined,
         ordering: sorting,
       };
-      router.push("?page=1");
       setLoading(true);
       setError("");
-      getProducts(1, undefined, filters, pageSize)
+      getProducts(undefined, filters, pageSize)
         .then(setPaginated)
         .catch(() => setError("Failed to load products."))
         .finally(() => setLoading(false));
     }, 300);
     return () => clearTimeout(t);
-  }, [search, categoryFilter, minCost, maxCost, minReorder, maxReorder, needsReorder, pageSize, costDir, reorderDir]);
+  }, [search, categoryFilter, pageSize, costDir, reorderDir]);
 
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -414,19 +403,14 @@ export default function ProductsClient({
     return {
       search: search.trim() || undefined,
       category: categoryFilter || undefined,
-      min_cost: minCost || undefined,
-      max_cost: maxCost || undefined,
-      min_reorder: minReorder || undefined,
-      max_reorder: maxReorder || undefined,
-      needs_reorder: needsReorder || undefined,
       ordering: sorting,
     };
   }
 
-  function fetchProducts(page = currentPage) {
+  function fetchProducts() {
     setLoading(true);
     setError("");
-    getProducts(page, undefined, buildFilters(), pageSize)
+    getProducts(undefined, buildFilters(), pageSize)
       .then((data) => setPaginated(data))
       .catch(() => setError("Failed to load products."))
       .finally(() => setLoading(false));
@@ -435,22 +419,13 @@ export default function ProductsClient({
     getProductStats().then(setStats).catch(() => { });
   }
 
-  function handlePageChange(newPage: number) {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("page", String(newPage));
-    params.set("page_size", String(pageSize));
-    router.push(`?${params.toString()}`);
-    fetchProducts(newPage);
-  }
-
   function handlePageSizeChange(newSize: string) {
     const size = newSize === "all" || newSize === "ALL" ? "all" : Number.parseInt(newSize);
     setPageSize(size);
     const params = new URLSearchParams(searchParams.toString());
-    params.set("page", "1");
     params.set("page_size", String(size));
     router.push(`?${params.toString()}`);
-    // fetchProducts(1) will be triggered by useEffect
+    // fetchProducts will be triggered by useEffect
   }
 
   function openCreate() {
@@ -741,9 +716,9 @@ export default function ProductsClient({
 
         {/* Toolbar */}
         {/* Desktop filters */}
-        <div className="hidden lg:block space-y-2">
-          {/* Row 1: category, sort, search */}
-          <div className="grid grid-cols-4 gap-2.5">
+        <div className="hidden lg:block">
+          {/* Row 1: category, sort cost, sort reorder, show XX, search */}
+          <div className="grid grid-cols-[1fr_1fr_1fr_minmax(0,140px)_2fr] gap-2.5">
             <div className="bg-white rounded-sm">
               <CustomSelect id="filter-category" value={categoryFilter} onChange={setCategoryFilter}
                 options={[
@@ -768,6 +743,23 @@ export default function ProductsClient({
                   { value: "desc", label: "High → Low" },
                 ]} />
             </div>
+            <div className="bg-white rounded-sm">
+              <CustomSelect
+                id="page-size-selector-desktop"
+                value={pageSize === "all" ? "all" : String(pageSize)}
+                onChange={handlePageSizeChange}
+                triggerLabel={`${products.length} of ${pageSize === "all" ? "ALL" : pageSize}`}
+                options={[
+                  { value: "20", label: "Show 20" },
+                  { value: "50", label: "Show 50" },
+                  { value: "100", label: "Show 100" },
+                  { value: "200", label: "Show 200" },
+                  { value: "500", label: "Show 500" },
+                  { value: "1000", label: "Show 1000" },
+                  { value: "all", label: "Show ALL" },
+                ]}
+              />
+            </div>
             <div className="flex items-center gap-2 bg-white rounded-sm border border-black px-3 py-2">
               <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -784,36 +776,14 @@ export default function ProductsClient({
               )}
             </div>
           </div>
-          {/* Row 2: range filters + needs_reorder */}
-          <div className="grid grid-cols-5 gap-2.5">
-            {[
-              { id: "min-cost", placeholder: "Min cost", value: minCost, set: setMinCost },
-              { id: "max-cost", placeholder: "Max cost", value: maxCost, set: setMaxCost },
-              { id: "min-reorder", placeholder: "Min reorder", value: minReorder, set: setMinReorder },
-              { id: "max-reorder", placeholder: "Max reorder", value: maxReorder, set: setMaxReorder },
-            ].map(({ id, placeholder, value, set }) => (
-              <div key={id} className="flex items-center gap-2 bg-white rounded-sm border border-black px-3 py-2">
-                <input id={id} type="number" min={0} placeholder={placeholder} value={value}
-                  onChange={(e) => set(e.target.value)}
-                  className="flex-1 min-w-0 text-sm font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal bg-transparent outline-none" />
-              </div>
-            ))}
-            <button type="button"
-              onClick={() => setNeedsReorder((v) => !v)}
-              className={`flex items-center justify-center gap-2 px-3 py-2 rounded-sm border text-[11px] font-bold tracking-widest uppercase transition ${needsReorder ? "bg-orange-500 text-white border-orange-500" : "bg-white text-slate-500 border-black hover:bg-slate-50"
-                }`}>
-              {needsReorder && <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>}
-              Needs Reorder
-            </button>
-          </div>
         </div>
 
-        {/* Mobile filters — Filters button + Search */}
+        {/* Mobile filters — Filters button + Show XX + Search */}
         <div className="flex lg:hidden gap-2">
           {/* Filters dropdown */}
           <div className="relative" ref={filtersRef}>
             {(() => {
-              const activeCount = [categoryFilter, costDir, reorderDir, minCost, maxCost, minReorder, maxReorder, needsReorder ? "1" : ""].filter(Boolean).length;
+              const activeCount = [categoryFilter, costDir, reorderDir].filter(Boolean).length;
               return (
                 <button type="button" onClick={() => setFiltersOpen((v) => !v)}
                   className={`flex items-center gap-2 px-3 py-3 rounded-sm border text-[11px] font-bold tracking-widest uppercase transition ${filtersOpen ? "bg-black text-white border-black" : "bg-white text-slate-700 border-black hover:bg-slate-50"
@@ -861,40 +831,34 @@ export default function ProductsClient({
                       { value: "desc", label: "High → Low" },
                     ]} />
                 </div>
-                <div className="space-y-1.5">
-                  <p className="text-[10px] font-semibold text-slate-500">Cost Range</p>
-                  <div className="flex gap-1.5">
-                    <input type="number" min={0} placeholder="Min" value={minCost} onChange={(e) => setMinCost(e.target.value)}
-                      className="w-full px-2 py-1.5 rounded-sm border border-black text-sm text-slate-900 placeholder:text-slate-400 bg-gray-50 outline-none" />
-                    <input type="number" min={0} placeholder="Max" value={maxCost} onChange={(e) => setMaxCost(e.target.value)}
-                      className="w-full px-2 py-1.5 rounded-sm border border-black text-sm text-slate-900 placeholder:text-slate-400 bg-gray-50 outline-none" />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <p className="text-[10px] font-semibold text-slate-500">Reorder Level Range</p>
-                  <div className="flex gap-1.5">
-                    <input type="number" min={0} placeholder="Min" value={minReorder} onChange={(e) => setMinReorder(e.target.value)}
-                      className="w-full px-2 py-1.5 rounded-sm border border-black text-sm text-slate-900 placeholder:text-slate-400 bg-gray-50 outline-none" />
-                    <input type="number" min={0} placeholder="Max" value={maxReorder} onChange={(e) => setMaxReorder(e.target.value)}
-                      className="w-full px-2 py-1.5 rounded-sm border border-black text-sm text-slate-900 placeholder:text-slate-400 bg-gray-50 outline-none" />
-                  </div>
-                </div>
-                <button type="button"
-                  onClick={() => setNeedsReorder((v) => !v)}
-                  className={`w-full flex items-center justify-center gap-2 py-1.5 text-[10px] font-bold tracking-widest uppercase rounded-sm border transition ${needsReorder ? "bg-orange-500 text-white border-orange-500" : "text-slate-600 border-black hover:bg-slate-50"
-                    }`}>
-                  {needsReorder && <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>}
-                  Needs Reorder Only
-                </button>
-                {[categoryFilter, costDir, reorderDir, minCost, maxCost, minReorder, maxReorder, needsReorder ? "1" : ""].some(Boolean) && (
+                {[categoryFilter, costDir, reorderDir].some(Boolean) && (
                   <button type="button"
-                    onClick={() => { setCategoryFilter(""); setCostDir(""); setReorderDir(""); setMinCost(""); setMaxCost(""); setMinReorder(""); setMaxReorder(""); setNeedsReorder(false); }}
+                    onClick={() => { setCategoryFilter(""); setCostDir(""); setReorderDir(""); }}
                     className="w-full py-1.5 text-[10px] font-bold tracking-widest uppercase text-red-500 border border-red-200 rounded-sm hover:bg-red-50 transition">
                     Clear All
                   </button>
                 )}
               </div>
             )}
+          </div>
+
+          {/* Show XX page size */}
+          <div className="bg-white rounded-sm min-w-28">
+            <CustomSelect
+              id="page-size-selector-mobile"
+              value={pageSize === "all" ? "all" : String(pageSize)}
+              onChange={handlePageSizeChange}
+              triggerLabel={`${products.length} of ${pageSize === "all" ? "ALL" : pageSize}`}
+              options={[
+                { value: "20", label: "Show 20" },
+                { value: "50", label: "Show 50" },
+                { value: "100", label: "Show 100" },
+                { value: "200", label: "Show 200" },
+                { value: "500", label: "Show 500" },
+                { value: "1000", label: "Show 1000" },
+                { value: "all", label: "Show ALL" },
+              ]}
+            />
           </div>
 
           {/* Search */}
@@ -914,60 +878,6 @@ export default function ProductsClient({
           </div>
         </div>
 
-        {/* Pagination & Count — moved to top and refactored with page size dropdown */}
-        {!loading && !error && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1 pb-4">
-            <div className="flex flex-col gap-1 items-center sm:items-start">
-              <p className="text-[10px] font-bold tracking-widest uppercase text-slate-400">Total Results</p>
-              <p className="text-sm font-bold text-slate-900 tabular-nums">
-                Showing {products.length} <span className="font-normal text-slate-400">of</span> {paginated.count} <span className="font-normal text-slate-400 text-[11px] uppercase tracking-wide">products</span>
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {/* Page Size Dropdown */}
-              <div className="bg-white min-w-[120px]">
-                <CustomSelect
-                  id="page-size-selector"
-                  value={pageSize === "all" ? "all" : String(pageSize)}
-                  onChange={handlePageSizeChange}
-                  options={[
-                    { value: "20", label: "Show 20" },
-                    { value: "50", label: "Show 50" },
-                    { value: "100", label: "Show 100" },
-                    { value: "200", label: "Show 200" },
-                    { value: "500", label: "Show 500" },
-                    { value: "1000", label: "Show 1000" },
-                    { value: "all", label: "Show ALL" },
-                  ]}
-                />
-              </div>
-
-              {/* Pagination controls still exist for multi-page results */}
-              <div className="flex items-center gap-1.5 h-[46px]">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={!paginated.previous || loading}
-                  title="Previous Page"
-                  className="w-[46px] h-full flex items-center justify-center border border-black rounded-sm bg-white hover:bg-slate-50 disabled:opacity-20 disabled:cursor-not-allowed transition"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
-                </button>
-                <div className="px-5 h-full flex items-center justify-center text-[11px] font-black tracking-widest uppercase border border-black rounded-sm bg-slate-50 text-slate-900">
-                  Page {currentPage}
-                </div>
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={!paginated.next || loading}
-                  title="Next Page"
-                  className="w-[46px] h-full flex items-center justify-center border border-black rounded-sm bg-white hover:bg-slate-50 disabled:opacity-20 disabled:cursor-not-allowed transition"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Table */}
         <div className="rounded-sm border border-black overflow-hidden bg-white ">
