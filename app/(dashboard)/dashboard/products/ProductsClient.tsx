@@ -90,7 +90,7 @@ function CustomSelect({ id, label, value, onChange, options, placeholder, openUp
       <div className="relative">
         <button
           id={id} type="button" onClick={() => setOpen((v) => !v)}
-          className={`w-full px-3 py-2 rounded-sm border text-sm font-medium text-left flex items-center justify-between gap-2 transition focus:outline-none bg-gray-50 ${
+          className={`w-full px-3 py-3 rounded-sm border text-sm font-medium text-left flex items-center justify-between gap-2 transition focus:outline-none bg-gray-50 ${
             open ? "border-black ring-1 ring-black" : "border-black hover:bg-slate-50"
           } ${selected && String(selected.value) !== "" ? "text-slate-900" : "text-slate-400"}`}
         >
@@ -798,7 +798,7 @@ export default function ProductsClient({ initialProducts }: Readonly<{ initialPr
       {/* Add / Edit Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4">
-          <div className="w-full sm:max-w-lg max-h-[95vh] overflow-y-auto bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col">
+          <div className="w-full sm:max-w-lg max-h-[95vh] overflow-y-auto bg-white rounded-t-sm sm:rounded-sm shadow-2xl flex flex-col">
 
             {/* Orange accent strip + header */}
             <div className="relative px-6 pt-6 pb-5">

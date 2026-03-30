@@ -246,7 +246,7 @@ function CollapseToggle({
       onClick={onToggleCollapse}
       aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       className="
-        absolute top-1/2 -translate-y-1/2 -right-3 z-30 hidden md:flex
+        absolute top-4 -right-3 z-30 hidden md:flex
         items-center justify-center w-6 h-6 rounded-full
         bg-white border border-black 
         text-black hover:text-slate-700 hover:border-black 
