@@ -60,7 +60,7 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
           <Link href="/dashboard" className="flex items-center gap-0 shrink-0">
             <div
               className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-             
+
             >
               <Image src="/ctk.svg" alt="CTK" width={18} height={18} priority />
             </div>
@@ -95,19 +95,11 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
 
             {/* Dropdown */}
             {open && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-sm border border-gray-800 shadow-xl overflow-hidden z-50">
-                {/* User info header */}
-                <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-xs font-bold text-gray-900 truncate">{displayName}</p>
-                  {user?.email && (
-                    <p className="text-[10px] text-gray-400 truncate mt-0.5">{user.email}</p>
-                  )}
-                </div>
-
+              <div className="absolute right-0 mt-2 w-38 bg-white rounded-sm border border-gray-800 shadow-xl overflow-hidden z-50">
                 {/* Profile */}
-                <div className="py-1">
+                <div className="py-0">
                   <Link
-                    href="/dashboard/profile"
+                    href="/profile"
                     onClick={() => setOpen(false)}
                     className="flex items-center gap-3 px-4 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition"
                   >
@@ -120,7 +112,7 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
                 </div>
 
                 {/* Logout */}
-                <div className="border-t border-gray-100 py-1">
+                <div className="border-t border-gray-100 py-0">
                   <button
                     onClick={handleLogout}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-red-500 hover:bg-red-50 transition"
