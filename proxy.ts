@@ -52,6 +52,8 @@ export async function proxy(request: NextRequest) {
       resHeaders.delete("transfer-encoding");
       resHeaders.delete("connection");
 
+      console.log(`[UNIFIED-PROXY] ${upstream.status} from ${target}`);
+
       return new Response(upstream.body, {
         status: upstream.status,
         headers: resHeaders,
