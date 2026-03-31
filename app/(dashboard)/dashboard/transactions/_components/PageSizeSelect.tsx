@@ -36,7 +36,7 @@ const PageSizeSelect: React.FC<PageSizeSelectProps> = ({ value, onChange }) => {
         type="button"
         onMouseEnter={() => { }}
         onClick={() => setOpen((v) => !v)}
-        className={`w-full px-4 py-2 rounded-sm border-2 text-[10px] font-black tracking-widest uppercase text-left flex items-center justify-between gap-2 transition focus:outline-none bg-white border-black text-gray-900`}
+        className={`w-full px-4 py-2 rounded-sm border border-black text-sm font-medium text-left flex items-center justify-between gap-2 transition focus:outline-none bg-gray-50 text-gray-900 ${open ? "ring-1 ring-black" : "hover:bg-slate-50"}`}
       >
         <span className="truncate">{current.label}</span>
         <svg className="w-3.5 h-3.5 text-slate-800 shrink-0 transition-transform duration-200"
@@ -46,13 +46,13 @@ const PageSizeSelect: React.FC<PageSizeSelectProps> = ({ value, onChange }) => {
         </svg>
       </button>
       {open && (
-        <ul className="absolute z-200 bottom-full mb-1 w-full bg-white border-2 border-black rounded-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+        <ul className="absolute z-200 top-full mt-1 w-full bg-white border border-black rounded-sm shadow-lg overflow-hidden">
           {options.map((o) => (
-            <li key={o.key} className="border-b-2 border-black last:border-b-0 text-gray-900">
+            <li key={o.key} className="border-b border-black last:border-b-0">
               <button
                 type="button"
                 onClick={() => { onChange(o.key); setOpen(false); }}
-                className={`w-full text-left px-3 py-2 text-[9px] font-black tracking-[0.2em] uppercase transition ${String(value) === o.key ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
+                className={`w-full text-left px-3 py-2.5 text-[11px] font-semibold tracking-wide transition ${String(value) === o.key ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
                   }`}
               >
                 {o.label}

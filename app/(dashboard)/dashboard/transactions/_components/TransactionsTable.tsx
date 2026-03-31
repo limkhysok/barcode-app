@@ -98,7 +98,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-black">
             <tr>
-              {["#", "Type", "Items", "Total Value", "Performed By", "Date", "Actions"].map((h) => (
+              {["#", "Type", "Items", "Total Value", "Date", "Actions"].map((h) => (
                 <th key={h} className="px-5 py-3 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">{h}</th>
               ))}
             </tr>
@@ -108,8 +108,6 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
               const cfg = TYPE_CONFIG[t.transaction_type as keyof typeof TYPE_CONFIG];
               const sign = t.transaction_type === "Receive" ? "+" : "−";
               const valCol = t.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
-              const first = t.items[0];
-              const more = t.items.length - 1;
               return (
                 <tr key={t.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-5 py-3.5 font-bold text-gray-400">#{t.id}</td>
@@ -119,17 +117,12 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                       {cfg.label}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5">
-                    <p className="font-semibold text-gray-800">
-                      {first?.product_name ?? "—"}
-                      {more > 0 && <span className="text-gray-400 font-normal"> &amp; {more} more</span>}
-                    </p>
-                    <p className="text-[10px] text-gray-400 mt-0.5">{t.items.length} item{t.items.length === 1 ? "" : "s"}</p>
+                  <td className="px-5 py-3.5 font-semibold text-gray-800">
+                    {t.items.length} {t.items.length === 1 ? "Item" : "Items"}
                   </td>
                   <td className={`px-5 py-3.5 font-bold tabular-nums ${valCol}`}>
                     {fmtValue(t.total_transaction_value, sign)}
                   </td>
-                  <td className="px-5 py-3.5 text-gray-600">{t.performed_by_username}</td>
                   <td className="px-5 py-3.5 text-gray-500 whitespace-nowrap" suppressHydrationWarning>
                     {formatDateTime(t.transaction_date)}
                   </td>

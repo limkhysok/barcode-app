@@ -311,12 +311,12 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
               placeholder="Query movements..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 text-xs font-black tracking-widest uppercase outline-none bg-transparent text-gray-900 placeholder:text-gray-300"
+              className="flex-1 text-sm font-medium outline-none bg-transparent text-gray-900 placeholder:text-gray-400"
             />
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar">
+        <div className="flex items-center gap-2.5">
           <SortSelect value={ordering} onChange={setOrdering} />
           <PageSizeSelect value={pageSize} onChange={setPageSize} />
         </div>
