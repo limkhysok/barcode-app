@@ -917,7 +917,7 @@ export default function InventoryClient({
       </div>
 
       {/* Filters + Page Size */}
-      <div className="flex flex-wrap items-center gap-3 bg-white p-3 sm:p-4 rounded-sm border border-black shadow-sm">
+      <div className="flex flex-wrap items-center gap-3 bg-white p-2 sm:p-3 rounded-sm border border-black shadow-sm">
         <div className="relative flex-1 min-w-60 sm:min-w-70">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -927,7 +927,7 @@ export default function InventoryClient({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Quick search products, sites..."
-            className="w-full pl-10 pr-4 py-2 rounded-sm border border-black bg-slate-50 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-black transition-all"
+            className="w-full pl-10 pr-4 py-1 rounded-sm border border-black bg-slate-50 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-black transition-all"
           />
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
