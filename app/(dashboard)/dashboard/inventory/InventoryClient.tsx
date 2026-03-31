@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { InventoryRecord, InventoryPayload } from "@/src/types/inventory.types";
-import { getInventory, createInventory, updateInventory, deleteInventory } from "@/src/services/inventory.service";
+import { getInventory, getInventoryStats, createInventory, updateInventory, deleteInventory } from "@/src/services/inventory.service";
 import { getProducts } from "@/src/services/product.service";
 import type { PaginatedInventory, PaginatedProducts } from "@/src/types/api.types";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -254,27 +254,61 @@ function FilterDropdown({
 
 // ─── InventoryBarChart ────────────────────────────────────────────────────────
 
-function InventoryBarChart({ records }: Readonly<{ records: InventoryRecord[] }>) {
+type ActivityEntry = { date?: string; week_start?: string; new_records: number };
+type StatsPeriod = "7d" | "14d" | "30d" | "3m";
+type ChartSlot = { date: string; label: string; count: number };
+
+function buildWeeklyChartData(activityData: ActivityEntry[]): ChartSlot[] {
+  const today = new Date();
+  const weeks: ChartSlot[] = [];
+  for (let i = 12; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i * 7);
+    const day = d.getDay();
+    d.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
+    const dateStr = d.toISOString().split("T")[0];
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    weeks.push({ date: dateStr, label: `${dd}/${mm}`, count: 0 });
+  }
+  for (const entry of activityData) {
+    if (entry.week_start) {
+      const slot = weeks.find((w) => w.date === entry.week_start);
+      if (slot) slot.count = entry.new_records;
+    }
+  }
+  return weeks;
+}
+
+function buildDailyChartData(activityData: ActivityEntry[], numDays: number): ChartSlot[] {
+  const today = new Date();
+  const result: ChartSlot[] = [];
+  for (let i = numDays - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split("T")[0];
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    result.push({ date: dateStr, label: `${dd}/${mm}`, count: 0 });
+  }
+  for (const entry of activityData) {
+    if (entry.date) {
+      const slot = result.find((r) => r.date === entry.date);
+      if (slot) slot.count = entry.new_records;
+    }
+  }
+  return result;
+}
+
+function InventoryBarChart({ activityData, period }: Readonly<{ activityData: ActivityEntry[]; period: StatsPeriod }>) {
   const [hovered, setHovered] = useState<number | null>(null);
 
   const chartData = useMemo(() => {
-    const today = new Date();
-    const days: { date: string; label: string; shortLabel: string; count: number }[] = [];
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split("T")[0];
-      const dd = String(d.getDate()).padStart(2, "0");
-      const mm = String(d.getMonth() + 1).padStart(2, "0");
-      days.push({ date: dateStr, label: `${dd}/${mm}`, shortLabel: `${dd}/${mm}`, count: 0 });
-    }
-    for (const r of records) {
-      const dateStr = r.order_date ? r.order_date.split("T")[0] : "";
-      const entry = days.find((d) => d.date === dateStr);
-      if (entry) entry.count += 1;
-    }
-    return days;
-  }, [records]);
+    if (period === "3m") return buildWeeklyChartData(activityData);
+    const dayCountMap: Record<string, number> = { "7d": 7, "14d": 14, "30d": 30 };
+    const numDays = dayCountMap[period] ?? 30;
+    return buildDailyChartData(activityData, numDays);
+  }, [activityData, period]);
 
   const maxCount = Math.max(...chartData.map((d) => d.count), 1);
 
@@ -337,7 +371,7 @@ function InventoryBarChart({ records }: Readonly<{ records: InventoryRecord[] }>
 
               {showLabel && (
                 <text x={x + bw / 2} y={pt + ch + 13} textAnchor="middle" fontSize={7} fill="#94a3b8">
-                  {d.shortLabel}
+                  {d.label}
                 </text>
               )}
               {isHovered && d.count > 0 && (
@@ -405,7 +439,12 @@ export default function InventoryClient({
   const [loading, setLoading] = useState(false);
   const [pageSize, setPageSize] = useState<number | string>(initialPageSize === "all" ? "all" : (Number.parseInt(initialPageSize) || 20));
   const [error, setError] = useState("");
-  const [backendStats] = useState<any>(initialStats);
+  const [statsData, setStatsData] = useState<any>(initialStats);
+  const [statsPeriod, setStatsPeriod] = useState<StatsPeriod>("30d");
+
+  useEffect(() => {
+    getInventoryStats().then(setStatsData).catch(() => {});
+  }, []);
 
   // ── Filter / sort state ──────────────────────────────────────────────────────
   const [siteFilter, setSiteFilter] = useState("");
@@ -515,28 +554,36 @@ export default function InventoryClient({
   // ── Derived values ───────────────────────────────────────────────────────────
 
   const stats = useMemo(() => {
-    if (backendStats) {
+    if (statsData) {
       return {
-        total: backendStats.total_records,
-        healthy: backendStats.total_records - backendStats.needs_reorder,
+        total: statsData.total_records,
+        healthy: statsData.total_records - statsData.needs_reorder,
         moderate: 0,
-        low: backendStats.needs_reorder,
-        totalValue: Number(backendStats.total_stock_value),
-        totalQty: backendStats.total_quantity_on_hand,
-        needsReorder: backendStats.needs_reorder,
-        sites: new Set(records.map((r) => r.site)).size,
+        low: statsData.needs_reorder,
+        totalValue: Number(statsData.total_stock_value),
+        totalQty: statsData.total_quantity_on_hand,
+        needsReorder: statsData.needs_reorder,
+        bySite: statsData.by_site as Record<string, { records: number; total_quantity_on_hand: number; total_stock_value: string }> | undefined,
       };
     }
-    const total = records.length;
-    const healthy = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "healthy").length;
-    const moderate = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "moderate").length;
-    const low = records.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "low").length;
     const totalValue = records.reduce((s, r) => s + r.quantity_on_hand * Number.parseFloat(r.product_details.cost_per_unit), 0);
     const totalQty = records.reduce((s, r) => s + r.quantity_on_hand, 0);
     const needsReorder = records.filter((r) => r.reorder_status === "Yes").length;
-    const sites = new Set(records.map((r) => r.site)).size;
-    return { total, healthy, moderate, low, totalValue, totalQty, needsReorder, sites };
-  }, [records, backendStats]);
+    return { total: paginated.count, healthy: 0, moderate: 0, low: 0, totalValue, totalQty, needsReorder, bySite: undefined };
+  }, [records, statsData, paginated.count]);
+
+  const periodKeyMap: Record<StatsPeriod, string> = {
+    "7d": "last_7_days",
+    "14d": "last_14_days",
+    "30d": "last_30_days",
+    "3m": "last_3_months",
+  };
+
+  const chartActivity = useMemo<ActivityEntry[]>(() => {
+    if (!statsData?.activity) return [];
+    const key = periodKeyMap[statsPeriod];
+    return statsData.activity[key]?.data ?? [];
+  }, [statsData, statsPeriod]);
 
   const siteOptions = useMemo(
     () => Array.from(new Set(records.map((r) => r.site))).sort((a, b) => a.localeCompare(b)),
@@ -786,14 +833,25 @@ export default function InventoryClient({
       {/* Overview cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-black rounded-sm overflow-hidden border border-black">
 
-        {/* Card 1: Inventory by Order Date (30 days) */}
+        {/* Card 1: New Records Activity */}
         <div className="bg-white flex flex-col">
           <div className="px-4 py-2.5 border-b border-black flex items-center justify-between gap-3">
-            <p className="inline-block text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5 rounded-none">Inventory / Order Date</p>
-            <span className="text-[9px] font-semibold uppercase tracking-widest text-slate-400">Last 30 Days</span>
+            <p className="inline-block text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5 rounded-none">New Records</p>
+            <div className="flex items-center gap-1">
+              {(["7d", "14d", "30d", "3m"] as StatsPeriod[]).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setStatsPeriod(p)}
+                  className={`px-2 py-0.5 text-[9px] font-bold tracking-widest uppercase rounded-sm transition ${statsPeriod === p ? "bg-black text-white" : "text-slate-400 hover:text-slate-700"}`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="flex-1 flex flex-col justify-center py-3">
-            <InventoryBarChart records={records} />
+            <InventoryBarChart activityData={chartActivity} period={statsPeriod} />
           </div>
         </div>
 
@@ -802,21 +860,43 @@ export default function InventoryClient({
           <div className="px-4 py-2.5 border-b border-black">
             <p className="inline-block text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5 rounded-none">Inventory Overview</p>
           </div>
-          <div className="flex flex-1 flex-col justify-center gap-1.5 py-4 px-4 sm:px-5">
-            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-slate-400 leading-none">
-              Total Quantity / Total Value
-            </span>
-            <div className="flex items-baseline gap-2 flex-wrap">
-              <span className="text-xl sm:text-2xl lg:text-3xl font-black tabular-nums text-black leading-tight">
-                {stats.totalQty.toLocaleString()}
-              </span>
-              <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wide text-slate-400">units on hand</span>
-              <span className="text-slate-300 font-light text-lg select-none">/</span>
-              <span className="text-xl sm:text-2xl lg:text-3xl font-black tabular-nums text-black leading-tight">
-                ${stats.totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
-              <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wide text-slate-400">stock value</span>
+          <div className="flex flex-1 flex-col justify-center gap-3 py-4 px-4 sm:px-5">
+            {/* Total qty / value */}
+            <div className="space-y-0.5">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Total Qty / Stock Value</span>
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <span className="text-xl sm:text-2xl font-black tabular-nums text-black">{stats.totalQty.toLocaleString()}</span>
+                <span className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">units</span>
+                <span className="text-slate-300 font-light text-lg select-none">/</span>
+                <span className="text-xl sm:text-2xl font-black tabular-nums text-black">${stats.totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              </div>
             </div>
+            {/* Total records / needs reorder */}
+            <div className="flex items-center gap-4">
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Total Records</p>
+                <p className="text-base font-black tabular-nums text-black">{stats.total.toLocaleString()}</p>
+              </div>
+              <div className="w-px h-8 bg-black/10" />
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Needs Reorder</p>
+                <p className={`text-base font-black tabular-nums ${stats.needsReorder > 0 ? "text-red-500" : "text-black"}`}>{stats.needsReorder.toLocaleString()}</p>
+              </div>
+            </div>
+            {/* By site */}
+            {stats.bySite && Object.keys(stats.bySite).length > 0 && (
+              <div className="space-y-1">
+                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">By Site</p>
+                <div className="flex flex-wrap gap-x-4 gap-y-0.5">
+                  {Object.entries(stats.bySite).map(([site, data]) => (
+                    <span key={site} className="text-[10px] text-slate-600">
+                      <span className="font-semibold text-slate-800">{site}</span>
+                      <span className="text-slate-400"> · {data.records} rec · {data.total_quantity_on_hand.toLocaleString()} units</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
