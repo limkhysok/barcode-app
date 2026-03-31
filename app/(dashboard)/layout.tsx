@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/context/AuthContext";
 import Sidebar from "@/src/components/layouts/Sidebar";
 import DashboardNavbar from "@/src/components/layouts/DashboardNavbar";
+import { Toaster } from "sonner";
 
 export default function DashboardLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const { user, isLoading } = useAuth();
@@ -69,6 +70,15 @@ export default function DashboardLayout({ children }: Readonly<{ children: React
           onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
         />
         <main className="flex-1 overflow-y-auto">{children}</main>
+        <Toaster
+          position="top-right"
+          richColors
+          closeButton
+          duration={4000}
+          toastOptions={{
+            style: { fontFamily: "var(--font-roboto)", fontSize: "12px", borderRadius: "3px" },
+          }}
+        />
       </div>
     </div>
   );

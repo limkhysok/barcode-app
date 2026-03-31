@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import type { User } from "@/src/types/auth.types";
 
 export default function ProfileClient({ initialUser }: Readonly<{ initialUser: User | null }>) {
@@ -34,8 +34,6 @@ export default function ProfileClient({ initialUser }: Readonly<{ initialUser: U
 
   return (
     <div className="p-6 sm:p-8 max-w-2xl mx-auto lg:mx-0">
-      <Toaster position="top-right" richColors closeButton duration={3000} />
-
       {/* Header */}
       <div className="mb-6 space-y-0.5">
         <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-orange-500">Account</p>
