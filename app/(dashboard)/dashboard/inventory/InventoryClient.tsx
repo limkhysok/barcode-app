@@ -427,7 +427,6 @@ export default function InventoryClient({
 }>) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentPage = Number.parseInt(searchParams.get("page") ?? "1") || 1;
   const initialPageSize = searchParams.get("page_size") ?? "20";
 
   // ── Data state ──────────────────────────────────────────────────────────────
@@ -448,9 +447,12 @@ export default function InventoryClient({
 
   // ── Filter / sort state ──────────────────────────────────────────────────────
   const [siteFilter, setSiteFilter] = useState("");
+  // Remove local-only sort states, use ordering for backend
   const [quantitySort, setQuantitySort] = useState<QuantitySort>("");
   const [stockValueMode, setStockValueMode] = useState<StockValueMode>("");
   const [dateSort, setDateSort] = useState<DateSort>("");
+  // New: ordering state for backend sort
+  const [ordering, setOrdering] = useState<string>("-updated_at");
 
   const [search, setSearch] = useState("");
 
@@ -467,36 +469,27 @@ export default function InventoryClient({
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
-  function fetchInventory(page = currentPage) {
+  function fetchInventory(overridePageSize?: number | string, overrideOrdering?: string) {
     setLoading(true);
     setError("");
     getInventory({
-      page,
-      page_size: pageSize,
+      page_size: overridePageSize ?? pageSize,
       search: search || undefined,
       site: siteFilter || undefined,
+      ordering: overrideOrdering ?? ordering,
     })
       .then(setPaginated)
       .catch(() => setError("Failed to load inventory."))
       .finally(() => setLoading(false));
   }
 
-  function handlePageChange(newPage: number) {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("page", String(newPage));
-    params.set("page_size", String(pageSize));
-    router.push(`?${params.toString()}`);
-    fetchInventory(newPage);
-  }
-
   function handlePageSizeChange(newSize: string) {
     const size = newSize === "all" || newSize === "ALL" ? "all" : Number.parseInt(newSize);
     setPageSize(size);
     const params = new URLSearchParams(searchParams.toString());
-    params.set("page", "1");
     params.set("page_size", String(size));
     router.push(`?${params.toString()}`);
-    // fetchInventory(1) will be handled by useEffect or explicit call
+    fetchInventory(size);
   }
 
   function openCreate() {
@@ -590,9 +583,9 @@ export default function InventoryClient({
     [records]
   );
 
+  // Only filter by search and site, not sort (handled by backend)
   const displayed = useMemo(() => {
     let list = [...records];
-
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter((r) =>
@@ -603,38 +596,38 @@ export default function InventoryClient({
         r.product_details.category.toLowerCase().includes(q)
       );
     }
-
     if (siteFilter)
       list = list.filter((r) => r.site === siteFilter);
-
     if (stockValueMode === "low_only")
-      list = list.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "low");
-    else if (stockValueMode === "high_only")
-      list = list.filter((r) => getStatus(r.quantity_on_hand, r.product_details.reorder_level) === "healthy");
-
-    if (quantitySort) {
-      list.sort((a, b) =>
-        quantitySort === "asc"
-          ? a.quantity_on_hand - b.quantity_on_hand
-          : b.quantity_on_hand - a.quantity_on_hand
-      );
-    } else if (stockValueMode === "asc" || stockValueMode === "desc") {
-      list.sort((a, b) => {
-        const av = a.quantity_on_hand * Number.parseFloat(a.product_details.cost_per_unit);
-        const bv = b.quantity_on_hand * Number.parseFloat(b.product_details.cost_per_unit);
-        return stockValueMode === "asc" ? av - bv : bv - av;
-      });
-    } else {
-      list.sort((a, b) =>
-        dateSort === "asc"
-          ? new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-          : new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
-    }
+      list = list.filter((r) => r.reorder_status === "Yes");
+    if (stockValueMode === "high_only")
+      list = list.filter((r) => r.reorder_status === "No");
     return list;
-  }, [records, search, siteFilter, quantitySort, stockValueMode, dateSort]);
+  }, [records, search, siteFilter, stockValueMode]);
 
-  // ── Table content ────────────────────────────────────────────────────────────
+  // ── Table header sort logic ────────────────────────────────────────────────
+  // Map table columns to API ordering fields
+  const orderingFields: Record<string, string> = {
+    '#': 'id',
+    'Product': 'product_name',
+    'Site': 'site',
+    'Location': 'location',
+    'Quantity': 'quantity_on_hand',
+    'Stock Value': 'stock_value',
+    'Reorder': 'reorder_status',
+    'Order Date': 'updated_at',
+  };
+
+  function handleSort(col: string) {
+    const field = orderingFields[col];
+    if (!field) return;
+    // Toggle asc/desc
+    let newOrdering = field;
+    if (ordering === field) newOrdering = '-' + field;
+    else if (ordering === '-' + field) newOrdering = field;
+    setOrdering(newOrdering);
+    fetchInventory(undefined, newOrdering);
+  }
 
   let tableContent: React.ReactNode;
 
@@ -722,11 +715,25 @@ export default function InventoryClient({
           <table className="w-full text-sm">
             <thead className="bg-slate-50 border-b border-black">
               <tr>
-                {["#", "Product", "Site", "Location", "Cost / Unit", "Quantity", "Stock Value", "Reorder", "Status", "Order Date", "Actions"].map((h) => (
-                  <th key={h} className="px-5 py-3 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">
-                    {h}
-                  </th>
-                ))}
+                {["#", "Product", "Site", "Location", "Cost / Unit", "Quantity", "Stock Value", "Reorder", "Status", "Order Date", "Actions"].map((h) => {
+                  // Only allow sorting on allowed fields
+                  const canSort = orderingFields[h];
+                  let sortIcon = null;
+                  if (canSort) {
+                    if (ordering === canSort) sortIcon = <span>▲</span>;
+                    else if (ordering === '-' + canSort) sortIcon = <span>▼</span>;
+                  }
+                  return (
+                    <th
+                      key={h}
+                      className="px-5 py-3 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900 cursor-pointer select-none"
+                      onClick={() => canSort && handleSort(h)}
+                      style={canSort ? { userSelect: 'none' } : {}}
+                    >
+                      <span className="flex items-center gap-1">{h} {sortIcon}</span>
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody className="divide-y divide-black bg-white text-[11px]">
@@ -942,11 +949,32 @@ export default function InventoryClient({
           setSiteFilter={setSiteFilter}
           siteOptions={siteOptions}
           quantitySort={quantitySort}
-          setQuantitySort={setQuantitySort}
+          setQuantitySort={(v) => {
+            setQuantitySort(v);
+            const field = "quantity_on_hand";
+            let newOrdering = "-updated_at";
+            if (v === "asc") newOrdering = field;
+            else if (v === "desc") newOrdering = "-" + field;
+            setOrdering(newOrdering);
+            fetchInventory(undefined, newOrdering);
+          }}
           stockValueMode={stockValueMode}
-          setStockValueMode={setStockValueMode}
+          setStockValueMode={(v) => {
+            setStockValueMode(v);
+            if (v === "asc" || v === "desc") {
+              const field = "stock_value";
+              const newOrdering = v === "asc" ? field : "-" + field;
+              setOrdering(newOrdering);
+              fetchInventory(undefined, newOrdering);
+            }
+          }}
           dateSort={dateSort}
-          setDateSort={setDateSort}
+          setDateSort={(v) => {
+            setDateSort(v);
+            const newOrdering = v === "asc" ? "updated_at" : "-updated_at";
+            setOrdering(newOrdering);
+            fetchInventory(undefined, newOrdering);
+          }}
         />
         <div className="bg-white min-w-30">
           <CustomSelect
@@ -954,13 +982,13 @@ export default function InventoryClient({
             value={pageSize === "all" ? "all" : String(pageSize)}
             onChange={handlePageSizeChange}
             options={[
-              { value: "20", label: `Show ${paginated.count} of 20` },
-              { value: "50", label: `Show ${paginated.count} of 50` },
-              { value: "100", label: `Show ${paginated.count} of 100` },
-              { value: "200", label: `Show ${paginated.count} of 200` },
-              { value: "500", label: `Show ${paginated.count} of 500` },
-              { value: "1000", label: `Show ${paginated.count} of 1000` },
-              { value: "all", label: `Show ${paginated.count} of ALL` },
+              { value: "20", label: "20 per page" },
+              { value: "50", label: "50 per page" },
+              { value: "100", label: "100 per page" },
+              { value: "200", label: "200 per page" },
+              { value: "500", label: "500 per page" },
+              { value: "1000", label: "1000 per page" },
+              { value: "all", label: "Show all" },
             ]}
           />
         </div>

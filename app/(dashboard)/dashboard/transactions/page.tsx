@@ -17,7 +17,7 @@ export default async function TransactionsPage({
       (): PaginatedTransactions => ({ count: 0, next: null, previous: null, results: [] })
     ),
     serverFetch<PaginatedInventory>("/api/v1/inventory/?page=1").catch(
-      (): PaginatedInventory => ({ count: 0, next: null, previous: null, results: [] })
+      (): PaginatedInventory => ({ count: 0, page_size: 20, results: [] })
     ),
   ]);
 

@@ -9,8 +9,13 @@ export interface PaginatedResponse<T> {
   results: T[];
 }
 
+export interface PaginatedInventory {
+  count: number;
+  page_size: number;
+  results: InventoryRecord[];
+}
+
 export type PaginatedProducts = PaginatedResponse<Product>;
-export type PaginatedInventory = PaginatedResponse<InventoryRecord>;
 export type PaginatedTransactions = PaginatedResponse<Transaction>;
 
 export interface ProductStats {
