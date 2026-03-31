@@ -109,7 +109,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
       .finally(() => setLoading(false));
   }
 
-  const exportTemplateAsPdf = async (items: TemplateItem[], txType: "Sale" | "Receive") => {
+  const exportTemplateAsPdf = async (items: TemplateItem[], txType: "Sale" | "Receive", filename: string) => {
     setPendingExportItems(items);
     setPendingExportType(txType);
     await waitTwoFrames();
@@ -131,9 +131,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
       const pdfW = doc.internal.pageSize.getWidth();
       const pdfH = doc.internal.pageSize.getHeight();
       doc.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, pdfW, pdfH);
-      const pdfBlob = doc.output("blob");
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-      window.open(pdfUrl, "_blank");
+      doc.save(`${filename}.pdf`);
     } catch (err) {
       console.error("Export failed", err);
     } finally {
@@ -159,7 +157,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
             quantity: Math.abs(i.quantity),
           };
         });
-        exportTemplateAsPdf(templateItems, payload.transaction_type);
+        exportTemplateAsPdf(templateItems, payload.transaction_type, `transaction-${new Date().toISOString().slice(0, 10)}`);
       }
     } catch (err: unknown) {
       type ApiErr = { response?: { data?: { detail?: string; items?: Array<{ quantity?: string }> } } };
@@ -259,7 +257,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
         quantity: item.quantity,
       };
     });
-    exportTemplateAsPdf(items, t.transaction_type);
+    exportTemplateAsPdf(items, t.transaction_type, `transaction-${t.id}-${new Date().toISOString().slice(0, 10)}`);
   };
 
   const displayed = useMemo(() => {
@@ -313,12 +311,12 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
               placeholder="Query movements..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 text-sm font-medium outline-none bg-transparent text-gray-900 placeholder:text-gray-400"
+              className="flex-1 text-xs font-black tracking-widest uppercase outline-none bg-transparent text-gray-900 placeholder:text-gray-300"
             />
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar">
           <SortSelect value={ordering} onChange={setOrdering} />
           <PageSizeSelect value={pageSize} onChange={setPageSize} />
         </div>
