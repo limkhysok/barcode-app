@@ -1,16 +1,13 @@
 "use client";
 
 import React from "react";
-import type { Transaction } from "@/src/types/transaction.types";
 import type { TransactionStats } from "@/src/services/transaction.service";
 
 type StatsOverviewProps = {
-  transactions: Transaction[];
   stats: TransactionStats | null;
 };
 
-const StatsOverview: React.FC<StatsOverviewProps> = ({ transactions, stats }) => {
-
+const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
   const receiveVal = Number(stats?.by_type?.Receive?.total_value || 0);
   const saleVal = Number(stats?.by_type?.Sale?.total_value || 0);
   const netValue = receiveVal - saleVal;
@@ -20,44 +17,100 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ transactions, stats }) =>
   const totalMovements = stats?.total_transactions || 0;
 
   return (
-    <div className="border border-black rounded-sm bg-white overflow-hidden shadow-sm">
-      <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-black/10">
-        {/* Net Movement Value */}
-        <div className="p-4 lg:p-5 flex flex-col justify-center gap-1">
-          <p className="text-[10px] font-black tracking-widest uppercase text-slate-400">Inventory Liquidity</p>
-          <div className="flex items-baseline gap-2">
-            <h3 className={`text-xl lg:text-2xl font-black tabular-nums tracking-tighter ${netValue >= 0 ? "text-green-600" : "text-red-500"}`}>
-              {netValue < 0 ? "-" : "+"}${Math.abs(netValue).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </h3>
-            <span className="text-[9px] font-bold text-slate-300 uppercase">Net</span>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border border-black bg-white overflow-hidden">
+      {/* Total Receive */}
+      <div className="p-3 sm:p-4 flex flex-col justify-between border-b md:border-b-0 md:border-r border-black last:border-0 transition-colors">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-[10px] font-black bg-orange-500 text-white px-2 py-0.5 rounded-0 inline-block uppercase tracking-[0.15em] mb-2.5">
+              Total Receive
+            </p>
+            <h4 className="text-2xl lg:text-3xl font-black text-black tabular-nums leading-none">
+              {receiveCount.toLocaleString()}
+            </h4>
+          </div>
+          <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-sm border border-black bg-slate-50 flex items-center justify-center text-slate-900">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
           </div>
         </div>
+        <div className="mt-4 pt-3 border-t border-black/5 flex items-center justify-between text-[10px] font-bold uppercase">
+          <span className="text-slate-400 tracking-tighter">Receive Value:</span>
+          <span className="text-black">${receiveVal.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+        </div>
+      </div>
 
-        {/* Global Throughput */}
-        <div className="p-4 lg:p-5 flex flex-col justify-center gap-1">
-          <p className="text-[10px] font-black tracking-widest uppercase text-slate-400">Total Lifecycle</p>
-          <div className="flex items-baseline gap-2">
-            <h3 className="text-xl lg:text-2xl font-black text-slate-900 tabular-nums tracking-tighter">{totalMovements}</h3>
-            <span className="text-[9px] font-bold text-slate-300 uppercase">VerOps</span>
+      {/* Total Sale */}
+      <div className="p-3 sm:p-4 flex flex-col justify-between border-b md:border-b-0 md:border-r border-black last:border-0 transition-colors">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-[10px] font-black bg-orange-500 text-white px-2 py-0.5 rounded-0 inline-block uppercase tracking-[0.15em] mb-2.5">
+              Total Sale
+            </p>
+            <h4 className="text-2xl lg:text-3xl font-black text-black tabular-nums leading-none">
+              -{saleCount.toLocaleString()}
+            </h4>
+          </div>
+          <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-sm border border-black bg-slate-50 flex items-center justify-center text-slate-900">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12h-15" />
+            </svg>
           </div>
         </div>
+        <div className="mt-4 pt-3 border-t border-black/5 flex items-center justify-between text-[10px] font-bold uppercase">
+          <span className="text-slate-400 tracking-tighter">Sale Value:</span>
+          <span className="text-black">-${saleVal.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+        </div>
+      </div>
 
-        {/* Receive Dynamics */}
-        <div className="p-4 lg:p-5 flex flex-col justify-center gap-1">
-          <p className="text-[10px] font-black tracking-widest uppercase text-green-600">Stock Intake</p>
-          <div className="flex items-baseline justify-between">
-            <h3 className="text-xl lg:text-2xl font-black text-slate-900 tabular-nums tracking-tighter">{receiveCount}</h3>
-            <span className="text-[10px] font-black text-green-600 tabular-nums">${receiveVal.toLocaleString("en-US", { maximumFractionDigits: 0 })}</span>
+      {/* Net Movement */}
+      <div className="p-3 sm:p-4 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-black last:border-0 transition-colors">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-[10px] font-black bg-orange-500 text-white px-2 py-0.5 rounded-0 inline-block uppercase tracking-[0.15em] mb-2.5">
+              Net Movement
+            </p>
+            <h4 className="text-2xl lg:text-3xl font-black text-black tabular-nums leading-none">
+              {netValue < 0 ? "−" : "+"}${Math.abs(netValue).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            </h4>
+          </div>
+          <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-sm border border-black bg-slate-50 flex items-center justify-center text-slate-900">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </div>
         </div>
+        <div className="mt-4 pt-3 border-t border-black/5 flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase">
+          <span className="text-slate-400">Liquidity:</span>
+          <span className="text-black">
+            {netValue >= 0 ? "Surplus" : "Deficit"}
+          </span>
+        </div>
+      </div>
 
-        {/* Sale Dynamics */}
-        <div className="p-4 lg:p-5 flex flex-col justify-center gap-1">
-          <p className="text-[10px] font-black tracking-widest uppercase text-red-500">Stock Release</p>
-          <div className="flex items-baseline justify-between">
-            <h3 className="text-xl lg:text-2xl font-black text-slate-900 tabular-nums tracking-tighter">{saleCount}</h3>
-            <span className="text-[10px] font-black text-red-500 tabular-nums">${saleVal.toLocaleString("en-US", { maximumFractionDigits: 0 })}</span>
+      {/* Total Transactions */}
+      <div className="p-3 sm:p-4 flex flex-col justify-between last:border-0 transition-colors">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-[10px] font-black bg-orange-500 text-white px-2 py-0.5 rounded-0 inline-block uppercase tracking-[0.15em] mb-2.5">
+              Total Transactions
+            </p>
+            <h4 className="text-2xl lg:text-3xl font-black text-black tabular-nums leading-none">
+              {totalMovements.toLocaleString()}
+            </h4>
           </div>
+          <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-sm border border-black bg-slate-50 flex items-center justify-center text-slate-900">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+            </svg>
+          </div>
+        </div>
+        <div className="mt-4 pt-3 border-t border-black/5 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+          <span className="text-slate-900 flex items-center tracking-normal">
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-900 mr-1.5 animate-pulse" />Live
+          </span>
+          <span>• Log Sync Active</span>
         </div>
       </div>
     </div>
@@ -65,3 +118,4 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ transactions, stats }) =>
 };
 
 export default StatsOverview;
+

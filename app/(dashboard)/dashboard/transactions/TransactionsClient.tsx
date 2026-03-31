@@ -292,14 +292,14 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
         </button>
       </div>
 
-      <StatsOverview transactions={transactions} stats={stats} />
+      <StatsOverview stats={stats} />
 
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="flex-1 flex flex-col md:flex-row gap-2.5">
           <div className="w-full md:w-48">
             <TypeFilterSelect value={typeFilter} onChange={setTypeFilter} />
           </div>
-          <div className="flex-1 flex items-center gap-2 bg-white rounded-sm border-2 border-black px-4 py-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus-within:translate-x-[1px] focus-within:translate-y-[1px] focus-within:shadow-none transition-all">
+          <div className="flex-1 flex items-center gap-2 bg-white rounded-sm border border-black px-4 py-2 ">
             <svg className="w-4 h-4 text-slate-800 shrink-0 pointer-events-none"
               fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />

@@ -21,9 +21,9 @@ const SortSelect: React.FC<SortSelectProps> = ({ value, onChange }) => {
 
   const options = [
     { key: "-transaction_date", label: "Newest First" },
-    { key: "transaction_date",  label: "Oldest First" },
+    { key: "transaction_date", label: "Oldest First" },
     { key: "-total_transaction_value", label: "High Value" },
-    { key: "total_transaction_value",  label: "Low Value" },
+    { key: "total_transaction_value", label: "Low Value" },
   ];
 
   const current = options.find((o) => o.key === value) ?? options[0];
@@ -32,9 +32,9 @@ const SortSelect: React.FC<SortSelectProps> = ({ value, onChange }) => {
     <div className="relative min-w-[150px]" ref={ref}>
       <button
         type="button"
-        onMouseEnter={() => {}}
+        onMouseEnter={() => { }}
         onClick={() => setOpen((v) => !v)}
-        className={`w-full px-4 py-2 rounded-sm border-2 text-[10px] font-black tracking-widest uppercase text-left flex items-center justify-between gap-2 transition focus:outline-none bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none hover:bg-slate-50 border-black text-gray-900`}
+        className={`w-full px-4 py-2 rounded-sm border-2 text-[10px] font-black tracking-widest uppercase text-left flex items-center justify-between gap-2 transition focus:outline-none bg-white border-black text-gray-900`}
       >
         <span className="truncate">{current.label}</span>
         <svg className="w-3.5 h-3.5 text-slate-800 shrink-0 transition-transform duration-200"
@@ -50,9 +50,8 @@ const SortSelect: React.FC<SortSelectProps> = ({ value, onChange }) => {
               <button
                 type="button"
                 onClick={() => { onChange(o.key); setOpen(false); }}
-                className={`w-full text-left px-3 py-2 text-[9px] font-black tracking-[0.2em] uppercase transition ${
-                  value === o.key ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
-                }`}
+                className={`w-full text-left px-3 py-2 text-[9px] font-black tracking-[0.2em] uppercase transition ${value === o.key ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
+                  }`}
               >
                 {o.label}
               </button>
