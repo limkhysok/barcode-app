@@ -161,6 +161,15 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
   const [scanInput, setScanInput] = React.useState("");
   const [scanFeedback, setScanFeedback] = React.useState<{ ok: boolean; msg: string } | null>(null);
 
+  React.useEffect(() => {
+    if (!isOpen) {
+      setTxType("Receive");
+      setItems([emptyItem()]);
+      setScanInput("");
+      setScanFeedback(null);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const addItem = () => setItems((prev) => [...prev, emptyItem()]);

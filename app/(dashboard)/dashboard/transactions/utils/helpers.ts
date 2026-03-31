@@ -20,7 +20,7 @@ export function isToday(ts: string): boolean {
 }
 
 export function fmtValue(v: string, sign: string) {
-  return `${sign}$${Number.parseFloat(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `${sign}$${Math.abs(Number.parseFloat(v)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export function submitLabel(items: { inventory: number; quantity: number }[]): string {
