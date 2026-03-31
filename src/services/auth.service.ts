@@ -30,8 +30,3 @@ export async function getMe(fetcher?: <T>(path: string) => Promise<T>): Promise<
     return null;
   }
 }
-
-export async function refreshToken(refresh: string): Promise<{ access: string }> {
-  const { data } = await api.post<{ access: string }>("/api/v1/users/token/refresh", { refresh });
-  return data;
-}

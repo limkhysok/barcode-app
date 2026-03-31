@@ -342,7 +342,6 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                   onKeyDown={(e) => {
                     const value = (e.target as HTMLInputElement).value.trim();
                     if (e.key === "Enter" || e.key === "Tab") {
-                      console.log("[Scanner] Input detected:", value);
                       e.preventDefault();
                       if (value !== "") handleScanBarcodeWithValue(value);
                     }
@@ -750,7 +749,6 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
                   onKeyDown={(e) => {
                     const value = (e.target as HTMLInputElement).value.trim();
                     if (e.key === "Enter" || e.key === "Tab") {
-                      console.log("[Edit Scanner] Input detected:", value);
                       e.preventDefault();
                       if (value !== "") handleScanBarcodeWithValue(value);
                     }

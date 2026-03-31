@@ -22,7 +22,6 @@ export async function getInventory(params?: {
 
   const qs = query.toString();
   const path = qs ? `/api/v1/inventory/?${qs}` : "/api/v1/inventory/";
-  console.log("[getInventory] Requesting:", path); // DEBUG: log the request URL
   if (fetcher) return await fetcher(path);
 
   const { data } = await api.get<PaginatedInventory>(path);

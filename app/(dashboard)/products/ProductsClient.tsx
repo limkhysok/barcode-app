@@ -199,7 +199,7 @@ function ProductTable({ loading, error, displayed, products, costDir, reorderDir
               </div>
             </div>
             <div className="flex items-center gap-1 shrink-0 mt-0.5">
-              <button onClick={() => { console.log("onEdit called with row:", p); onEdit(p); }}
+              <button onClick={() => onEdit(p)}
                 className="p-2.5 rounded-sm text-gray-400 hover:text-blue-500 hover:bg-blue-50 active:scale-95 transition" title="Edit">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round"
@@ -272,7 +272,7 @@ function ProductTable({ loading, error, displayed, products, costDir, reorderDir
                 <td className="px-5 py-3.5 text-gray-500">{p.supplier}</td>
                 <td className="px-5 py-3.5">
                   <div className="flex items-center gap-2">
-                    <button onClick={() => { console.log("onEdit called with row:", p); onEdit(p); }}
+                    <button onClick={() => onEdit(p)}
                       className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition" title="Edit">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round"
@@ -436,7 +436,6 @@ export default function ProductsClient({
   }
 
   function openEdit(product: Product) {
-    console.log("openEdit called with product:", product);
     setEditing(product);
     const isCustom = !REORDER_PRESETS.has(product.reorder_level);
     setReorderCustom(isCustom);

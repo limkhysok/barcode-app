@@ -64,15 +64,3 @@ export async function updateTransaction(id: number, payload: TransactionPayload)
 export async function deleteTransaction(id: number): Promise<void> {
   await api.delete(`/api/v1/transactions/${id}/`);
 }
-
-export interface ScanTransactionPayload {
-  barcode: string;
-  transaction_type: "Receive" | "Sale";
-  quantity: number;
-  inventory_id?: number;
-}
-
-export async function scanTransaction(payload: ScanTransactionPayload): Promise<Transaction> {
-  const { data } = await api.post<Transaction>("/api/v1/transactions/scan/", payload);
-  return data;
-}
