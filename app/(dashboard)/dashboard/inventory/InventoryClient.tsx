@@ -39,7 +39,7 @@ function CustomSelect({ id, label, value, onChange, options, placeholder, openUp
       <div className="relative">
         <button
           id={id} type="button" onClick={() => setOpen((v) => !v)}
-          className={`w-full px-3 py-3 rounded-sm border text-sm font-medium text-left flex items-center justify-between gap-2 transition focus:outline-none bg-gray-50 ${open ? "border-black ring-1 ring-black" : "border-black hover:bg-slate-50"
+          className={`w-full px-3 py-1 rounded-sm border text-sm font-medium text-left flex items-center justify-between gap-2 transition focus:outline-none bg-gray-50 ${open ? "border-black ring-1 ring-black" : "border-black hover:bg-slate-50"
             } ${selected && String(selected.value) !== "" ? "text-slate-900" : "text-slate-400"}`}
         >
           <span className="truncate">{selected ? selected.label : (placeholder ?? "Select…")}</span>
@@ -182,7 +182,7 @@ function FilterDropdown({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`px-4 py-3 rounded-sm border text-sm font-medium flex items-center gap-2 transition focus:outline-none bg-gray-50 whitespace-nowrap ${open ? "border-black ring-1 ring-black" : "border-black hover:bg-slate-50"
+        className={`px-4 py-1 rounded-sm border text-sm font-medium flex items-center gap-2 transition focus:outline-none bg-gray-50 whitespace-nowrap ${open ? "border-black ring-1 ring-black" : "border-black hover:bg-slate-50"
           } ${activeCount > 0 ? "text-slate-900" : "text-slate-400"}`}
       >
         <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -822,7 +822,7 @@ export default function InventoryClient({
 
       </div>
 
-      {/* Filters */}
+      {/* Filters + Page Size */}
       <div className="flex flex-wrap items-center gap-2.5">
         <div className="relative flex-1 min-w-50">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -833,7 +833,7 @@ export default function InventoryClient({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search product, site, location…"
-            className="w-full pl-9 pr-4 py-3 rounded-sm border border-black bg-gray-50 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-black"
+            className="w-full pl-9 pr-4 py-1 rounded-sm border border-black bg-gray-50 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-black"
           />
         </div>
         <FilterDropdown
@@ -847,62 +847,23 @@ export default function InventoryClient({
           dateSort={dateSort}
           setDateSort={setDateSort}
         />
-      </div>
-
-      {/* Pagination & Count — moved to top and refactored with page size dropdown */}
-      {!loading && !error && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1 pb-4">
-          <div className="flex flex-col gap-1 items-center sm:items-start">
-            <p className="text-[10px] font-bold tracking-widest uppercase text-slate-400">Total Results</p>
-            <p className="text-sm font-bold text-slate-900 tabular-nums">
-              Showing {records.length} <span className="font-normal text-slate-400">of</span> {paginated.count} <span className="font-normal text-slate-400 text-[11px] uppercase tracking-wide">records</span>
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Page Size Dropdown */}
-            <div className="bg-white min-w-[120px]">
-              <CustomSelect
-                id="page-size-selector"
-                value={pageSize === "all" ? "all" : String(pageSize)}
-                onChange={handlePageSizeChange}
-                options={[
-                  { value: "20", label: "Show 20" },
-                  { value: "50", label: "Show 50" },
-                  { value: "100", label: "Show 100" },
-                  { value: "200", label: "Show 200" },
-                  { value: "500", label: "Show 500" },
-                  { value: "1000", label: "Show 1000" },
-                  { value: "all", label: "Show ALL" },
-                ]}
-              />
-            </div>
-
-            {/* Navigation controls */}
-            <div className="flex items-center gap-1.5 h-[46px]">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={!paginated.previous || loading}
-                title="Previous Page"
-                className="w-[46px] h-full flex items-center justify-center border border-black rounded-sm bg-white hover:bg-slate-50 disabled:opacity-20 disabled:cursor-not-allowed transition"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
-              </button>
-              <div className="px-5 h-full flex items-center justify-center text-[11px] font-black tracking-widest uppercase border border-black rounded-sm bg-slate-50 text-slate-900">
-                Page {currentPage}
-              </div>
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={!paginated.next || loading}
-                title="Next Page"
-                className="w-[46px] h-full flex items-center justify-center border border-black rounded-sm bg-white hover:bg-slate-50 disabled:opacity-20 disabled:cursor-not-allowed transition"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
-              </button>
-            </div>
-          </div>
+        <div className="bg-white min-w-30">
+          <CustomSelect
+            id="page-size-selector"
+            value={pageSize === "all" ? "all" : String(pageSize)}
+            onChange={handlePageSizeChange}
+            options={[
+              { value: "20", label: `Show ${paginated.count} of 20` },
+              { value: "50", label: `Show ${paginated.count} of 50` },
+              { value: "100", label: `Show ${paginated.count} of 100` },
+              { value: "200", label: `Show ${paginated.count} of 200` },
+              { value: "500", label: `Show ${paginated.count} of 500` },
+              { value: "1000", label: `Show ${paginated.count} of 1000` },
+              { value: "all", label: `Show ${paginated.count} of ALL` },
+            ]}
+          />
         </div>
-      )}
+      </div>
 
       {/* Table */}
       <div className="rounded-sm border border-black overflow-hidden bg-white">

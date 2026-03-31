@@ -328,54 +328,58 @@ Category choices: `Fasteners`, `Accessories`
 Track stock levels across sites and locations. **All endpoints require authentication with a JWT access token.**
 
 - **Base Endpoint:** `/api/v1/inventory/`
-- **Methods:** `GET` / `POST` / `PUT` / `PATCH` / `DELETE`
-- **Extra:** `GET /api/v1/inventory/stats` — Overview stats (not paginated) → `200 OK`
+- **Methods:**
+  - `GET /api/v1/inventory/` — List all inventory records (paginated) → `200 OK`
+  - `GET /api/v1/inventory/{id}/` — Retrieve a single record → `200 OK`
+  - `POST /api/v1/inventory/` — Create a new inventory record → `201 Created`
+  - `PUT /api/v1/inventory/{id}/` — Full replace of a record → `200 OK`
+  - `PATCH /api/v1/inventory/{id}/` — Partial update of a record → `200 OK`
+  - `DELETE /api/v1/inventory/{id}/` — Delete a record → `204 No Content`
 
-### Inventory Stats (GET)
-`GET /api/v1/inventory/stats` — returns aggregate overview for the dashboard. Not paginated.
+> **Note:** `stock_value` and `reorder_status` are **read-only** — they are auto-calculated by the backend whenever `quantity_on_hand` changes. Do not send them in POST/PUT/PATCH requests.
 
-#### Response (200 OK)
-```json
-{
-  "total_records": 42,
-  "total_quantity_on_hand": 12500,
-  "total_stock_value": "13250.00",
-  "needs_reorder": 5,
-  "by_site": {
-    "Warehouse A": {
-      "records": 25,
-      "total_quantity_on_hand": 8000,
-      "total_stock_value": "8500.00"
-    },
-    "Warehouse B": {
-      "records": 17,
-      "total_quantity_on_hand": 4500,
-      "total_stock_value": "4750.00"
-    }
-  }
-}
+> **Uniqueness:** Each combination of `product` + `site` + `location` must be unique. Attempting to create a duplicate returns `400 Bad Request`.
+
+> **Stats:** The inventory page derives overview stats (total quantity on hand, total stock value, healthy/moderate/low stock counts, reorder count) **client-side** from the paginated records returned by `GET /api/v1/inventory/`. No separate `/stats/` call is made on page load.
+
+### Authentication Required
+```
+Authorization: Bearer <access_token>
 ```
 
-| Field | Description |
-|-------|-------------|
-| `total_records` | Total number of inventory records |
-| `total_quantity_on_hand` | Sum of all stock quantities across all sites |
-| `total_stock_value` | Sum of all `stock_value` across all records |
-| `needs_reorder` | Count of records where `reorder_status = "Yes"` |
-| `by_site.*.records` | Number of inventory records at that site |
-| `by_site.*.total_quantity_on_hand` | Total stock quantity at that site |
-| `by_site.*.total_stock_value` | Total stock value at that site |
+#### Example using curl:
+```
+curl -H "Authorization: Bearer <access_token>" http://localhost:8000/api/v1/inventory/
+```
 
 ---
 
 ### List Inventory (GET)
-`GET /api/v1/inventory/` — returns page 1 by default (20 items). Use `?page=2` for the next page.
+`GET /api/v1/inventory/` — returns records in descending creation order (newest first). Supports full page-based pagination via `next` / `previous` cursor URLs returned in the response.
+
+#### Query Parameters
+| Param | Options | Default | Description |
+|-------|---------|---------|-------------|
+| `page=<n>` | `1`, `2`, … | `1` | Page number to fetch |
+| `page_size=<n>` | `20`, `50`, `100`, `200`, `500`, `1000`, `all` | `20` | Max records per page |
+| `product_id=<id>` | — | — | Filter by product ID |
+| `site=<name>` | — | — | Filter by site name (case-insensitive partial match) |
+| `search=<term>` | — | — | Server-side search by product name. The inventory page additionally applies **client-side** filtering across product name, barcode, site, location, and category. Also used by the **transaction page** dropdown. |
+
+**Examples**
+```
+GET /api/v1/inventory/
+GET /api/v1/inventory/?page=2&page_size=50
+GET /api/v1/inventory/?page_size=all
+GET /api/v1/inventory/?site=Store+A
+GET /api/v1/inventory/?search=bolt&page_size=100
+```
 
 #### Response (200 OK)
 ```json
 {
   "count": 42,
-  "next": "http://localhost:8000/api/v1/inventory?page=2",
+  "next": "http://localhost:8000/api/v1/inventory/?page=2",
   "previous": null,
   "results": [
     {
@@ -390,11 +394,13 @@ Track stock levels across sites and locations. **All endpoints require authentic
         "cost_per_unit": "0.50",
         "reorder_level": 100
       },
-      "site": "Warehouse A",
+      "site": "Store A",
       "location": "A1-Shelf-5",
+      "product_description": "Standard M8 zinc-plated bolt",
       "quantity_on_hand": 500,
       "stock_value": "250.00",
       "reorder_status": "No",
+      "order_date": "2026-03-20T00:00:00Z",
       "created_at": "2026-03-25T08:00:00Z",
       "updated_at": "2026-03-25T08:00:00Z"
     }
@@ -402,37 +408,54 @@ Track stock levels across sites and locations. **All endpoints require authentic
 }
 ```
 
-> **Note:** All inventory endpoints require the following header:
->
-> ```
-> Authorization: Bearer <access_token>
-> ```
->
-> You must first obtain an access token via the login endpoint (`POST /api/users/login`).
-
-#### Example using curl:
-```
-curl -H "Authorization: Bearer <access_token>" http://localhost:8000/api/v1/inventory/
-```
-
-### Query Parameters (GET list)
-| Param | Description |
+| Field | Description |
 |-------|-------------|
-| `product_id=<id>` | Filter by product ID |
-| `site=<name>` | Filter by site name (case-insensitive) |
-| `search=<term>` | Search by product name — used by the **transaction page** dropdown |
+| `count` | Total matching records in the database (before pagination) |
+| `next` | URL to the next page, or `null` if this is the last page |
+| `previous` | URL to the previous page, or `null` if this is the first page |
+| `results` | Array of inventory records |
+
+##### InventoryRecord fields
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | integer | Record ID |
+| `product` | integer | Foreign key to the Product |
+| `product_details` | object | Nested product info (barcode, name, category, supplier, cost_per_unit, reorder_level) |
+| `site` | string | Site name (e.g. "Store A", "Store B", "Store C", "Store D") |
+| `location` | string | Location within the site (e.g. "A1-Shelf-5") |
+| `product_description` | string | Optional free-text description shown beneath the product name in the inventory table |
+| `quantity_on_hand` | integer | Current stock quantity |
+| `stock_value` | string (decimal) | Auto-calculated: `quantity_on_hand × cost_per_unit` |
+| `reorder_status` | `"Yes"` / `"No"` | `"Yes"` if `quantity_on_hand ≤ reorder_level`, else `"No"` |
+| `order_date` | string (ISO 8601) | Date of the associated stock/purchase order — used by the 30-day inventory bar chart on the dashboard |
+| `created_at` | string (ISO 8601) | Record creation timestamp |
+| `updated_at` | string (ISO 8601) | Last update timestamp |
+
+---
 
 ### Create Inventory Record (POST)
+`POST /api/v1/inventory/`
+
+Only send the writable fields — `stock_value` and `reorder_status` are calculated automatically.
+
+#### Payload
 ```json
 {
   "product": 1,
-  "site": "Warehouse A",
+  "site": "Store A",
   "location": "A1-Shelf-5",
   "quantity_on_hand": 500
 }
 ```
 
-### Response Example
+| Field | Required | Description |
+|-------|----------|-------------|
+| `product` | Yes | Product ID (foreign key) |
+| `site` | Yes | Site name (e.g. "Store A") |
+| `location` | Yes | Location within the site (e.g. "A1-Shelf-5") |
+| `quantity_on_hand` | No | Starting quantity — defaults to `0`, must be ≥ 0 |
+
+#### Success (201 Created)
 ```json
 {
   "id": 1,
@@ -446,15 +469,67 @@ curl -H "Authorization: Bearer <access_token>" http://localhost:8000/api/v1/inve
     "cost_per_unit": "0.50",
     "reorder_level": 100
   },
-  "site": "Warehouse A",
+  "site": "Store A",
   "location": "A1-Shelf-5",
+  "product_description": "",
   "quantity_on_hand": 500,
   "stock_value": "250.00",
   "reorder_status": "No",
+  "order_date": null,
   "created_at": "2026-03-25T08:00:00Z",
   "updated_at": "2026-03-25T08:00:00Z"
 }
 ```
+
+#### Errors
+| Status | Scenario | Response |
+|--------|----------|----------|
+| `400 Bad Request` | `product`, `site`, or `location` missing | `{ "field": ["This field is required."] }` |
+| `400 Bad Request` | `quantity_on_hand` is negative | `{ "quantity_on_hand": ["Ensure this value is greater than or equal to 0."] }` |
+| `400 Bad Request` | Duplicate `product` + `site` + `location` | `{ "non_field_errors": ["The fields product, site, location must make a unique set."] }` |
+
+---
+
+### Retrieve Inventory Record (GET)
+`GET /api/v1/inventory/{id}/`
+
+#### Errors
+| Status | Response |
+|--------|----------|
+| `404 Not Found` | `{ "detail": "No Inventory matches the given query." }` |
+
+---
+
+### Update Inventory Record (PUT / PATCH)
+`PUT /api/v1/inventory/{id}/` — full replace (all writable fields required)
+`PATCH /api/v1/inventory/{id}/` — partial update (only send fields to change) — used by the frontend
+
+> `stock_value` and `reorder_status` are ignored if included — they are always recalculated by the backend.
+
+#### PATCH Payload Example
+```json
+{
+  "location": "B2-Shelf-3"
+}
+```
+
+#### Errors
+| Status | Scenario | Response |
+|--------|----------|----------|
+| `400 Bad Request` | Duplicate `product` + `site` + `location` | `{ "non_field_errors": ["The fields product, site, location must make a unique set."] }` |
+| `404 Not Found` | Record not found | `{ "detail": "No Inventory matches the given query." }` |
+
+---
+
+### Delete Inventory Record (DELETE)
+`DELETE /api/v1/inventory/{id}/`
+
+#### Success (204 No Content) — empty body
+
+#### Errors
+| Status | Response |
+|--------|----------|
+| `404 Not Found` | `{ "detail": "No Inventory matches the given query." }` |
 
 ---
 
