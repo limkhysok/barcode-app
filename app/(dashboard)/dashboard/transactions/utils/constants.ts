@@ -2,7 +2,7 @@
 
 export const ringStyle = { "--tw-ring-color": "#FA4900" } as React.CSSProperties;
 
-export const TYPE_CONFIG = {
+export const TYPE_CONFIG: Record<string, { label: string; bg: string; text: string; dot: string }> = {
   Receive: { label: "Receive", bg: "bg-green-50", text: "text-green-600", dot: "bg-green-500" },
   Sale:    { label: "Sale",    bg: "bg-red-50",   text: "text-red-600",   dot: "bg-red-500"   },
 };
