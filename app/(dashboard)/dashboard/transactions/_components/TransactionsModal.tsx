@@ -195,7 +195,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
     setTimeout(() => setScanFeedback(null), 2500);
   };
 
-  const handleSubmit = (e: React.FormEvent, andExport: boolean) => {
+  const handleSubmit = (e: React.BaseSyntheticEvent, andExport: boolean) => {
     e.preventDefault();
     const valid = items.filter((i) => i.inventory > 0 && i.quantity > 0);
     const payload: TransactionPayload = {
@@ -529,7 +529,7 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
     setEditItems((prev) => prev.map((item, i) => (i === idx ? { ...item, ...patch } : item)));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.BaseSyntheticEvent) => {
     e.preventDefault();
     const valid = editItems.filter((i) => i.inventory > 0 && i.quantity > 0);
     const payload: TransactionPayload = {
