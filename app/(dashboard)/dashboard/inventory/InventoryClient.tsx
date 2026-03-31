@@ -819,8 +819,8 @@ export default function InventoryClient({
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2 sm:px-5 rounded-sm text-xs font-bold tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
-          style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}
+          className="flex items-center gap-2 px-4 py-2 sm:px-5 rounded-sm text-xs font-bold tracking-widest uppercase bg-orange-500 text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
+         
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -830,73 +830,94 @@ export default function InventoryClient({
         </button>
       </div>
 
-      {/* Overview cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-black rounded-sm overflow-hidden border border-black">
+      {/* Overview cards
+          mobile  (<640px)  : stacked, compact single-column
+          tablet  (640-1023): 2-column side by side, medium sizing
+          laptop+ (≥1024px) : 2-column, larger text, more padding, by-site expanded
+      */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-black border border-black rounded-sm overflow-hidden">
 
         {/* Card 1: New Records Activity */}
         <div className="bg-white flex flex-col">
-          <div className="px-4 py-2.5 border-b border-black flex items-center justify-between gap-3">
-            <p className="inline-block text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5 rounded-none">New Records</p>
-            <div className="flex items-center gap-1">
-              {(["7d", "14d", "30d", "3m"] as StatsPeriod[]).map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => setStatsPeriod(p)}
-                  className={`px-2 py-0.5 text-[9px] font-bold tracking-widest uppercase rounded-sm transition ${statsPeriod === p ? "bg-black text-white" : "text-slate-400 hover:text-slate-700"}`}
-                >
-                  {p}
-                </button>
-              ))}
+
+          {/* Header */}
+          <div className="px-3 py-1.5 sm:px-4 sm:py-2 lg:px-5 lg:py-2.5 border-b border-black flex items-center justify-between gap-2">
+            <div>
+              <span className="inline-block text-[9px] sm:text-[10px] lg:text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5">New Records</span>
+              <p className="hidden lg:block text-[10px] text-slate-400 mt-0.5">Activity over selected period</p>
+            </div>
+            <div className="w-28 sm:w-32 lg:w-36">
+              <CustomSelect
+                id="stats-period"
+                value={statsPeriod}
+                onChange={(v) => setStatsPeriod(v as StatsPeriod)}
+                options={[
+                  { value: "7d",  label: "Last 7 Days" },
+                  { value: "14d", label: "Last 14 Days" },
+                  { value: "30d", label: "Last 30 Days" },
+                  { value: "3m",  label: "Last 3 Months" },
+                ]}
+              />
             </div>
           </div>
-          <div className="flex-1 flex flex-col justify-center py-3">
+
+          {/* Chart */}
+          <div className="flex-1 flex flex-col justify-center py-2 sm:py-3 lg:py-5 px-1 sm:px-2">
             <InventoryBarChart activityData={chartActivity} period={statsPeriod} />
           </div>
         </div>
 
         {/* Card 2: Inventory Overview */}
         <div className="bg-white flex flex-col">
-          <div className="px-4 py-2.5 border-b border-black">
-            <p className="inline-block text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5 rounded-none">Inventory Overview</p>
+
+          {/* Header */}
+          <div className="px-3 py-1.5 sm:px-4 sm:py-2 lg:px-5 lg:py-2.5 border-b border-black">
+            <span className="inline-block text-[9px] sm:text-[10px] lg:text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5">Inventory Overview</span>
+            <p className="hidden lg:block text-[10px] text-slate-400 mt-0.5">Live stats from all sites</p>
           </div>
-          <div className="flex flex-1 flex-col justify-center gap-3 py-4 px-4 sm:px-5">
-            {/* Total qty / value */}
-            <div className="space-y-0.5">
-              <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Total Qty / Stock Value</span>
-              <div className="flex items-baseline gap-2 flex-wrap">
-                <span className="text-xl sm:text-2xl font-black tabular-nums text-black">{stats.totalQty.toLocaleString()}</span>
-                <span className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">units</span>
-                <span className="text-slate-300 font-light text-lg select-none">/</span>
-                <span className="text-xl sm:text-2xl font-black tabular-nums text-black">${stats.totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-              </div>
-            </div>
-            {/* Total records / needs reorder */}
-            <div className="flex items-center gap-4">
-              <div>
-                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Total Records</p>
-                <p className="text-base font-black tabular-nums text-black">{stats.total.toLocaleString()}</p>
-              </div>
-              <div className="w-px h-8 bg-black/10" />
-              <div>
-                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Needs Reorder</p>
-                <p className={`text-base font-black tabular-nums ${stats.needsReorder > 0 ? "text-red-500" : "text-black"}`}>{stats.needsReorder.toLocaleString()}</p>
-              </div>
-            </div>
-            {/* By site */}
-            {stats.bySite && Object.keys(stats.bySite).length > 0 && (
-              <div className="space-y-1">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">By Site</p>
-                <div className="flex flex-wrap gap-x-4 gap-y-0.5">
-                  {Object.entries(stats.bySite).map(([site, data]) => (
-                    <span key={site} className="text-[10px] text-slate-600">
-                      <span className="font-semibold text-slate-800">{site}</span>
-                      <span className="text-slate-400"> · {data.records} rec · {data.total_quantity_on_hand.toLocaleString()} units</span>
-                    </span>
-                  ))}
+
+          {/* Body */}
+          <div className="flex flex-1 flex-col justify-center px-3 py-2.5 sm:px-4 sm:py-3 lg:px-5 lg:py-4 gap-2.5 sm:gap-3 lg:gap-4">
+
+            {/* ── Mobile: 3-col strip / Tablet+: 3-col with more padding ── */}
+            <div className="grid grid-cols-3 gap-px bg-black border border-black rounded-sm overflow-hidden">
+              {[
+                { label: "Records",     value: stats.total.toLocaleString() },
+                { label: "Qty on Hand", value: stats.totalQty.toLocaleString() },
+                { label: "Stock Value", value: `$${stats.totalValue.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` },
+              ].map(({ label, value }) => (
+                <div key={label} className="bg-gray-50 px-2.5 py-2 sm:px-3 sm:py-2.5 lg:px-4 lg:py-3 text-center">
+                  <p className="text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-slate-400 leading-none mb-1">{label}</p>
+                  <p className="text-sm sm:text-base lg:text-xl font-black tabular-nums leading-none text-black">{value}</p>
                 </div>
+              ))}
+            </div>
+
+            {/* By site
+                mobile : hidden (keeps it compact)
+                tablet : simple label+value rows
+                laptop : full row with all 3 data points
+            */}
+            {stats.bySite && Object.keys(stats.bySite).length > 0 && (
+              <div className="hidden sm:block divide-y divide-black/10 border border-black/10 rounded-sm overflow-hidden">
+                {Object.entries(stats.bySite).map(([site, data]) => (
+                  <div key={site} className="flex items-center justify-between px-2.5 py-1.5 lg:px-4 lg:py-2 bg-white hover:bg-gray-50 transition-colors">
+                    <span className="text-[10px] lg:text-xs font-bold text-slate-700 uppercase tracking-wide">{site}</span>
+                    <div className="flex items-center gap-2 lg:gap-3 text-[9px] lg:text-[10px] tabular-nums text-slate-500">
+                      <span>{data.records} rec</span>
+                      <span className="text-black/20">·</span>
+                      <span className="font-semibold text-slate-600">{data.total_quantity_on_hand.toLocaleString()} units</span>
+                      {/* value only on laptop+ */}
+                      <span className="hidden lg:inline text-black/20">·</span>
+                      <span className="hidden lg:inline font-semibold text-slate-600">
+                        ${Number(data.total_stock_value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
+
           </div>
         </div>
 
