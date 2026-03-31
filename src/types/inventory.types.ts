@@ -31,11 +31,10 @@ export interface InventoryPayload {
   quantity_on_hand: number;
 }
 
-/** Response from GET /api/inventory/scan?barcode=<value> */
+/** Response from GET /api/v1/inventory/scan/?barcode=<value> */
 export interface ScanResult {
-  inventory_id: number;
-  product_name: string;
-  site: string;
-  quantity_on_hand: number;
-  last_transaction?: string;
+  found: boolean;
+  product?: InventoryProductDetails;
+  inventory: InventoryRecord[];
+  detail?: string;
 }

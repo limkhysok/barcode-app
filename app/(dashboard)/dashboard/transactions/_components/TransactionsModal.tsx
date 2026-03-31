@@ -160,6 +160,24 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
   const [items, setItems] = React.useState<ItemDraft[]>([emptyItem()]);
   const [scanInput, setScanInput] = React.useState("");
   const [scanFeedback, setScanFeedback] = React.useState<{ ok: boolean; msg: string } | null>(null);
+  const scanInputRef = React.useRef<HTMLInputElement>(null);
+  const [extraRecords, setExtraRecords] = React.useState<InventoryRecord[]>([]);
+
+  // Combined inventory sources: the prop-provided paginated list + any missing items fetched via scanning
+  const allInventory = React.useMemo(() => {
+    const merged = [...inventory];
+    for (const er of extraRecords) {
+      if (!merged.some(r => r.id === er.id)) merged.push(er);
+    }
+    return merged;
+  }, [inventory, extraRecords]);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      // Focus after a tiny delay to ensure the modal is visible
+      setTimeout(() => scanInputRef.current?.focus(), 150);
+    }
+  }, [isOpen]);
 
   React.useEffect(() => {
     if (!isOpen) {
@@ -167,12 +185,17 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
       setItems([emptyItem()]);
       setScanInput("");
       setScanFeedback(null);
+      setExtraRecords([]); // Clear cache on close
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const addItem = () => setItems((prev) => [...prev, emptyItem()]);
+  const addItem = () => {
+    setItems((prev) => [...prev, emptyItem()]);
+    // Small delay to ensure the DOM has updated before refocusing terminal
+    setTimeout(() => scanInputRef.current?.focus(), 50);
+  };
   const removeItem = (idx: number) => setItems((prev) => prev.filter((_, i) => i !== idx));
   const updateItem = (idx: number, patch: Partial<ItemDraft>) => {
     setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, ...patch } : item)));
@@ -181,22 +204,52 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
   const handleScanBarcodeWithValue = async (inputValue: string) => {
     const q = inputValue.trim();
     if (!q) return;
+
+    // Clear input immediately to prepare for next scan
     setScanInput("");
+
     try {
-      const res = await scanBarcode(q);
-      const existingIdx = items.findIndex((i) => i.inventory === res.inventory_id);
-      if (existingIdx >= 0) {
-        updateItem(existingIdx, { quantity: items[existingIdx].quantity + 1 });
-        setScanFeedback({ ok: true, msg: `+1 × ${res.product_name} (${res.site})` });
-      } else {
-        const emptyIdx = items.findIndex((i) => i.inventory === 0);
-        if (emptyIdx >= 0) {
-          updateItem(emptyIdx, { inventory: res.inventory_id, quantity: 1 });
-        } else {
-          setItems((prev) => [...prev, { id: getNextItemId(), inventory: res.inventory_id, quantity: 1 }]);
-        }
-        setScanFeedback({ ok: true, msg: `Added: ${res.product_name} (${res.site})` });
+      const scanRes = await scanBarcode(q);
+      
+      if (!scanRes.found || !scanRes.inventory.length) {
+        setScanFeedback({ ok: false, msg: scanRes.detail || `"${q}" not found in inventory.` });
+        return;
       }
+
+      // Automatically pick the first inventory record found for this barcode
+      const targetRecord = scanRes.inventory[0];
+      const invId = targetRecord.id;
+
+      // Ensure we have the full record info for this ID locally
+      const existsInProp = inventory.some(r => r.id === invId);
+      const existsInExtra = extraRecords.some(r => r.id === invId);
+      
+      if (!existsInProp && !existsInExtra) {
+        setExtraRecords(prev => [...prev, targetRecord]);
+      }
+      
+      setItems((prev) => {
+        const currentItems = [...prev];
+        const existingIdx = currentItems.findIndex((i) => i.inventory === invId);
+
+        if (existingIdx >= 0) {
+          return currentItems.map((item, i) =>
+            i === existingIdx ? { ...item, quantity: item.quantity + 1 } : item
+          );
+        }
+
+        const emptyIdx = currentItems.findIndex((i) => i.inventory === 0);
+        if (emptyIdx >= 0) {
+          return currentItems.map((item, i) =>
+            i === emptyIdx ? { ...item, inventory: invId, quantity: 1 } : item
+          );
+        }
+
+        return [...currentItems, { id: getNextItemId(), inventory: invId, quantity: 1 }];
+      });
+
+      const productName = scanRes.product?.product_name || targetRecord.product_details?.product_name || "Unknown";
+      setScanFeedback({ ok: true, msg: `+1 × ${productName} (${targetRecord.site})` });
     } catch (err) {
       console.error("Scan error:", err);
       setScanFeedback({ ok: false, msg: `"${q}" not found or error occurred.` });
@@ -275,8 +328,11 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                   <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-focus-within:bg-[#FA4900] transition-colors" />
                 </div>
                 <input
+                  ref={scanInputRef}
                   type="text"
                   autoComplete="off"
+                  autoFocus
+                  id="barcode-scan-input"
                   placeholder="SCAN BARCODE..."
                   value={scanInput}
                   onChange={(e) => {
@@ -285,7 +341,8 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                   }}
                   onKeyDown={(e) => {
                     const value = (e.target as HTMLInputElement).value.trim();
-                    if (e.key === "Enter") {
+                    if (e.key === "Enter" || e.key === "Tab") {
+                      console.log("[Scanner] Input detected:", value);
                       e.preventDefault();
                       if (value !== "") handleScanBarcodeWithValue(value);
                     }
@@ -319,13 +376,13 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
               </div>
               <div className="space-y-2 max-h-62.5 overflow-y-auto custom-scrollbar">
                 {items.map((item, idx) => {
-                  const rec = inventory.find((r) => r.id === item.inventory);
+                  const rec = allInventory.find((r) => r.id === item.inventory);
                   return (
                     <div key={item.id} className="flex items-center gap-2 p-2 bg-slate-50 border border-black hover:bg-white transition-all group/item">
                       <div className="w-6 text-[10px] font-black text-gray-300 text-center">{String(idx + 1).padStart(2, "0")}</div>
                       <div className="flex-1 min-w-0">
                         <InventoryPicker
-                          inventory={inventory}
+                          inventory={allInventory}
                           value={item.inventory}
                           onChange={(id) => updateItem(idx, { inventory: id })}
                           excludeIds={selectedInvIds}
@@ -403,7 +460,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                 const sign = txType === "Receive" ? "+" : "−";
                 const valCol = txType === "Receive" ? "text-green-600" : "text-red-600";
                 const grandTotal = filled.reduce((sum, i) => {
-                  const rec = inventory.find((r) => r.id === i.inventory);
+                  const rec = allInventory.find((r) => r.id === i.inventory);
                   return sum + (rec ? i.quantity * Number.parseFloat(rec.product_details.cost_per_unit) : 0);
                 }, 0);
                 return (
@@ -418,7 +475,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                         </thead>
                         <tbody className="divide-y divide-black/5 bg-white/40">
                           {filled.map((i) => {
-                            const rec = inventory.find((r) => r.id === i.inventory);
+                            const rec = allInventory.find((r) => r.id === i.inventory);
                             const lineTotal = rec ? i.quantity * Number.parseFloat(rec.product_details.cost_per_unit) : 0;
                             return (
                               <tr key={i.id} className="group/row hover:bg-white transition-colors">
@@ -520,6 +577,22 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
   const [editItems, setEditItems] = React.useState<ItemDraft[]>([emptyItem()]);
   const [scanInput, setScanInput] = React.useState("");
   const [scanFeedback, setScanFeedback] = React.useState<{ ok: boolean; msg: string } | null>(null);
+  const editScanInputRef = React.useRef<HTMLInputElement>(null);
+  const [extraRecords, setExtraRecords] = React.useState<InventoryRecord[]>([]);
+
+  const allEditInventory = React.useMemo(() => {
+    const merged = [...inventory];
+    for (const er of extraRecords) {
+      if (!merged.some(r => r.id === er.id)) merged.push(er);
+    }
+    return merged;
+  }, [inventory, extraRecords]);
+
+  React.useEffect(() => {
+    if (editTarget) {
+      setTimeout(() => editScanInputRef.current?.focus(), 150);
+    }
+  }, [editTarget]);
 
   React.useEffect(() => {
     if (editTarget) {
@@ -534,7 +607,10 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
 
   if (!editTarget) return null;
 
-  const addEditItem = () => setEditItems((prev) => [...prev, emptyItem()]);
+  const addEditItem = () => {
+    setEditItems((prev) => [...prev, emptyItem()]);
+    setTimeout(() => editScanInputRef.current?.focus(), 50);
+  };
   const removeEditItem = (idx: number) => setEditItems((prev) => prev.filter((_, i) => i !== idx));
   const updateEditItem = (idx: number, patch: Partial<ItemDraft>) => {
     setEditItems((prev) => prev.map((item, i) => (i === idx ? { ...item, ...patch } : item)));
@@ -543,22 +619,48 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
   const handleScanBarcodeWithValue = async (inputValue: string) => {
     const q = inputValue.trim();
     if (!q) return;
+
     setScanInput("");
     try {
-      const res = await scanBarcode(q);
-      const existingIdx = editItems.findIndex((i) => i.inventory === res.inventory_id);
-      if (existingIdx >= 0) {
-        updateEditItem(existingIdx, { quantity: editItems[existingIdx].quantity + 1 });
-        setScanFeedback({ ok: true, msg: `+1 × ${res.product_name} (${res.site})` });
-      } else {
-        const emptyIdx = editItems.findIndex((i) => i.inventory === 0);
-        if (emptyIdx >= 0) {
-          updateEditItem(emptyIdx, { inventory: res.inventory_id, quantity: 1 });
-        } else {
-          setEditItems((prev) => [...prev, { id: getNextItemId(), inventory: res.inventory_id, quantity: 1 }]);
-        }
-        setScanFeedback({ ok: true, msg: `Added: ${res.product_name} (${res.site})` });
+      const scanRes = await scanBarcode(q);
+      
+      if (!scanRes.found || !scanRes.inventory.length) {
+        setScanFeedback({ ok: false, msg: scanRes.detail || `"${q}" not found in inventory.` });
+        return;
       }
+
+      const targetRecord = scanRes.inventory[0];
+      const invId = targetRecord.id;
+
+      const existsInProp = inventory.some(r => r.id === invId);
+      const existsInExtra = extraRecords.some(r => r.id === invId);
+      
+      if (!existsInProp && !existsInExtra) {
+        setExtraRecords(prev => [...prev, targetRecord]);
+      }
+
+      setEditItems((prev) => {
+        const currentItems = [...prev];
+        const existingIdx = currentItems.findIndex((i) => i.inventory === invId);
+
+        if (existingIdx >= 0) {
+          return currentItems.map((item, i) =>
+            i === existingIdx ? { ...item, quantity: item.quantity + 1 } : item
+          );
+        }
+
+        const emptyIdx = currentItems.findIndex((i) => i.inventory === 0);
+        if (emptyIdx >= 0) {
+          return currentItems.map((item, i) =>
+            i === emptyIdx ? { ...item, inventory: invId, quantity: 1 } : item
+          );
+        }
+
+        return [...currentItems, { id: getNextItemId(), inventory: invId, quantity: 1 }];
+      });
+
+      const productName = scanRes.product?.product_name || targetRecord.product_details?.product_name || "Unknown";
+      setScanFeedback({ ok: true, msg: `+1 × ${productName} (${targetRecord.site})` });
     } catch (err) {
       console.error("Scan error:", err);
       setScanFeedback({ ok: false, msg: `"${q}" not found or error occurred.` });
@@ -637,14 +739,21 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
                   <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-focus-within:bg-[#FA4900] transition-colors" />
                 </div>
                 <input
+                  ref={editScanInputRef}
                   type="text"
                   autoComplete="off"
+                  autoFocus
+                  id="edit-barcode-scan-input"
                   placeholder="SCAN BARCODE..."
                   value={scanInput}
                   onChange={(e) => { setScanInput(e.target.value); setScanFeedback(null); }}
                   onKeyDown={(e) => {
                     const value = (e.target as HTMLInputElement).value.trim();
-                    if (e.key === "Enter") { e.preventDefault(); if (value !== "") handleScanBarcodeWithValue(value); }
+                    if (e.key === "Enter" || e.key === "Tab") {
+                      console.log("[Edit Scanner] Input detected:", value);
+                      e.preventDefault();
+                      if (value !== "") handleScanBarcodeWithValue(value);
+                    }
                   }}
                   className="w-full pl-9 pr-12 py-2 rounded-sm border-2 border-black text-sm bg-white text-black outline-none focus:border-[#FA4900] transition-all placeholder:text-gray-300 font-mono tracking-widest uppercase"
                 />
@@ -676,13 +785,13 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
               </div>
               <div className="space-y-2 max-h-62.5 overflow-y-auto custom-scrollbar">
                 {editItems.map((item, idx) => {
-                  const rec = inventory.find((r) => r.id === item.inventory);
+                  const rec = allEditInventory.find((r) => r.id === item.inventory);
                   return (
                     <div key={item.id} className="flex items-center gap-2 p-2 bg-slate-50 border border-black hover:bg-white transition-all group/item">
                       <div className="w-6 text-[10px] font-black text-gray-300 text-center">{String(idx + 1).padStart(2, "0")}</div>
                       <div className="flex-1 min-w-0">
                         <InventoryPicker
-                          inventory={inventory}
+                          inventory={allEditInventory}
                           value={item.inventory}
                           onChange={(id) => updateEditItem(idx, { inventory: id })}
                           excludeIds={editSelectedInvIds}
@@ -760,7 +869,7 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
                 const sign = editTxType === "Receive" ? "+" : "−";
                 const valCol = editTxType === "Receive" ? "text-green-600" : "text-red-600";
                 const grandTotal = filled.reduce((sum, i) => {
-                  const rec = inventory.find((r) => r.id === i.inventory);
+                  const rec = allEditInventory.find((r) => r.id === i.inventory);
                   return sum + (rec ? i.quantity * Number.parseFloat(rec.product_details.cost_per_unit) : 0);
                 }, 0);
                 return (
@@ -775,7 +884,7 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
                         </thead>
                         <tbody className="divide-y divide-black/5 bg-white/40">
                           {filled.map((i) => {
-                            const rec = inventory.find((r) => r.id === i.inventory);
+                            const rec = allEditInventory.find((r) => r.id === i.inventory);
                             const lineTotal = rec ? i.quantity * Number.parseFloat(rec.product_details.cost_per_unit) : 0;
                             return (
                               <tr key={i.id} className="group/row hover:bg-white transition-colors">
