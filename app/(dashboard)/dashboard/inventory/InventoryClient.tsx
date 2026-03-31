@@ -309,7 +309,7 @@ function InventoryBarChart({ activityData, period }: Readonly<{ activityData: Ac
   const yTicks = Array.from(new Set([0, quarter, half, threeQuarters, maxCount].filter((v) => v >= 0))).sort((a, b) => a - b);
 
   return (
-    <div className="w-full h-full min-h-[220px] sm:min-h-[260px] relative mt-2">
+    <div className="w-full h-full min-h-55 sm:min-h-65 relative mt-2">
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="w-full h-full"
@@ -839,7 +839,7 @@ export default function InventoryClient({
               </div>
             </div>
           </div>
-          <div className="p-4 sm:p-6 flex-1 min-h-[260px] sm:min-h-[300px]">
+          <div className="p-4 sm:p-6 flex-1 min-h-65 sm:min-h-75">
              <InventoryBarChart activityData={chartActivity} period={statsPeriod} />
           </div>
         </div>
@@ -918,7 +918,7 @@ export default function InventoryClient({
 
       {/* Filters + Page Size */}
       <div className="flex flex-wrap items-center gap-3 bg-white p-3 sm:p-4 rounded-sm border border-black shadow-sm">
-        <div className="relative flex-1 min-w-[240px] sm:min-w-[280px]">
+        <div className="relative flex-1 min-w-60 sm:min-w-70">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
           </svg>
@@ -971,7 +971,7 @@ export default function InventoryClient({
             />
           </div>
           <div className="h-8 w-px bg-black/10 mx-1 hidden sm:block" />
-          <div className="bg-white min-w-[120px] sm:min-w-[140px] flex-1 sm:flex-none">
+          <div className="bg-white min-w-30 sm:min-w-35 flex-1 sm:flex-none">
             <CustomSelect
               id="page-size-selector"
               value={pageSize === "all" ? "all" : String(pageSize)}

@@ -29,7 +29,7 @@ const SortSelect: React.FC<SortSelectProps> = ({ value, onChange }) => {
   const current = options.find((o) => o.key === value) ?? options[0];
 
   return (
-    <div className="relative min-w-[150px]" ref={ref}>
+    <div className="relative min-w-37.5" ref={ref}>
       <button
         type="button"
         onMouseEnter={() => { }}
@@ -44,7 +44,7 @@ const SortSelect: React.FC<SortSelectProps> = ({ value, onChange }) => {
         </svg>
       </button>
       {open && (
-        <ul className="absolute z-[200] bottom-full mb-1 w-full bg-white border-2 border-black rounded-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+        <ul className="absolute z-200 bottom-full mb-1 w-full bg-white border-2 border-black rounded-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
           {options.map((o) => (
             <li key={o.key} className="border-b-2 border-black last:border-b-0 text-gray-900">
               <button
