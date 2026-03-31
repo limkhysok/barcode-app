@@ -14,7 +14,7 @@ export async function proxy(request: NextRequest) {
   // --- 1. AUTH REDIRECTS -------------------------------------------------
   
   // Protect all dashboard routes
-  const protectedPaths = ["/dashboard", "/products"];
+  const protectedPaths = ["/dashboard", "/products", "/inventory"];
   if (protectedPaths.some((p) => pathname.startsWith(p)) && !token) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
@@ -74,6 +74,7 @@ export const config = {
   matcher: [
     "/dashboard/:path*",
     "/products/:path*",
+    "/inventory/:path*",
     "/login",
     "/register",
     "/api/:path*",

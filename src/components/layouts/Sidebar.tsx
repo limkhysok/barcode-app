@@ -43,7 +43,7 @@ const navItems = [
   },
   {
     label: "Inventory",
-    href: "/dashboard/inventory",
+    href: "/inventory",
     icon: (
       <svg className="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round"
