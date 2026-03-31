@@ -113,9 +113,8 @@ function SiteCombobox({
                   <button
                     type="button"
                     onClick={() => select(site)}
-                    className={`w-full text-left px-3 py-2.5 text-[11px] font-semibold tracking-wide flex items-center justify-between gap-2 transition ${
-                      active ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
-                    }`}
+                    className={`w-full text-left px-3 py-2.5 text-[11px] font-semibold tracking-wide flex items-center justify-between gap-2 transition ${active ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
+                      }`}
                   >
                     {site}
                     {active && (
@@ -219,13 +218,13 @@ function FilterableProductSelect({
         <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center gap-1">
           <svg className="w-5 h-5 text-gray-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
             {/* barcode lines */}
-            <rect x="2"  y="4" width="1.5" height="16" rx="0.5" fill="currentColor" stroke="none" />
-            <rect x="5"  y="4" width="1"   height="16" rx="0.5" fill="currentColor" stroke="none" />
-            <rect x="7.5" y="4" width="2"  height="16" rx="0.5" fill="currentColor" stroke="none" />
-            <rect x="11" y="4" width="1"   height="16" rx="0.5" fill="currentColor" stroke="none" />
+            <rect x="2" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" stroke="none" />
+            <rect x="5" y="4" width="1" height="16" rx="0.5" fill="currentColor" stroke="none" />
+            <rect x="7.5" y="4" width="2" height="16" rx="0.5" fill="currentColor" stroke="none" />
+            <rect x="11" y="4" width="1" height="16" rx="0.5" fill="currentColor" stroke="none" />
             <rect x="13.5" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" stroke="none" />
-            <rect x="16.5" y="4" width="1"   height="16" rx="0.5" fill="currentColor" stroke="none" />
-            <rect x="19" y="4" width="1.5"   height="16" rx="0.5" fill="currentColor" stroke="none" />
+            <rect x="16.5" y="4" width="1" height="16" rx="0.5" fill="currentColor" stroke="none" />
+            <rect x="19" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" stroke="none" />
             <rect x="21.5" y="4" width="1" height="16" rx="0.5" fill="currentColor" stroke="none" />
           </svg>
         </div>
@@ -245,9 +244,8 @@ function FilterableProductSelect({
                       setSearch(`${p.product_name} (${p.barcode})`);
                       setOpen(false);
                     }}
-                    className={`w-full text-left px-3 py-2.5 text-[11px] font-semibold tracking-wide flex items-center justify-between gap-2 transition ${
-                      active ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
-                    }`}
+                    className={`w-full text-left px-3 py-2.5 text-[11px] font-semibold tracking-wide flex items-center justify-between gap-2 transition ${active ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
+                      }`}
                   >
                     <span className="truncate">{p.product_name}</span>
                     <span className={`ml-auto font-mono shrink-0 ${active ? "text-white/60" : "text-gray-400"}`}>{p.barcode}</span>
@@ -377,9 +375,8 @@ export function InventoryModal({
                     <span className="inline-block w-1 h-3 rounded-full" style={{ background: "#FA4900" }} />
                     <span>Reorder Status</span>
                   </p>
-                  <span className={`inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2 py-1 rounded-full ${
-                    needsReorder ? "bg-red-50 text-red-500" : "bg-gray-100 text-gray-500"
-                  }`}>
+                  <span className={`inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2 py-1 rounded-full ${needsReorder ? "bg-red-50 text-red-500" : "bg-gray-100 text-gray-500"
+                    }`}>
                     <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${needsReorder ? "bg-red-500" : "bg-gray-300"}`} />
                     {needsReorder ? "Needs Reorder" : "OK"}
                   </span>
@@ -432,7 +429,7 @@ export function DeleteModal({ target, onCancel, onConfirm, deleting }: Readonly<
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
-      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm px-5 pt-4 pb-8 sm:p-7 space-y-5 text-center">
+      <div className="bg-white rounded-t-sm sm:rounded-sm shadow-2xl w-full sm:max-w-sm px-5 pt-4 pb-8 sm:p-7 space-y-5 text-center">
         <div className="flex justify-center sm:hidden mb-1">
           <div className="w-10 h-1 rounded-full bg-gray-200" />
         </div>

@@ -531,6 +531,8 @@ export default function InventoryClient({
       setDeleteTarget(null);
       fetchInventory();
     } catch {
+      // In case of failure, you might want to show an error, but at least unlock the UI
+    } finally {
       setDeleting(false);
     }
   }
