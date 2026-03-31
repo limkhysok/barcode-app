@@ -109,7 +109,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
       .finally(() => setLoading(false));
   }
 
-  const exportTemplateAsPdf = async (items: TemplateItem[], txType: "Sale" | "Receive", filename: string) => {
+  const exportTemplateAsPdf = async (items: TemplateItem[], txType: "Sale" | "Receive") => {
     setPendingExportItems(items);
     setPendingExportType(txType);
     await waitTwoFrames();
@@ -131,7 +131,9 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
       const pdfW = doc.internal.pageSize.getWidth();
       const pdfH = doc.internal.pageSize.getHeight();
       doc.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, pdfW, pdfH);
-      doc.save(`${filename}.pdf`);
+      const pdfBlob = doc.output("blob");
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      window.open(pdfUrl, "_blank");
     } catch (err) {
       console.error("Export failed", err);
     } finally {
@@ -157,7 +159,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
             quantity: Math.abs(i.quantity),
           };
         });
-        exportTemplateAsPdf(templateItems, payload.transaction_type, `transaction-${new Date().toISOString().slice(0, 10)}`);
+        exportTemplateAsPdf(templateItems, payload.transaction_type);
       }
     } catch (err: unknown) {
       type ApiErr = { response?: { data?: { detail?: string; items?: Array<{ quantity?: string }> } } };
@@ -257,7 +259,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
         quantity: item.quantity,
       };
     });
-    exportTemplateAsPdf(items, t.transaction_type, `transaction-${t.id}-${new Date().toISOString().slice(0, 10)}`);
+    exportTemplateAsPdf(items, t.transaction_type);
   };
 
   const displayed = useMemo(() => {
