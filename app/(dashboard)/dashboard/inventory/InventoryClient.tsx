@@ -78,26 +78,9 @@ function CustomSelect({ id, label, value, onChange, options, placeholder, openUp
 
 // ─── Types & constants ────────────────────────────────────────────────────────
 
-type StockStatus = "healthy" | "moderate" | "low";
 type QuantitySort = "" | "asc" | "desc";
 type StockValueMode = "" | "asc" | "desc" | "low_only" | "high_only";
 type DateSort = "" | "asc";
-
-
-export function getStatus(qty: number, reorderLevel: number): StockStatus {
-  if (qty >= reorderLevel * 2) return "healthy";
-  if (qty >= reorderLevel) return "moderate";
-  return "low";
-}
-
-export const STATUS_CONFIG: Record<
-  StockStatus,
-  { label: string; bg: string; text: string; dot: string }
-> = {
-  healthy: { label: "Healthy", bg: "bg-green-50", text: "text-green-600", dot: "bg-green-500" },
-  moderate: { label: "Moderate", bg: "bg-amber-50", text: "text-amber-600", dot: "bg-amber-400" },
-  low: { label: "Low Stock", bg: "bg-red-50", text: "text-red-600", dot: "bg-red-500" },
-};
 
 const emptyForm: InventoryPayload = {
   product: 0,
@@ -469,14 +452,22 @@ export default function InventoryClient({
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
-  function fetchInventory(overridePageSize?: number | string, overrideOrdering?: string) {
+  function fetchInventory(overridePageSize?: number | string, overrideOrdering?: string, overrideReorderStatus?: string) {
     setLoading(true);
     setError("");
+
+    let reorderParam = overrideReorderStatus;
+    if (reorderParam === undefined) {
+      if (stockValueMode === "low_only") reorderParam = "Yes";
+      else if (stockValueMode === "high_only") reorderParam = "No";
+    }
+
     getInventory({
       page_size: overridePageSize ?? pageSize,
       search: search || undefined,
       site: siteFilter || undefined,
       ordering: overrideOrdering ?? ordering,
+      reorder_status: reorderParam || undefined,
     })
       .then(setPaginated)
       .catch(() => setError("Failed to load inventory."))
@@ -550,9 +541,6 @@ export default function InventoryClient({
     if (statsData) {
       return {
         total: statsData.total_records,
-        healthy: statsData.total_records - statsData.needs_reorder,
-        moderate: 0,
-        low: statsData.needs_reorder,
         totalValue: Number(statsData.total_stock_value),
         totalQty: statsData.total_quantity_on_hand,
         needsReorder: statsData.needs_reorder,
@@ -562,7 +550,7 @@ export default function InventoryClient({
     const totalValue = records.reduce((s, r) => s + r.quantity_on_hand * Number.parseFloat(r.product_details.cost_per_unit), 0);
     const totalQty = records.reduce((s, r) => s + r.quantity_on_hand, 0);
     const needsReorder = records.filter((r) => r.reorder_status === "Yes").length;
-    return { total: paginated.count, healthy: 0, moderate: 0, low: 0, totalValue, totalQty, needsReorder, bySite: undefined };
+    return { total: paginated.count, totalValue, totalQty, needsReorder, bySite: undefined };
   }, [records, statsData, paginated.count]);
 
   const periodKeyMap: Record<StatsPeriod, string> = {
@@ -598,12 +586,8 @@ export default function InventoryClient({
     }
     if (siteFilter)
       list = list.filter((r) => r.site === siteFilter);
-    if (stockValueMode === "low_only")
-      list = list.filter((r) => r.reorder_status === "Yes");
-    if (stockValueMode === "high_only")
-      list = list.filter((r) => r.reorder_status === "No");
     return list;
-  }, [records, search, siteFilter, stockValueMode]);
+  }, [records, search, siteFilter]);
 
   // ── Table header sort logic ────────────────────────────────────────────────
   // Map table columns to API ordering fields
@@ -658,17 +642,11 @@ export default function InventoryClient({
         {/* Mobile cards */}
         <div className="sm:hidden divide-y divide-black">
           {displayed.map((r) => {
-            const status = getStatus(r.quantity_on_hand, r.product_details.reorder_level);
-            const cfg = STATUS_CONFIG[status];
             return (
               <div key={r.id} className="px-4 py-4 flex items-start gap-3 active:bg-gray-50 transition-colors">
                 <div className="flex-1 min-w-0 space-y-1.5">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-gray-800 text-sm leading-snug">{r.product_details.product_name}</span>
-                    <span className={`inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.text}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
-                      {cfg.label}
-                    </span>
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap text-xs text-gray-500">
                     <span className="font-medium text-gray-600">{r.site}</span>
@@ -715,7 +693,7 @@ export default function InventoryClient({
           <table className="w-full text-sm">
             <thead className="bg-slate-50 border-b border-black">
               <tr>
-                {["#", "Product", "Site", "Location", "Cost / Unit", "Quantity", "Stock Value", "Reorder", "Status", "Order Date", "Actions"].map((h) => {
+                {["#", "Product", "Site", "Location", "Cost / Unit", "Quantity", "Stock Value", "Reorder", "Order Date", "Actions"].map((h) => {
                   // Only allow sorting on allowed fields
                   const canSort = orderingFields[h];
                   let sortIcon = null;
@@ -738,8 +716,6 @@ export default function InventoryClient({
             </thead>
             <tbody className="divide-y divide-black bg-white text-[11px]">
               {displayed.map((r) => {
-                const status = getStatus(r.quantity_on_hand, r.product_details.reorder_level);
-                const cfg = STATUS_CONFIG[status];
                 return (
                   <tr key={r.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-3.5 text-xs font-bold text-gray-400">#{r.id}</td>
@@ -771,12 +747,6 @@ export default function InventoryClient({
                           <span className="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />No
                         </span>
                       )}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.text}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
-                        {cfg.label}
-                      </span>
                     </td>
                     <td className="px-5 py-3.5 text-xs text-gray-500 whitespace-nowrap">
                       {formatDateTime(r.created_at)}
@@ -966,6 +936,11 @@ export default function InventoryClient({
               const newOrdering = v === "asc" ? field : "-" + field;
               setOrdering(newOrdering);
               fetchInventory(undefined, newOrdering);
+            } else if (v === "low_only" || v === "high_only" || v === "") {
+              let reorderStatus = "";
+              if (v === "low_only") reorderStatus = "Yes";
+              else if (v === "high_only") reorderStatus = "No";
+              fetchInventory(undefined, undefined, reorderStatus);
             }
           }}
           dateSort={dateSort}

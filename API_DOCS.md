@@ -318,7 +318,7 @@ Category choices: `Fasteners`, `Accessories`
 #### Errors
 | Status | Scenario | Response |
 |--------|----------|----------|
-| `409 Conflict` | Has linked transactions | `{ "detail": "Cannot delete product with existing transactions." }` |
+| `409 Conflict` | Has linked inventory/transactions | `{ "detail": "Cannot delete product with existing inventory records or transactions." }` |
 | `404 Not Found` | Product not found | `{ "detail": "No Product matches the given query." }` |
 
 ---
@@ -426,20 +426,21 @@ curl -H "Authorization: Bearer <access_token>" http://localhost:8000/api/v1/inve
 `GET /api/v1/inventory/` — returns the most recently updated records first, limited to `page_size` (default 20). No page navigation — increase `page_size` to fetch more.
 
 #### Query Parameters
-| Param | Options | Default | Description |
-|-------|---------|---------|-------------|
-| `page_size=<n>` | `20`, `50`, `100`, `200`, `500`, `1000`, `all` | `20` | Max records to return |
-| `ordering=<field>`| `product_name`, `site`, `location`, `quantity_on_hand`, `stock_value`, `updated_at`, `reorder_status` | `-updated_at` | Sort results. Use `-` prefix for descending. |
-| `product_id=<id>` | — | — | Filter by product ID |
-| `site=<name>` | — | — | Filter by site name (case-insensitive partial match) |
-| `search=<term>` | — | — | Search by product name — used by the **transaction page** dropdown |
+| Param | Options | Description |
+|-------|---------|-------------|
+| `page_size=<n>` | `20`, `50`, `100`, `200`, `500`, `1000`, `all` | Max records to return |
+| `ordering=<field>`| `product_name`, `site`, `location`, `reorder_status`, `updated_at`, `quantity_on_hand` | Sort results. Use `-` prefix for Z-A or oldest first. |
+| `product_id=<id>` | — | Filter by product ID |
+| `site=<name>` | `SITE A`, `SITE B`, `SITE C`, `SITE D` | Filter by exact site |
+| `reorder_status=<val>`| `Yes`, `No` | Filter by reorder status |
+| `search=<term>` | — | Search logic: partial product name |
 
 **Examples**
 ```
 GET /api/v1/inventory/?ordering=product_name
+GET /api/v1/inventory/?ordering=-updated_at&site=SITE+A
+GET /api/v1/inventory/?reorder_status=Yes&ordering=location
 GET /api/v1/inventory/?page_size=50&ordering=-quantity_on_hand
-GET /api/v1/inventory/?site=Warehouse+A&ordering=location
-GET /api/v1/inventory/?search=bolt&page_size=100
 ```
 
 #### Response (200 OK)
@@ -530,7 +531,8 @@ Only send the writable fields — `stock_value` and `reorder_status` are calcula
 | Status | Scenario | Response |
 |--------|----------|----------|
 | `400 Bad Request` | `product`, `site`, or `location` missing | `{ "field": ["This field is required."] }` |
-| `400 Bad Request` | `quantity_on_hand` is negative | `{ "quantity_on_hand": ["Ensure this value is greater than or equal to 0."] }` |
+| `400 Bad Request` | `quantity_on_hand` is negative (API level) | `{ "quantity_on_hand": ["Ensure this value is greater than or equal to 0."] }` |
+| `500 Server Error` | `quantity_on_hand` is negative (DB level) | `{ "detail": "Database integrity error: quantity cannot be negative." }` |
 | `400 Bad Request` | Duplicate `product` + `site` + `location` | `{ "non_field_errors": ["The fields product, site, location must make a unique set."] }` |
 
 ---

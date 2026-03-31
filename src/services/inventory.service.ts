@@ -9,6 +9,7 @@ export async function getInventory(params?: {
   search?: string;
   page_size?: number | string;
   ordering?: string;
+  reorder_status?: string;
 }, fetcher?: <T>(path: string) => Promise<T>): Promise<PaginatedInventory> {
   const query = new URLSearchParams();
   if (params?.page_size) query.set("page_size", String(params.page_size));
@@ -16,6 +17,7 @@ export async function getInventory(params?: {
   if (params?.site) query.set("site", params.site);
   if (params?.search) query.set("search", params.search);
   if (params?.ordering) query.set("ordering", params.ordering);
+  if (params?.reorder_status) query.set("reorder_status", params.reorder_status);
 
   const qs = query.toString();
   const path = qs ? `/api/v1/inventory/?${qs}` : "/api/v1/inventory/";
