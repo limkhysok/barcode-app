@@ -13,15 +13,15 @@ export async function proxy(request: NextRequest) {
 
   // --- 1. AUTH REDIRECTS -------------------------------------------------
   
-  // Protect all dashboard routes
-  const protectedPaths = ["/dashboard", "/products", "/inventory", "/transactions"];
+  // Protect all protected routes
+  const protectedPaths = ["/products", "/inventory", "/transactions", "/profile"];
   if (protectedPaths.some((p) => pathname.startsWith(p)) && !token) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
   // Redirect logged-in users away from auth pages
   if ((pathname === "/login" || pathname === "/register") && token) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(new URL("/transactions", request.url));
   }
 
   // --- 2. API PROXY -----------------------------------------------------
@@ -72,10 +72,10 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/dashboard/:path*",
     "/products/:path*",
     "/inventory/:path*",
     "/transactions/:path*",
+    "/profile/:path*",
     "/login",
     "/register",
     "/api/:path*",

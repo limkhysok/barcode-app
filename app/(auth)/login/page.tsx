@@ -23,7 +23,7 @@ export default function LoginPage() {
     try {
       await login({ username, password });
       console.log("login successful, redirecting...");
-      router.push("/dashboard");
+      router.push("/transactions");
     } catch (error) {
       console.log("login failed", error);
       setError("Invalid username or password. Please try again.");
