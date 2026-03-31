@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 const BASE = process.env.DJANGO_INTERNAL_URL ?? "http://127.0.0.1:8000";
 
@@ -12,6 +13,9 @@ export async function serverFetch<T>(path: string): Promise<T> {
   });
   if (!res.ok) {
     console.error(`[SERVER-FETCH] Error ${res.status} from ${url}`);
+    if (res.status === 401) {
+      redirect("/login");
+    }
     throw new Error(`${res.status}`);
   }
   return res.json() as Promise<T>;
