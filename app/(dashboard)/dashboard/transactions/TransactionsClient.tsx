@@ -17,7 +17,6 @@ import {
   ViewTransactionModal,
   DeleteConfirmModal,
 } from "./_components/TransactionsModal";
-import SortSelect from "./_components/SortSelect";
 import PageSizeSelect from "./_components/PageSizeSelect";
 
 function waitTwoFrames(): Promise<void> {
@@ -47,8 +46,6 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   const [error, setError] = useState("");
 
   const [typeFilter, setTypeFilter] = useState<TxTypeFilter>("");
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -70,13 +67,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   const [editSaving, setEditSaving] = useState(false);
   const [editFormError, setEditFormError] = useState("");
 
-  const [ordering, setOrdering] = useState("-transaction_date");
   const [pageSize, setPageSize] = useState<string | number>(20);
-
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search.trim()), 200);
-    return () => clearTimeout(t);
-  }, [search]);
 
   useEffect(() => {
     if (menuOpenId === null) return;
@@ -87,7 +78,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
   useEffect(() => {
     fetchAll();
-  }, [typeFilter, debouncedSearch, pageSize, ordering]);
+  }, [typeFilter, pageSize]);
 
   function fetchAll() {
     setLoading(true);
@@ -95,9 +86,8 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
     Promise.all([
       getTransactions({
         type: typeFilter || undefined,
-        search: debouncedSearch || undefined,
         page_size: pageSize === "all" ? 1000 : pageSize,
-        ordering,
+        ordering: "-transaction_date",
       }),
       getTransactionStats(),
     ])
@@ -262,17 +252,9 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   };
 
   const displayed = useMemo(() => {
-    let list = [...transactions];
-    if (typeFilter) list = list.filter((t) => t.transaction_type === typeFilter);
-    if (debouncedSearch) {
-      const q = debouncedSearch.toLowerCase();
-      list = list.filter((t) =>
-        t.items.some((item) => item.product_name?.toLowerCase().includes(q)) ||
-        t.performed_by_username?.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [transactions, typeFilter, debouncedSearch]);
+    if (!typeFilter) return transactions;
+    return transactions.filter((t) => t.transaction_type === typeFilter);
+  }, [transactions, typeFilter]);
 
   return (
     <div className="px-4 py-5 sm:px-8 sm:py-8 space-y-6">
@@ -295,32 +277,9 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
       <StatsOverview stats={stats} />
 
-      <div className="flex flex-col lg:flex-row gap-4">
-        <div className="flex-1 flex flex-col md:flex-row gap-2.5">
-          <div className="w-full md:w-48">
-            <TypeFilterSelect value={typeFilter} onChange={setTypeFilter} />
-          </div>
-          <div className="flex-1 flex items-center gap-2 bg-white rounded-sm border border-black px-4 py-2 ">
-            <svg className="w-4 h-4 text-slate-800 shrink-0 pointer-events-none"
-              fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-            </svg>
-            <input
-              id="tx-search"
-              name="tx-search"
-              type="text"
-              placeholder="Query movements..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 text-xs font-black tracking-widest uppercase outline-none bg-transparent text-gray-900 placeholder:text-gray-300"
-            />
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar">
-          <SortSelect value={ordering} onChange={setOrdering} />
-          <PageSizeSelect value={pageSize} onChange={setPageSize} />
-        </div>
+      <div className="flex items-center gap-2.5">
+        <TypeFilterSelect value={typeFilter} onChange={setTypeFilter} />
+        <PageSizeSelect value={pageSize} onChange={setPageSize} />
       </div>
 
       <div className="rounded-sm border border-black overflow-hidden bg-white">
