@@ -3,10 +3,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { Transaction, TransactionPayload } from "@/src/types/transaction.types";
 import type { InventoryRecord } from "@/src/types/inventory.types";
-import { getTransactions, createTransaction, updateTransaction, deleteTransaction } from "@/src/services/transaction.service";
+import { getTransactions, createTransaction, updateTransaction, deleteTransaction, getTransactionStats, type TransactionStats } from "@/src/services/transaction.service";
 import { getInventory } from "@/src/services/inventory.service";
 import type { PaginatedTransactions, PaginatedInventory } from "@/src/types/api.types";
-import { useRouter, useSearchParams } from "next/navigation";
 import TransactionTemplate from "@/src/components/features/export/TransactionTemplate";
 import { TxTypeFilter, TemplateItem } from "./utils/constants";
 import TypeFilterSelect from "./_components/TypeFilterSelect";
@@ -18,6 +17,8 @@ import {
   ViewTransactionModal,
   DeleteConfirmModal,
 } from "./_components/TransactionsModal";
+import SortSelect from "./_components/SortSelect";
+import PageSizeSelect from "./_components/PageSizeSelect";
 
 function waitTwoFrames(): Promise<void> {
   return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
@@ -26,21 +27,21 @@ function waitTwoFrames(): Promise<void> {
 type TransactionsClientProps = Readonly<{
   initialPaginatedTransactions: PaginatedTransactions;
   initialPaginatedInventory: PaginatedInventory;
+  initialStats: TransactionStats | null;
 }>;
 
 const TransactionsClient: React.FC<TransactionsClientProps> = ({
   initialPaginatedTransactions,
-  initialPaginatedInventory
+  initialPaginatedInventory,
+  initialStats,
 }) => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const currentPage = Number.parseInt(searchParams.get("page") ?? "1") || 1;
-
   const [paginated, setPaginated] = useState<PaginatedTransactions>(initialPaginatedTransactions);
   const transactions = paginated.results;
 
   const [paginatedInventory, setPaginatedInventory] = useState<PaginatedInventory>(initialPaginatedInventory);
   const inventory = paginatedInventory.results;
+
+  const [stats, setStats] = useState<TransactionStats | null>(initialStats);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -69,6 +70,9 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   const [editSaving, setEditSaving] = useState(false);
   const [editFormError, setEditFormError] = useState("");
 
+  const [ordering, setOrdering] = useState("-transaction_date");
+  const [pageSize, setPageSize] = useState<string | number>(20);
+
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search.trim()), 200);
     return () => clearTimeout(t);
@@ -81,24 +85,28 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
     return () => window.removeEventListener("scroll", onScroll, true);
   }, [menuOpenId]);
 
-  function fetchAll(page = currentPage) {
+  useEffect(() => {
+    fetchAll();
+  }, [typeFilter, debouncedSearch, pageSize, ordering]);
+
+  function fetchAll() {
     setLoading(true);
     setError("");
-    getTransactions({
-      page,
-      type: typeFilter || undefined,
-      search: debouncedSearch || undefined,
-    })
-      .then(setPaginated)
-      .catch(() => setError("Failed to load transactions."))
+    Promise.all([
+      getTransactions({
+        type: typeFilter || undefined,
+        search: debouncedSearch || undefined,
+        page_size: pageSize === "all" ? 1000 : pageSize,
+        ordering,
+      }),
+      getTransactionStats(),
+    ])
+      .then(([newPaginated, newStats]) => {
+        setPaginated(newPaginated);
+        setStats(newStats);
+      })
+      .catch(() => setError("Failed to load data."))
       .finally(() => setLoading(false));
-  }
-
-  function handlePageChange(newPage: number) {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("page", String(newPage));
-    router.push(`?${params.toString()}`);
-    fetchAll(newPage);
   }
 
   const exportTemplateAsPdf = async (items: TemplateItem[], txType: "Sale" | "Receive", filename: string) => {
@@ -284,24 +292,33 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
         </button>
       </div>
 
-      <StatsOverview transactions={transactions} />
+      <StatsOverview transactions={transactions} stats={stats} />
 
-      <div className="grid grid-cols-2 gap-2.5">
-        <TypeFilterSelect value={typeFilter} onChange={setTypeFilter} />
-        <div className="flex items-center gap-2 bg-white rounded-sm border border-black px-3 py-2">
-          <svg className="w-3.5 h-3.5 text-gray-400 shrink-0 pointer-events-none"
-            fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-          </svg>
-          <input
-            id="tx-search"
-            name="tx-search"
-            type="text"
-            placeholder="Search product or user…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 text-sm outline-none bg-transparent text-gray-800 placeholder:text-gray-300"
-          />
+      <div className="flex flex-col lg:flex-row gap-4">
+        <div className="flex-1 flex flex-col md:flex-row gap-2.5">
+          <div className="w-full md:w-48">
+            <TypeFilterSelect value={typeFilter} onChange={setTypeFilter} />
+          </div>
+          <div className="flex-1 flex items-center gap-2 bg-white rounded-sm border-2 border-black px-4 py-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus-within:translate-x-[1px] focus-within:translate-y-[1px] focus-within:shadow-none transition-all">
+            <svg className="w-4 h-4 text-slate-800 shrink-0 pointer-events-none"
+              fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+            </svg>
+            <input
+              id="tx-search"
+              name="tx-search"
+              type="text"
+              placeholder="Query movements..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 text-xs font-black tracking-widest uppercase outline-none bg-transparent text-gray-900 placeholder:text-gray-300"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar">
+          <SortSelect value={ordering} onChange={setOrdering} />
+          <PageSizeSelect value={pageSize} onChange={setPageSize} />
         </div>
       </div>
 
@@ -319,27 +336,8 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1">
           <p className="text-xs text-gray-400">
             Showing <span className="font-bold text-gray-600">{transactions.length}</span> of{" "}
-            <span className="font-bold text-gray-600">{paginated.count}</span> transactions
+            <span className="font-bold text-gray-600">{paginated.count}</span> records
           </p>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={!paginated.previous || loading}
-              className="px-4 py-2 text-[10px] font-bold tracking-widest uppercase border border-black rounded-sm bg-white hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-white transition"
-            >
-              Previous
-            </button>
-            <div className="px-3 py-2 text-[10px] font-bold border border-black rounded-sm bg-slate-50">
-              Page {currentPage}
-            </div>
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={!paginated.next || loading}
-              className="px-4 py-2 text-[10px] font-bold tracking-widest uppercase border border-black rounded-sm bg-white hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-white transition"
-            >
-              Next
-            </button>
-          </div>
         </div>
       )}
 

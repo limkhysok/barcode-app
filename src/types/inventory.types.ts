@@ -33,8 +33,9 @@ export interface InventoryPayload {
 
 /** Response from GET /api/inventory/scan?barcode=<value> */
 export interface ScanResult {
-  found: boolean;
-  product?: InventoryProductDetails;
-  inventory: InventoryRecord[];
-  detail?: string;
+  inventory_id: number;
+  product_name: string;
+  site: string;
+  quantity_on_hand: number;
+  last_transaction?: string;
 }

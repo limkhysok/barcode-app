@@ -419,7 +419,7 @@ export default function InventoryClient({
   const [paginatedProducts, setPaginatedProducts] = useState<PaginatedProducts>(initialPaginatedProducts);
   const products = paginatedProducts.results;
   const [loading, setLoading] = useState(false);
-  const [pageSize, setPageSize] = useState<number | string>(initialPageSize === "all" ? "all" : (Number.parseInt(initialPageSize) || 20));
+  const [pageSize, setPageSize] = useState<number | string>(Number.parseInt(initialPageSize) || 20);
   const [error, setError] = useState("");
   const [statsData, setStatsData] = useState<any>(initialStats);
   const [statsPeriod, setStatsPeriod] = useState<StatsPeriod>("30d");
@@ -475,7 +475,7 @@ export default function InventoryClient({
   }
 
   function handlePageSizeChange(newSize: string) {
-    const size = newSize === "all" || newSize === "ALL" ? "all" : Number.parseInt(newSize);
+    const size = Number.parseInt(newSize) || 20;
     setPageSize(size);
     const params = new URLSearchParams(searchParams.toString());
     params.set("page_size", String(size));
@@ -846,57 +846,46 @@ export default function InventoryClient({
           </div>
         </div>
 
-        {/* Card 2: Inventory Overview */}
-        <div className="bg-white flex flex-col">
-
-          {/* Header */}
-          <div className="px-3 py-1.5 sm:px-4 sm:py-2 lg:px-5 lg:py-2.5 border-b border-black">
-            <span className="inline-block text-[9px] sm:text-[10px] lg:text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5">Inventory Overview</span>
-            <p className="hidden lg:block text-[10px] text-slate-400 mt-0.5">Live stats from all sites</p>
-          </div>
-
-          {/* Body */}
-          <div className="flex flex-1 flex-col justify-center px-3 py-2.5 sm:px-4 sm:py-3 lg:px-5 lg:py-4 gap-2.5 sm:gap-3 lg:gap-4">
-
-            {/* ── Mobile: 3-col strip / Tablet+: 3-col with more padding ── */}
-            <div className="grid grid-cols-3 gap-px bg-black border border-black rounded-sm overflow-hidden">
-              {[
-                { label: "Records",     value: stats.total.toLocaleString() },
-                { label: "Qty on Hand", value: stats.totalQty.toLocaleString() },
-                { label: "Stock Value", value: `$${stats.totalValue.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` },
-              ].map(({ label, value }) => (
-                <div key={label} className="bg-gray-50 px-2.5 py-2 sm:px-3 sm:py-2.5 lg:px-4 lg:py-3 text-center">
-                  <p className="text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-slate-400 leading-none mb-1">{label}</p>
-                  <p className="text-sm sm:text-base lg:text-xl font-black tabular-nums leading-none text-black">{value}</p>
-                </div>
-              ))}
+        {/* Card 2: Inventory Overview - Single Strip Design */}
+        <div className="border border-black rounded-sm bg-white overflow-hidden shadow-sm">
+          <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-black/10">
+            {/* Database Scope */}
+            <div className="p-4 lg:p-5 flex flex-col justify-center gap-1">
+              <p className="text-[10px] font-black tracking-widest uppercase text-slate-400">Database Scope</p>
+              <div className="flex items-baseline gap-2">
+                <h3 className="text-xl lg:text-2xl font-black text-slate-900 tabular-nums tracking-tighter">{stats.total.toLocaleString()}</h3>
+                <span className="text-[10px] font-bold text-slate-300 uppercase shrink-0">Records</span>
+              </div>
             </div>
 
-            {/* By site
-                mobile : hidden (keeps it compact)
-                tablet : simple label+value rows
-                laptop : full row with all 3 data points
-            */}
-            {stats.bySite && Object.keys(stats.bySite).length > 0 && (
-              <div className="hidden sm:block divide-y divide-black/10 border border-black/10 rounded-sm overflow-hidden">
-                {Object.entries(stats.bySite).map(([site, data]) => (
-                  <div key={site} className="flex items-center justify-between px-2.5 py-1.5 lg:px-4 lg:py-2 bg-white hover:bg-gray-50 transition-colors">
-                    <span className="text-[10px] lg:text-xs font-bold text-slate-700 uppercase tracking-wide">{site}</span>
-                    <div className="flex items-center gap-2 lg:gap-3 text-[9px] lg:text-[10px] tabular-nums text-slate-500">
-                      <span>{data.records} rec</span>
-                      <span className="text-black/20">·</span>
-                      <span className="font-semibold text-slate-600">{data.total_quantity_on_hand.toLocaleString()} units</span>
-                      {/* value only on laptop+ */}
-                      <span className="hidden lg:inline text-black/20">·</span>
-                      <span className="hidden lg:inline font-semibold text-slate-600">
-                        ${Number(data.total_stock_value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+            {/* Stock Volume */}
+            <div className="p-4 lg:p-5 flex flex-col justify-center gap-1">
+              <p className="text-[10px] font-black tracking-widest uppercase text-slate-400">Stock Volume</p>
+              <div className="flex items-baseline gap-2">
+                <h3 className="text-xl lg:text-2xl font-black text-slate-900 tabular-nums tracking-tighter">{stats.totalQty.toLocaleString()}</h3>
+                <span className="text-[10px] font-bold text-slate-300 uppercase shrink-0">Units</span>
               </div>
-            )}
+            </div>
 
+            {/* Capital Value */}
+            <div className="p-4 lg:p-5 flex flex-col justify-center gap-1">
+              <p className="text-[10px] font-black tracking-widest uppercase text-slate-400">Capital Assets</p>
+              <div className="flex items-baseline gap-2">
+                <h3 className="text-xl lg:text-2xl font-black text-slate-900 tabular-nums tracking-tighter">${stats.totalValue.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</h3>
+                <span className="text-[10px] font-bold text-slate-300 uppercase shrink-0">USD</span>
+              </div>
+            </div>
+
+            {/* Alert Status */}
+            <div className="p-4 lg:p-5 flex flex-col justify-center gap-1">
+              <p className="text-[10px] font-black tracking-widest uppercase text-slate-400">Inventory Health</p>
+              <div className="flex items-center gap-3">
+                <h3 className={`text-xl lg:text-2xl font-black tabular-nums tracking-tighter ${stats.needsReorder > 0 ? "text-red-500" : "text-slate-900"}`}>{stats.needsReorder}</h3>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest ${stats.needsReorder > 0 ? "bg-red-50 text-red-500" : "bg-slate-50 text-slate-400"}`}>
+                  {stats.needsReorder > 0 ? "Reorder Alert" : "Stable"}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -960,12 +949,11 @@ export default function InventoryClient({
             onChange={handlePageSizeChange}
             options={[
               { value: "20", label: "20 per page" },
-              { value: "50", label: "50 per page" },
+              { value: "40", label: "40 per page" },
               { value: "100", label: "100 per page" },
               { value: "200", label: "200 per page" },
-              { value: "500", label: "500 per page" },
               { value: "1000", label: "1000 per page" },
-              { value: "all", label: "Show all" },
+              { value: "all", label: "Show ALL" },
             ]}
           />
         </div>

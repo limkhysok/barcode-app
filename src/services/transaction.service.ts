@@ -6,15 +6,15 @@ export async function getTransactions(params?: {
   type?: string;
   barcode?: string;
   search?: string;
-  page?: number;
   page_size?: number | string;
+  ordering?: string;
 }, fetcher?: <T>(path: string) => Promise<T>): Promise<PaginatedTransactions> {
   const query = new URLSearchParams();
-  if (params?.page) query.set("page", String(params.page));
   if (params?.page_size) query.set("page_size", String(params.page_size));
   if (params?.type) query.set("type", params.type);
   if (params?.barcode) query.set("barcode", params.barcode);
   if (params?.search) query.set("search", params.search);
+  if (params?.ordering) query.set("ordering", params.ordering);
 
   const path = `/api/v1/transactions/?${query.toString()}`;
   if (fetcher) return await fetcher(path);
@@ -23,13 +23,27 @@ export async function getTransactions(params?: {
   return data;
 }
 
-export async function getTransactionStats(fetcher?: <T>(path: string) => Promise<T>): Promise<any> {
+export interface TransactionTypeStats {
+  count: number;
+  total_value: string | number;
+}
+
+export interface TransactionStats {
+  total_transactions: number;
+  by_type: {
+    Receive: TransactionTypeStats;
+    Sale: TransactionTypeStats;
+  };
+}
+
+export async function getTransactionStats(fetcher?: <T>(path: string) => Promise<T>): Promise<TransactionStats | null> {
   const path = "/api/v1/transactions/stats/";
   try {
     if (fetcher) {
-      return await fetcher(path);
+      const res = await fetcher(path);
+      return res as TransactionStats;
     }
-    const { data } = await api.get<any>(path);
+    const { data } = await api.get<TransactionStats>(path);
     return data;
   } catch (error) {
     console.error("Failed to fetch transaction stats:", error);

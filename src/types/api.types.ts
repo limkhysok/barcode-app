@@ -4,16 +4,11 @@ import type { Transaction } from "./transaction.types";
 
 export interface PaginatedResponse<T> {
   count: number;
-  next: string | null;
-  previous: string | null;
+  page_size: number;
   results: T[];
 }
 
-export interface PaginatedInventory {
-  count: number;
-  page_size: number;
-  results: InventoryRecord[];
-}
+export type PaginatedInventory = PaginatedResponse<InventoryRecord>;
 
 export type PaginatedProducts = PaginatedResponse<Product>;
 export type PaginatedTransactions = PaginatedResponse<Transaction>;

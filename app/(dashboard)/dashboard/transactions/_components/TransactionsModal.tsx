@@ -6,6 +6,7 @@ import type { InventoryRecord } from "@/src/types/inventory.types";
 import { formatDateTime, fmtValue, submitLabel } from "../utils/helpers";
 import { ringStyle, TYPE_CONFIG, ItemDraft, getNextItemId, emptyItem } from "../utils/constants";
 import InventoryPicker from "./InventoryPicker";
+import { scanBarcode } from "@/src/services/inventory.service";
 
 // ─── ViewTransactionModal ───────────────────────────────────────────────────
 
@@ -168,31 +169,30 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
     setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, ...patch } : item)));
   };
 
-  const handleScanBarcodeWithValue = (inputValue: string) => {
+  const handleScanBarcodeWithValue = async (inputValue: string) => {
     const q = inputValue.trim();
     if (!q) return;
-    const rec = inventory.find((r) => r.product_details?.barcode?.toLowerCase().includes(q.toLowerCase()));
-    if (!rec) {
-      setScanFeedback({ ok: false, msg: `"${q}" not found in inventory.` });
-      setScanInput("");
-      setTimeout(() => setScanFeedback(null), 2500);
-      return;
-    }
-    const existingIdx = items.findIndex((i) => i.inventory === rec.id);
-    if (existingIdx >= 0) {
-      updateItem(existingIdx, { quantity: items[existingIdx].quantity + 1 });
-      setScanFeedback({ ok: true, msg: `+1 × ${rec.product_details.product_name}` });
-    } else {
-      const emptyIdx = items.findIndex((i) => i.inventory === 0);
-      if (emptyIdx >= 0) {
-        updateItem(emptyIdx, { inventory: rec.id, quantity: 1 });
-      } else {
-        setItems((prev) => [...prev, { id: getNextItemId(), inventory: rec.id, quantity: 1 }]);
-      }
-      setScanFeedback({ ok: true, msg: `Added: ${rec.product_details.product_name}` });
-    }
     setScanInput("");
-    setTimeout(() => setScanFeedback(null), 2500);
+    try {
+      const res = await scanBarcode(q);
+      const existingIdx = items.findIndex((i) => i.inventory === res.inventory_id);
+      if (existingIdx >= 0) {
+        updateItem(existingIdx, { quantity: items[existingIdx].quantity + 1 });
+        setScanFeedback({ ok: true, msg: `+1 × ${res.product_name} (${res.site})` });
+      } else {
+        const emptyIdx = items.findIndex((i) => i.inventory === 0);
+        if (emptyIdx >= 0) {
+          updateItem(emptyIdx, { inventory: res.inventory_id, quantity: 1 });
+        } else {
+          setItems((prev) => [...prev, { id: getNextItemId(), inventory: res.inventory_id, quantity: 1 }]);
+        }
+        setScanFeedback({ ok: true, msg: `Added: ${res.product_name} (${res.site})` });
+      }
+    } catch (err) {
+      console.error("Scan error:", err);
+      setScanFeedback({ ok: false, msg: `"${q}" not found or error occurred.` });
+    }
+    setTimeout(() => setScanFeedback(null), 3000);
   };
 
   const handleSubmit = (e: React.BaseSyntheticEvent, andExport: boolean) => {
