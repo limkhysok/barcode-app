@@ -94,126 +94,60 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Folder structure 
+## Folder structure
+
+Frontend-only Next.js app. All data comes from an external backend API (`NEXT_PUBLIC_API_URL`).
 
 ```
-my-app/
+barcode-app/
 │
-├── app/                                        # App Router — pages + API route handlers
-│   ├── (auth)/                                 # Route group (no layout impact)
-│   │   ├── login/
-│   │   │   └── page.tsx                        # /login
-│   │   └── register/
-│   │       └── page.tsx                        # /register
-│   │
-│   ├── (dashboard)/                            # Route group — protected pages
-│   │   ├── layout.tsx                          # Auth guard, redirect if unauthenticated
-│   │   ├── dashboard/
-│   │   │   ├── page.tsx
-│   │   │   └── actions.ts                      # Server Actions scoped to this page
-│   │   └── settings/
-│   │       ├── page.tsx
-│   │       └── actions.ts
-│   │
-│   ├── api/                                    # ← BACKEND REST API
-│   │   ├── auth/
-│   │   │   └── [...nextauth]/
-│   │   │       └── route.ts                    # POST /api/auth/*  (NextAuth handler)
-│   │   ├── users/
-│   │   │   ├── route.ts                        # GET /api/users   POST /api/users
-│   │   │   └── [id]/
-│   │   │       └── route.ts                    # GET PUT DELETE   /api/users/:id
-│   │   ├── posts/
-│   │   │   ├── route.ts                        # GET /api/posts   POST /api/posts
-│   │   │   └── [id]/
-│   │   │       └── route.ts                    # GET PUT DELETE   /api/posts/:id
-│   │   └── proxy/
-│   │       └── route.ts                        # Proxy entry point — forwards to external APIs
-│   │
+├── app/                                        # App Router — pages only, no API routes
 │   ├── layout.tsx                              # Root layout (html, body, providers)
-│   ├── page.tsx                                # / home page
+│   ├── page.tsx                                # / home — renders BarcodeScanner
 │   ├── error.tsx                               # Global error boundary
 │   ├── not-found.tsx
 │   └── globals.css
 │
-├── components/
-│   ├── ui/                                     # Generic primitives (no domain knowledge)
-│   │   ├── Button.tsx
-│   │   ├── Input.tsx
-│   │   ├── Modal.tsx
-│   │   ├── Badge.tsx
-│   │   └── index.ts                            # Barrel export
-│   ├── features/                               # Domain-aware components
-│   │   ├── users/
-│   │   │   ├── UserCard.tsx
-│   │   │   └── UserList.tsx
-│   │   └── posts/
-│   │       ├── PostCard.tsx
-│   │       └── PostForm.tsx
-│   └── layouts/
-│       ├── Navbar.tsx
-│       ├── Sidebar.tsx
-│       └── Footer.tsx
-│
-├── server/                                     # ← SERVER-ONLY (never imported by client)
-│   ├── db/
-│   │   ├── index.ts                            # Prisma/Drizzle singleton client
-│   │   └── schema.ts                           # Drizzle schema (skip if using Prisma)
-│   ├── services/                               # Business logic layer
-│   │   ├── user.service.ts                     # createUser, getUser, updateUser, deleteUser
-│   │   ├── post.service.ts
-│   │   └── auth.service.ts
-│   ├── repositories/                           # Data access layer — DB queries only
-│   │   ├── user.repo.ts                        # findById, findAll, insert, update, delete
-│   │   └── post.repo.ts
-│   ├── lib/                                    # Server-side utilities
-│   │   ├── auth.ts                             # NextAuth v5 config
-│   │   ├── email.ts                            # Resend / nodemailer setup
-│   │   └── session.ts                          # Session helpers
-│   └── proxy/                                  # ← PROXY LAYER
-│       ├── proxy.ts                            # Core forwarding engine
-│       └── proxy.config.ts                     # Allowed hosts, rewrite rules, injected headers
-│
-├── lib/                                        # Isomorphic utilities (safe for client + server)
-│   ├── utils.ts                                # cn(), formatDate(), slugify()
-│   ├── constants.ts                            # APP_NAME, ROUTES, LIMITS
-│   ├── api-client.ts                           # Typed fetch wrapper for browser usage
-│   └── validations/                            # Zod schemas — single source of truth
-│       ├── user.schema.ts
-│       └── post.schema.ts
-│
-├── hooks/                                      # Custom React hooks
-│   ├── useUser.ts
-│   ├── useDebounce.ts
-│   └── useLocalStorage.ts
-│
-├── store/                                      # Zustand global client state
-│   ├── auth.store.ts
-│   └── ui.store.ts                             # Sidebar open, theme, modals
-│
-├── types/
-│   ├── index.d.ts                              # Global TypeScript types
-│   └── api.types.ts                            # Request/response shape types
-│
-├── middleware.ts                               # Edge middleware — auth guard, CORS, rate-limit
-│
-├── prisma/
-│   ├── schema.prisma
-│   ├── seed.ts
-│   └── migrations/
-│
-├── tests/
-│   ├── unit/                                   # Vitest — services, utils
-│   ├── integration/                            # Vitest — API routes with DB
-│   └── e2e/                                    # Playwright — full browser flows
+├── src/
+│   ├── components/
+│   │   ├── ui/                                 # Generic primitives (no domain knowledge)
+│   │   │   ├── Button.tsx
+│   │   │   ├── Badge.tsx
+│   │   │   ├── Spinner.tsx
+│   │   │   └── index.ts                        # Barrel export
+│   │   ├── features/                           # Domain-aware components
+│   │   │   └── barcode/
+│   │   │       └── BarcodeScanner.tsx          # Camera + queue + history UI
+│   │   └── layouts/
+│   │       ├── Navbar.tsx
+│   │       └── Footer.tsx
+│   │
+│   ├── services/                               # ← ALL API CALLS TO BACKEND
+│   │   ├── api.ts                              # Axios instance (baseURL, interceptors)
+│   │   └── barcode.service.ts                  # submitBarcodes(), getHistory()
+│   │
+│   ├── hooks/                                  # Custom React hooks
+│   │   ├── useBarcodeScanner.ts                # Scanner state + camera logic
+│   │   └── useLocalStorage.ts
+│   │
+│   ├── store/                                  # Zustand global client state (if needed)
+│   │   └── ui.store.ts                         # Theme, toasts
+│   │
+│   ├── types/                                  # TypeScript types (mirror backend models)
+│   │   ├── barcode.types.ts                    # ScanRecord, SubmitPayload, SubmitResponse
+│   │   └── api.types.ts                        # ApiError, PaginatedResponse<T>
+│   │
+│   └── lib/                                    # Shared utilities
+│       ├── utils.ts                            # cn(), formatDate()
+│       └── constants.ts                        # ROUTES, APP_NAME
 │
 ├── public/                                     # Static assets
 │
-├── .env.local                                  # DATABASE_URL, NEXTAUTH_SECRET, API keys
+├── .env.local                                  # NEXT_PUBLIC_API_URL=http://localhost:8000
 ├── .env.example
-├── next.config.ts                              # Rewrites, proxy headers, CSP, image domains
+├── next.config.ts                              # CORS headers, image domains
 ├── tailwind.config.ts
 ├── tsconfig.json
-└── vitest.config.ts
+└── package.json
 
 ```
