@@ -472,11 +472,10 @@ export default function ProductsClient({
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <p className="text-xs font-medium tracking-[0.25em] uppercase" style={{ color: "#FA4900" }}>Product</p>
-            <h1 className="text-2xl font-bold text-gray-900 uppercase">Management</h1>
+            <h1 className="text-xl font-light text-gray-900">Products</h1>
           </div>
           <button onClick={openCreate}
-            className="flex items-center gap-2 px-4 py-2 sm:px-5 rounded-sm text-xs font-bold tracking-widest uppercase bg-orange-500 text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
+            className="flex items-center gap-2 px-2 py-1.5 sm:px-4 rounded-lg text-xs font-light tracking-widest bg-orange-500 text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

@@ -34,7 +34,6 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
   }
 
   const displayName = user?.name || user?.username || "User";
-  const initial = displayName.charAt(0).toUpperCase();
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-black-80">
@@ -86,11 +85,10 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
           <div className="relative">
             <button
               onClick={() => setOpen((v) => !v)}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 ring-2 ring-transparent hover:ring-orange-300 transition"
-              style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}
+              className="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-2 ring-transparent hover:ring-orange-300 transition"
               aria-label="User menu"
             >
-              {initial}
+              <Image src="/albert-einstein.png" alt="Avatar" width={32} height={32} className="w-full h-full object-cover" />
             </button>
 
             {/* Dropdown */}
