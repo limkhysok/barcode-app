@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { TxTypeFilter } from "../utils/constants";
+type TxTypeFilter = "" | "Receive" | "Sale";
 
 interface TypeFilterSelectProps {
   value: TxTypeFilter;

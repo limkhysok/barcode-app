@@ -3,8 +3,33 @@
 import React from "react";
 import type { Transaction, TransactionPayload } from "@/src/types/transaction.types";
 import type { InventoryRecord } from "@/src/types/inventory.types";
-import { formatDateTime, fmtValue } from "../utils/helpers";
-import { TYPE_CONFIG, ItemDraft, getNextItemId, emptyItem } from "../utils/constants";
+function formatDateTime(ts: string): string {
+  const d = new Date(ts);
+  const day   = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year  = d.getFullYear();
+  const h24   = d.getHours();
+  const mins  = d.getMinutes();
+  const ampm  = h24 >= 12 ? "PM" : "AM";
+  const h12   = h24 % 12 || 12;
+  const time  = mins === 0 ? `${h12}${ampm}` : `${h12}:${String(mins).padStart(2, "0")}${ampm}`;
+  return `${day}/${month}/${year} ${time}`;
+}
+
+function fmtValue(v: string, sign: string) {
+  return `${sign}$${Math.abs(Number.parseFloat(v)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+const TYPE_CONFIG: Record<string, { label: string; bg: string; text: string; dot: string }> = {
+  Receive: { label: "Receive", bg: "bg-green-50", text: "text-green-600", dot: "bg-green-500" },
+  Sale:    { label: "Sale",    bg: "bg-red-50",   text: "text-red-600",   dot: "bg-red-500"   },
+};
+
+type ItemDraft = { id: number; inventory: number; quantity: number };
+
+let itemIdCounter = 0;
+function getNextItemId() { return ++itemIdCounter; }
+const emptyItem = (): ItemDraft => ({ id: getNextItemId(), inventory: 0, quantity: 1 });
 import InventoryPicker from "./InventoryPicker";
 import { scanBarcode } from "@/src/services/inventory.service";
 

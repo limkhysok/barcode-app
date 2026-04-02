@@ -7,7 +7,8 @@ import { getTransactions, createTransaction, updateTransaction, deleteTransactio
 import { getInventory } from "@/src/services/inventory.service";
 import type { PaginatedTransactions, PaginatedInventory } from "@/src/types/api.types";
 import TransactionTemplate from "@/src/components/features/export/TransactionTemplate";
-import { TxTypeFilter, TemplateItem } from "./utils/constants";
+type TxTypeFilter = "" | "Receive" | "Sale";
+type TemplateItem = { barcode: string; product_name: string; unit: string; quantity: number };
 import TypeFilterSelect from "./_components/TypeFilterSelect";
 import StatsOverview from "./_components/StatsOverview";
 import TransactionsTable from "./_components/TransactionsTable";

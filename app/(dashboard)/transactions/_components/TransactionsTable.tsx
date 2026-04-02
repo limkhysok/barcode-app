@@ -2,8 +2,28 @@
 
 import React from "react";
 import type { Transaction } from "@/src/types/transaction.types";
-import { formatDateTime, fmtValue } from "../utils/helpers";
-import { TYPE_CONFIG } from "../utils/constants";
+
+function formatDateTime(ts: string): string {
+  const d = new Date(ts);
+  const day   = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year  = d.getFullYear();
+  const h24   = d.getHours();
+  const mins  = d.getMinutes();
+  const ampm  = h24 >= 12 ? "PM" : "AM";
+  const h12   = h24 % 12 || 12;
+  const time  = mins === 0 ? `${h12}${ampm}` : `${h12}:${String(mins).padStart(2, "0")}${ampm}`;
+  return `${day}/${month}/${year} ${time}`;
+}
+
+function fmtValue(v: string, sign: string) {
+  return `${sign}$${Math.abs(Number.parseFloat(v)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+const TYPE_CONFIG: Record<string, { label: string; bg: string; text: string; dot: string }> = {
+  Receive: { label: "Receive", bg: "bg-green-50", text: "text-green-600", dot: "bg-green-500" },
+  Sale:    { label: "Sale",    bg: "bg-red-50",   text: "text-red-600",   dot: "bg-red-500"   },
+};
 
 type TransactionsTableProps = {
   displayed: Transaction[];
@@ -99,7 +119,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
           <thead className="bg-slate-50 border-b border-black">
             <tr>
               {["#", "Type", "Items", "Total Value", "Date", "Actions"].map((h) => (
-                <th key={h} className="px-5 py-3 text-left text-[11px] font-black tracking-widest text-slate-900">{h}</th>
+                <th key={h} className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">{h}</th>
               ))}
             </tr>
           </thead>
