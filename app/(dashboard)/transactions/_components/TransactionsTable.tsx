@@ -20,9 +20,9 @@ function fmtValue(v: string, sign: string) {
   return `${sign}$${Math.abs(Number.parseFloat(v)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-const TYPE_CONFIG: Record<string, { label: string; bg: string; text: string; dot: string }> = {
-  Receive: { label: "Receive", bg: "bg-green-50", text: "text-green-600", dot: "bg-green-500" },
-  Sale:    { label: "Sale",    bg: "bg-red-50",   text: "text-red-600",   dot: "bg-red-500"   },
+const TYPE_CONFIG: Record<string, { label: string; text: string }> = {
+  Receive: { label: "Receive", text: "text-black" },
+  Sale:    { label: "Sale",    text: "text-black" },
 };
 
 type TransactionsTableProps = {
@@ -82,8 +82,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                     {first?.product_name ?? "—"}
                     {more > 0 && <span className="text-gray-400 font-normal"> & {more} more</span>}
                   </span>
-                  <span className={`inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.text}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
+                  <span className={`inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${cfg.text}`}>
                     {cfg.label}
                   </span>
                 </div>
@@ -132,8 +131,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                 <tr key={t.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-5 py-0 font-black text-gray-400">#{t.id}</td>
                   <td className="px-5 py-2">
-                    <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.text}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
+                    <span className={`inline-flex text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${cfg.text}`}>
                       {cfg.label}
                     </span>
                   </td>

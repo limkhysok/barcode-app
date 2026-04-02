@@ -24,7 +24,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
           <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.15em] mb-0.5">Total Receive</p>
           <div className="flex items-baseline gap-1.5 flex-wrap">
             <span className="text-xl font-black text-black tabular-nums">{receiveCount.toLocaleString()}</span>
-            <span className="text-[12px] font-bold text-gray-800 tabular-nums">/ +${fmt(receiveVal)}</span>
+            <span className="text-xl font-bold text-gray-800 tabular-nums">/ +${fmt(receiveVal)}</span>
           </div>
         </div>
         <div className="w-8 h-8 rounded-sm border border-black bg-slate-50 flex items-center justify-center text-black shrink-0">
@@ -40,7 +40,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
           <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.15em] mb-0.5">Total Sale</p>
           <div className="flex items-baseline gap-1.5 flex-wrap">
             <span className="text-xl font-black text-black tabular-nums">{saleCount.toLocaleString()}</span>
-            <span className="text-[12px] font-bold text-gray-800 tabular-nums">/ -${fmt(saleVal)}</span>
+            <span className="text-xl font-bold text-gray-800 tabular-nums">/ -${fmt(saleVal)}</span>
           </div>
         </div>
         <div className="w-8 h-8 rounded-sm border border-black bg-slate-50 flex items-center justify-center text-black shrink-0">
