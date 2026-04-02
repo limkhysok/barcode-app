@@ -107,42 +107,33 @@ function ProductTable({ loading, error, displayed, products, costDir, reorderDir
   }
   return (
     <>
-      {/* Mobile cards - shown on mobile only */}
+      {/* Mobile cards */}
       <div className="sm:hidden divide-y divide-black">
         {displayed.map((p, idx) => (
           <div key={p.id ?? idx} className="px-4 py-4 flex items-start gap-3 active:bg-gray-50 transition-colors">
             <div className="flex-1 min-w-0 space-y-1.5">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-semibold text-gray-800 text-sm leading-snug">{p.product_name}</span>
-                <span className="text-[11px] font-semibold tracking-widest uppercase px-2 py-0.5 rounded-md border border-orange-200 bg-orange-50 text-orange-600 shrink-0">{p.category}</span>
+                <span className="text-[10px] font-bold tracking-widest uppercase text-black">{p.category}</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="inline-flex items-center gap-1 text-xs font-mono text-gray-500 bg-gray-50 border border-gray-100 px-1.5 py-0.5 rounded-md">
-                  <svg className="w-3 h-3 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h1.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-1.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h1.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-1.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h1.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-1.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
-                  </svg>
-                  {p.barcode}
-                </span>
-              </div>
-              <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
-                <span>{p.supplier}</span>
-                <span className="font-bold text-gray-700">${Number.parseFloat(p.cost_per_unit).toFixed(2)}</span>
+              <p className="text-xs text-gray-400 font-mono">{p.barcode}</p>
+              <div className="flex items-center gap-3 text-xs flex-wrap">
+                <span className="font-black text-black tabular-nums">${Number.parseFloat(p.cost_per_unit).toFixed(2)}</span>
+                <span className="text-gray-400">by <span className="font-semibold text-gray-600">{p.supplier}</span></span>
                 <span className="text-gray-400">Reorder: {p.reorder_level}</span>
               </div>
             </div>
             <div className="flex items-center gap-1 shrink-0 mt-0.5">
               <button onClick={() => onEdit(p)}
-                className="p-2.5 rounded-sm text-gray-400 hover:text-blue-500 hover:bg-blue-50 active:scale-95 transition" title="Edit">
+                className="p-2.5 rounded-sm text-gray-400 hover:text-gray-700 hover:bg-gray-100 active:scale-95 transition" title="Edit">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round"
-                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                 </svg>
               </button>
               <button onClick={() => onDelete(p)}
                 className="p-2.5 rounded-sm text-gray-400 hover:text-red-500 hover:bg-red-50 active:scale-95 transition" title="Delete">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round"
-                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                 </svg>
               </button>
             </div>
@@ -150,16 +141,16 @@ function ProductTable({ loading, error, displayed, products, costDir, reorderDir
         ))}
       </div>
 
-      {/* Desktop table - hidden on mobile */}
+      {/* Desktop table */}
       <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 ">
+          <thead className="bg-slate-50 border-b border-black">
             <tr>
-              <th className="px-5 py-3 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">#</th>
-              <th className="px-5 py-3 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">Barcode</th>
-              <th className="px-5 py-3 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">Name</th>
-              <th className="px-5 py-3 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">Category</th>
-              <th className="px-5 py-3 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">
+              <th className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">#</th>
+              <th className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">Barcode</th>
+              <th className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">Name</th>
+              <th className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">Category</th>
+              <th className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">
                 <span className="inline-flex items-center gap-1">
                   {"Cost / Unit"}{" "}
                   <span className="flex flex-col leading-none">
@@ -168,7 +159,7 @@ function ProductTable({ loading, error, displayed, products, costDir, reorderDir
                   </span>
                 </span>
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">
+              <th className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">
                 <span className="inline-flex items-center gap-1">
                   {"Reorder"}{" "}
                   <span className="flex flex-col leading-none">
@@ -177,45 +168,34 @@ function ProductTable({ loading, error, displayed, products, costDir, reorderDir
                   </span>
                 </span>
               </th>
-              <th className="px-5 py-3 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">Supplier</th>
-              <th className="px-5 py-3 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">Actions</th>
+              <th className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">Supplier</th>
+              <th className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-black bg-white text-[11px]">
+          <tbody className="divide-y divide-black bg-white text-[12px]">
             {displayed.map((p, idx) => (
-              <tr key={p.id ?? idx} className="hover:bg-gray-50 transition-colors">
-                <td className="px-5 py-3.5 font-bold text-gray-400">#{p.id}</td>
-                <td className="px-5 py-3.5">
-                  <span className="inline-flex items-center gap-1.5 font-mono font-semibold text-gray-600 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-lg">
-                    <svg className="w-3 h-3 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h1.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-1.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h1.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-1.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h1.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-1.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
-                    </svg>
-                    {p.barcode}
-                  </span>
+              <tr key={p.id ?? idx} className="hover:bg-slate-50 transition-colors">
+                <td className="px-5 py-2 font-black text-gray-400">#{p.id}</td>
+                <td className="px-5 py-2 font-mono text-gray-500">{p.barcode}</td>
+                <td className="px-5 py-2 font-semibold text-gray-800">{p.product_name}</td>
+                <td className="px-5 py-2">
+                  <span className="text-[10px] font-bold tracking-widest uppercase text-black">{p.category}</span>
                 </td>
-                <td className="px-5 py-3.5 font-semibold text-gray-800 text-[11px]">{p.product_name}</td>
-                <td className="px-5 py-3.5">
-                  <span className="text-[11px] font-semibold tracking-widest uppercase px-2.5 py-1 rounded-md border border-orange-200 bg-orange-50 text-orange-600">
-                    {p.category}
-                  </span>
-                </td>
-                <td className="px-5 py-3.5 font-bold text-gray-700">${Number.parseFloat(p.cost_per_unit).toFixed(2)}</td>
-                <td className="px-5 py-3.5 text-gray-500">{p.reorder_level}</td>
-                <td className="px-5 py-3.5 text-gray-500">{p.supplier}</td>
-                <td className="px-5 py-3.5">
-                  <div className="flex items-center gap-2">
+                <td className="px-5 py-2 font-bold text-gray-800 tabular-nums">${Number.parseFloat(p.cost_per_unit).toFixed(2)}</td>
+                <td className="px-5 py-2 text-gray-500">{p.reorder_level}</td>
+                <td className="px-5 py-2 text-gray-500">{p.supplier}</td>
+                <td className="px-5 py-2">
+                  <div className="flex items-center gap-1">
                     <button onClick={() => onEdit(p)}
-                      className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition" title="Edit">
+                      className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition" title="Edit">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round"
-                          d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                       </svg>
                     </button>
                     <button onClick={() => onDelete(p)}
                       className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition" title="Delete">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round"
-                          d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                       </svg>
                     </button>
                   </div>
