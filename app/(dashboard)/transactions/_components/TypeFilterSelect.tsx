@@ -50,11 +50,14 @@ const TypeFilterSelect: React.FC<TypeFilterSelectProps> = ({ value, onChange }) 
               <button
                 type="button"
                 onClick={() => { onChange(o.key); setOpen(false); }}
-                className={`w-full text-left px-3 py-2.5 text-[11px] font-semibold tracking-wide transition ${
-                  value === o.key ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
-                }`}
+                className="w-full text-left px-3 py-2 text-[11px] font-semibold tracking-wide transition text-slate-700 hover:bg-slate-50 flex items-center justify-between"
               >
                 {o.label}
+                {value === o.key && (
+                  <svg className="w-3.5 h-3.5 text-black shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                )}
               </button>
             </li>
           ))}

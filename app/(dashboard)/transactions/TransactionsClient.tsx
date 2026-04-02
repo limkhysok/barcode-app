@@ -258,7 +258,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   }, [transactions, typeFilter]);
 
   return (
-    <div className="px-4 py-5 sm:px-5 sm:py-5 space-y-3">
+    <div className="px-4 py-5 sm:px-5 sm:py-5 space-y-4">
       <div className="flex items-center justify-between">
         <div className="space-y-0.5">
 
@@ -283,7 +283,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
         <PageSizeSelect value={pageSize} onChange={setPageSize} />
       </div>
 
-      <div className="rounded-sm border border-black overflow-hidden bg-white">
+      <div className="rounded-xl border border-black overflow-hidden bg-white">
         <TransactionsTable
           displayed={displayed}
           loading={loading}
