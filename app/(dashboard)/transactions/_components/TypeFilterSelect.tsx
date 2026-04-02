@@ -32,7 +32,7 @@ const TypeFilterSelect: React.FC<TypeFilterSelectProps> = ({ value, onChange }) 
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`w-full px-4 py-2 rounded-sm border text-sm font-medium text-left flex items-center justify-between gap-2 transition focus:outline-none bg-gray-50 ${
+        className={`w-full px-3 py-1 rounded-md border text-[13px] font-light text-left flex items-center justify-between gap-2 transition focus:outline-none bg-gray-50 text-gray-900 ${
           open ? "border-black ring-1 ring-black" : "border-black hover:bg-slate-50"
         } ${value === "" ? "text-gray-300" : "text-gray-900"}`}
       >

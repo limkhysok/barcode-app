@@ -99,34 +99,34 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
           <thead className="bg-slate-50 border-b border-black">
             <tr>
               {["#", "Type", "Items", "Total Value", "Date", "Actions"].map((h) => (
-                <th key={h} className="px-5 py-3 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">{h}</th>
+                <th key={h} className="px-5 py-3 text-left text-[11px] font-black tracking-widest text-slate-900">{h}</th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-black bg-white text-[11px]">
+          <tbody className="divide-y divide-black bg-white text-[12px]">
             {displayed.map((t) => {
               const cfg = TYPE_CONFIG[t.transaction_type as keyof typeof TYPE_CONFIG];
               const sign = t.transaction_type === "Receive" ? "+" : "−";
               const valCol = t.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
               return (
                 <tr key={t.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-5 py-3.5 font-bold text-gray-400">#{t.id}</td>
-                  <td className="px-5 py-3.5">
+                  <td className="px-5 py-0 font-black text-gray-400">#{t.id}</td>
+                  <td className="px-5 py-2">
                     <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full ${cfg.bg} ${cfg.text}`}>
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
                       {cfg.label}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5 font-semibold text-gray-800">
+                  <td className="px-5 py-2 font-semibold text-gray-800">
                     {t.items.length} {t.items.length === 1 ? "Item" : "Items"}
                   </td>
-                  <td className={`px-5 py-3.5 font-bold tabular-nums ${valCol}`}>
+                  <td className={`px-5 py-2 font-bold tabular-nums ${valCol}`}>
                     {fmtValue(t.total_transaction_value, sign)}
                   </td>
-                  <td className="px-5 py-3.5 text-gray-500 whitespace-nowrap" suppressHydrationWarning>
+                  <td className="px-5 py-2 text-gray-500 whitespace-nowrap" suppressHydrationWarning>
                     {formatDateTime(t.transaction_date)}
                   </td>
-                  <td className="px-5 py-3.5">
+                  <td className="px-5 py-2">
                     <button
                       type="button"
                       onClick={(e) => onActionClick(e, t)}

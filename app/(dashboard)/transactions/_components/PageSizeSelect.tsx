@@ -36,7 +36,7 @@ const PageSizeSelect: React.FC<PageSizeSelectProps> = ({ value, onChange }) => {
         type="button"
         onMouseEnter={() => { }}
         onClick={() => setOpen((v) => !v)}
-        className={`w-full px-4 py-2 rounded-sm border border-black text-sm font-medium text-left flex items-center justify-between gap-2 transition focus:outline-none bg-gray-50 text-gray-900 ${open ? "ring-1 ring-black" : "hover:bg-slate-50"}`}
+        className={`w-full px-3 py-1 rounded-md border border-black text-[13px] font-light text-left flex items-center justify-between gap-2 transition focus:outline-none bg-gray-50 text-gray-900 ${open ? "ring-1 ring-black" : "hover:bg-slate-50"}`}
       >
         <span className="truncate">{current.label}</span>
         <svg className="w-3.5 h-3.5 text-slate-800 shrink-0 transition-transform duration-200"
