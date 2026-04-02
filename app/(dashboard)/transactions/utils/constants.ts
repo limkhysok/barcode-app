@@ -16,4 +16,4 @@ let itemIdCounter = 0;
 export function getNextItemId() {
   return ++itemIdCounter;
 }
-export const emptyItem = (): ItemDraft => ({ id: getNextItemId(), inventory: 0, quantity: 0 });
+export const emptyItem = (): ItemDraft => ({ id: getNextItemId(), inventory: 0, quantity: 1 });

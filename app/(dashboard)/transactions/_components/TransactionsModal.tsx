@@ -285,14 +285,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
             </div>
             <div>
               <h2 className="text-base font-black text-gray-900 uppercase tracking-tight">New Transaction</h2>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="flex items-center gap-1 text-[8px] font-bold tracking-widest uppercase text-[#FA4900]">
-                  <span className="w-1 h-1 rounded-full bg-[#FA4900] animate-pulse" />
-                  <span>Live Session</span>
-                </span>
-                <span className="text-gray-300 text-[8px]">|</span>
-                <p className="text-[9px] font-medium text-gray-400 uppercase tracking-widest italic">Digital Processing Active</p>
-              </div>
+              
             </div>
           </div>
           <button onClick={onClose}
@@ -309,10 +302,10 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
               <div className="flex items-center justify-between">
                 <p className="text-[10px] font-black tracking-[0.2em] uppercase text-gray-400 flex items-center gap-2">
                   <span className="w-3 h-0.5 bg-gray-200" />
-                  <span>Scanner Terminal</span>
+                  <span className="text-gray-800">Scanner Terminal</span>
                 </p>
                 <div className="flex items-center gap-2">
-                  <span className={`text-[8px] font-black tracking-widest uppercase ${txType === "Receive" ? "text-green-600" : "text-gray-300"}`}>Receive</span>
+                  <span className={`text-[10px] font-black tracking-widest uppercase ${txType === "Receive" ? "text-green-600" : "text-gray-300"}`}>Receive</span>
                   <button
                     type="button"
                     onClick={() => setTxType(txType === "Receive" ? "Sale" : "Receive")}
@@ -320,7 +313,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                   >
                     <div className={`absolute top-0.5 left-0.5 w-2.5 h-2.5 rounded-full shadow-sm transition-transform duration-200 transform ${txType === "Sale" ? "translate-x-4 bg-red-600" : "bg-green-600"}`} />
                   </button>
-                  <span className={`text-[8px] font-black tracking-widest uppercase ${txType === "Sale" ? "text-red-600" : "text-gray-300"}`}>Sale</span>
+                  <span className={`text-[10px] font-black tracking-widest uppercase ${txType === "Sale" ? "text-red-600" : "text-gray-300"}`}>Sale</span>
                 </div>
               </div>
               <div className="group relative">
@@ -346,10 +339,10 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                       if (value !== "") handleScanBarcodeWithValue(value);
                     }
                   }}
-                  className="w-full pl-9 pr-12 py-2 rounded-sm border-2 border-black text-sm bg-white text-black outline-none focus:border-[#FA4900] transition-all placeholder:text-gray-300 font-mono tracking-widest uppercase"
+                  className="w-full pl-9 pr-12 py-1 rounded-sm border-2 border-black text-sm bg-white text-black outline-none focus:border-[#FA4900] transition-all placeholder:text-gray-300 font-mono tracking-widest uppercase"
                 />
                 <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-300" viewBox="0 0 24 24" fill="none">
+                  <svg className="w-5 h-5 text-gray-800" viewBox="0 0 24 24" fill="none">
                     <rect x="2" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
                     <rect x="7" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
                     <rect x="12" y="4" width="2" height="16" rx="0.5" fill="currentColor" />
@@ -369,9 +362,9 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
               <div className="flex items-center justify-between">
                 <p className="text-[10px] font-black tracking-[0.2em] uppercase text-gray-400 flex items-center gap-2">
                   <span className="w-3 h-0.5 bg-gray-200" />
-                  <span>Item Registry</span>
+                  <span className="text-gray-800">Item Registry</span>
                 </p>
-                <span className="text-[10px] font-bold text-gray-300 tabular-nums uppercase tracking-widest">{items.filter(i => i.inventory > 0).length} Registered</span>
+                <span className="text-[10px] font-bold text-gray-800 tabular-nums uppercase tracking-widest">{items.filter(i => i.inventory > 0).length} ITEMS</span>
               </div>
               <div className="space-y-2 max-h-62.5 overflow-y-auto custom-scrollbar">
                 {items.map((item, idx) => {
@@ -383,7 +376,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                         <InventoryPicker
                           inventory={allInventory}
                           value={item.inventory}
-                          onChange={(id) => updateItem(idx, { inventory: id })}
+                          onChange={(id) => updateItem(idx, { inventory: id, quantity: item.quantity || 1 })}
                           excludeIds={selectedInvIds}
                         />
                       </div>
@@ -791,7 +784,7 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
                         <InventoryPicker
                           inventory={allEditInventory}
                           value={item.inventory}
-                          onChange={(id) => updateEditItem(idx, { inventory: id })}
+                          onChange={(id) => updateEditItem(idx, { inventory: id, quantity: item.quantity || 1 })}
                           excludeIds={editSelectedInvIds}
                         />
                       </div>
