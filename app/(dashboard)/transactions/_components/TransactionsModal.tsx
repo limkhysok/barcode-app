@@ -520,7 +520,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
               type="button"
               disabled={saving}
               onClick={(e) => handleSubmit(e, true)}
-              className="py-2 rounded-sm text-[10px] font-black tracking-widest uppercase text-white bg-orange-500 active:scale-[0.98] transition disabled:opacity-60 whitespace-nowrap shadow-md transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+              className="py-2 rounded-sm text-[11px] font-black tracking-widest uppercase text-white bg-orange-500 active:scale-[0.98] transition disabled:opacity-60 whitespace-nowrap shadow-md transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
             >
               <span>{saving ? "Processing..." : "Save & Print"}</span>
             </button>
