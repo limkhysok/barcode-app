@@ -54,8 +54,8 @@ const emptyForm: ProductPayload = {
 };
 
 const inputCls =
-  "w-full px-4 py-3 rounded-sm border border-black text-sm text-gray-800 placeholder:text-gray-300 outline-none focus:ring-2 focus:border-transparent bg-gray-50 focus:bg-white transition";
-const ringStyle = { "--tw-ring-color": "#FA4900" } as React.CSSProperties;
+  "w-full px-2 py-1 rounded-md border border-black text-sm text-gray-800 placeholder:text-gray-300 outline-none focus:ring-2 focus:border-transparent bg-gray-50 focus:bg-white transition";
+
 
 
 function Field({ label, id, type = "text", value, onChange, placeholder, disabled }: Readonly<{
@@ -65,14 +65,13 @@ function Field({ label, id, type = "text", value, onChange, placeholder, disable
   return (
     <div className="space-y-1.5">
       <label htmlFor={id} className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase text-gray-400">
-        <span className="inline-block w-1 h-3 rounded-full" style={{ background: "#FA4900" }} />
         {label}
         {disabled && <span className="ml-1 normal-case tracking-normal font-normal text-gray-300">(locked)</span>}
       </label>
       <input
         id={id} type={type} placeholder={placeholder} value={value} required={!disabled} disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className={`${inputCls} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`} style={ringStyle}
+        className={`${inputCls} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
       />
     </div>
   );
@@ -737,36 +736,31 @@ export default function ProductsClient({
 
         {/* Add / Edit Modal */}
         {modalOpen && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4">
-            <div className="w-full sm:max-w-lg max-h-[95vh] overflow-y-auto bg-white rounded-t-sm sm:rounded-sm shadow-2xl flex flex-col">
-
-              {/* Orange accent strip + header */}
-              <div className="relative px-6 pt-6 pb-5">
-                <div className="absolute top-0 left-0 right-0 h-1 rounded-t-3xl sm:rounded-t-2xl" style={{ background: "#FA4900" }} />
-                {/* Mobile drag handle */}
-                <div className="flex justify-center sm:hidden mb-4">
-                  <div className="w-10 h-1 rounded-full bg-gray-200" />
-                </div>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <span className="inline-block text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full mb-2"
-                      style={{ background: "#FFF0E8", color: "#FA4900" }}>
-                      {editing ? "Editing" : "New"}
-                    </span>
-                    <h2 className="text-xl font-bold text-gray-900">{editing ? "Edit Product" : "Add Product"}</h2>
-                    <p className="text-xs text-gray-400 mt-0.5">Fill in the fields below and save.</p>
-                  </div>
-                  <button onClick={() => setModalOpen(false)}
-                    className="mt-1 p-2 rounded-sm text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition shrink-0">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
+            <div className="bg-white rounded-t-sm sm:rounded-sm shadow-2xl w-full sm:max-w-lg flex flex-col max-h-[90vh] overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-black shrink-0 bg-white">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-sm bg-black flex items-center justify-center shrink-0">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
                     </svg>
-                  </button>
+                  </div>
+                  <div>
+                    <h2 className="text-base font-black text-gray-900 uppercase tracking-tight">{editing ? "Edit Product" : "New Product"}</h2>
+                    <p className="text-[10px] text-gray-400 font-medium">{editing ? "Update product details below" : "Fill in the product details below"}</p>
+                  </div>
                 </div>
+                <button onClick={() => setModalOpen(false)}
+                  className="p-1.5 rounded-sm text-gray-400 hover:text-black hover:bg-gray-100 transition-all shrink-0 active:scale-95">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
 
               {/* Form */}
-              <form onSubmit={handleSave} className="px-6 pb-6 space-y-4 flex-1">
+              <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-5 space-y-4 bg-white min-h-0">
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field label="Product Name" id="product_name" value={form.product_name} placeholder="Engine Oil Filter"
@@ -783,7 +777,7 @@ export default function ProductsClient({
                       { value: "Fasteners", label: "Fasteners" },
                     ]} />
                   <div className="space-y-1.5">
-                    <CustomSelect id="reorder_level" label="Reorder Level" openUp
+                    <CustomSelect id="reorder_level" label="Reorder Level"
                       value={reorderCustom ? "custom" : form.reorder_level} placeholder="Select…"
                       onChange={(v) => {
                         if (v === "custom") {
@@ -805,7 +799,7 @@ export default function ProductsClient({
                       <input type="number" min={1} placeholder="Enter value" required
                         value={form.reorder_level || ""}
                         onChange={(e) => setForm((f) => ({ ...f, reorder_level: Number.parseInt(e.target.value) || 0 }))}
-                        className={`${inputCls} mt-1`} style={ringStyle} />
+                        className={`${inputCls} mt-1`} />
                     )}
                   </div>
                 </div>
@@ -823,14 +817,14 @@ export default function ProductsClient({
                   </p>
                 )}
 
-                <div className="flex gap-3 pt-2">
+                <div className="flex gap-3">
                   <button type="button" onClick={() => setModalOpen(false)}
-                    className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
+                    className="flex-1 py-3 rounded-md text-sm font-bold  text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
                     Cancel
                   </button>
                   <button type="submit" disabled={saving}
-                    className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition disabled:opacity-60"
-                    style={{ background: "#FA4900" }}>
+                    className="flex-1 py-1 rounded-lg text-sm font-bold text-white bg-orange-500 hover:opacity-90 active:scale-[0.97] transition disabled:opacity-60"
+                   >
                     {saveLabel}
                   </button>
                 </div>
@@ -862,11 +856,11 @@ export default function ProductsClient({
               </div>
               <div className="flex gap-3">
                 <button onClick={() => setDeleteTarget(null)}
-                  className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
+                  className="flex-1 py-3 rounded-l-lg text-sm font-bold  text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
                   Cancel
                 </button>
                 <button onClick={handleDelete} disabled={deleting}
-                  className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-white bg-red-500 hover:bg-red-600 active:scale-[0.97] transition disabled:opacity-60">
+                  className="flex-1 py-3 rounded-r-lg text-sm font-bold tracking-widest uppercase text-white bg-red-500 hover:bg-red-600 active:scale-[0.97] transition disabled:opacity-60">
                   {deleting ? "Deleting…" : "Delete"}
                 </button>
               </div>

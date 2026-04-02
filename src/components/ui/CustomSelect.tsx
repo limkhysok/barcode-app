@@ -13,7 +13,9 @@ export function CustomSelect({ id, label, value, onChange, options, placeholder,
   triggerLabel?: string;
 }>) {
   const [open, setOpen] = useState(false);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
   const ref = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -22,6 +24,37 @@ export function CustomSelect({ id, label, value, onChange, options, placeholder,
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    function onScroll() { setOpen(false); }
+    window.addEventListener("scroll", onScroll, true);
+    return () => window.removeEventListener("scroll", onScroll, true);
+  }, [open]);
+
+  function handleToggle() {
+    if (!open && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      if (openUp) {
+        setDropdownStyle({
+          position: "fixed",
+          bottom: window.innerHeight - rect.top + 4,
+          left: rect.left,
+          width: rect.width,
+          zIndex: 9999,
+        });
+      } else {
+        setDropdownStyle({
+          position: "fixed",
+          top: rect.bottom + 4,
+          left: rect.left,
+          width: rect.width,
+          zIndex: 9999,
+        });
+      }
+    }
+    setOpen((v) => !v);
+  }
 
   const selected = options.find((o) => String(o.value) === String(value));
 
@@ -35,7 +68,8 @@ export function CustomSelect({ id, label, value, onChange, options, placeholder,
       )}
       <div className="relative">
         <button
-          id={id} type="button" onClick={() => setOpen((v) => !v)}
+          ref={buttonRef}
+          id={id} type="button" onClick={handleToggle}
           className={`w-full px-3 py-1 rounded-md border border-black text-[13px] font-light text-left flex items-center justify-between gap-2 transition focus:outline-none bg-gray-50 text-gray-900 ${open ? "ring-1 ring-black" : "hover:bg-slate-50"}`}
         >
           <span className="truncate">{triggerLabel ?? (selected ? selected.label : (placeholder ?? "Select…"))}</span>
@@ -46,11 +80,11 @@ export function CustomSelect({ id, label, value, onChange, options, placeholder,
           </svg>
         </button>
         {open && (
-          <ul className={`absolute z-200 w-full bg-white border border-black rounded-sm shadow-lg overflow-hidden ${openUp ? "bottom-full mb-1" : "top-full mt-1"}`}>
+          <ul style={dropdownStyle} className="bg-white border border-black rounded-sm shadow-lg overflow-hidden">
             {options.map((opt) => {
               const active = String(opt.value) === String(value);
               return (
-                <li key={opt.value} >
+                <li key={opt.value}>
                   <button type="button"
                     onClick={() => { onChange(String(opt.value)); setOpen(false); }}
                     className="w-full text-left px-3 py-1.5 text-[11px] font-semibold tracking-wide transition text-slate-700 hover:bg-gray-100 flex items-center justify-between">
