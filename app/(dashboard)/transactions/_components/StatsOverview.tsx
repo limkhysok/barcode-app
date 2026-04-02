@@ -17,12 +17,12 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
   const totalMovements = stats?.total_transactions || 0;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border border-black bg-white overflow-hidden">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border border-black bg-white overflow-hidden rounded-xl">
       {/* Total Receive — col1 always, right border + bottom at md, right only at lg */}
       <div className="p-3 sm:p-4 flex flex-col justify-between border-b md:border-r lg:border-b-0 border-black transition-colors">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-[10px] font-black bg-orange-500 text-white px-2 py-0.5 inline-block uppercase tracking-[0.15em] mb-1.5 sm:mb-2.5">
+            <p className="text-[10px] font-black  text-black px-2 py-0.5 inline-block uppercase tracking-[0.15em] mb-1.5 sm:mb-2.5">
               Total Receive
             </p>
             <h4 className="text-xl sm:text-2xl lg:text-3xl font-black text-black tabular-nums leading-none">
@@ -45,7 +45,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
       <div className="p-3 sm:p-4 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-black transition-colors">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-[10px] font-black bg-orange-500 text-white px-2 py-0.5 inline-block uppercase tracking-[0.15em] mb-1.5 sm:mb-2.5">
+            <p className="text-[10px] font-bold text-black px-2 py-0.5 inline-block uppercase tracking-[0.15em] mb-1.5 sm:mb-2.5">
               Total Sale
             </p>
             <h4 className="text-xl sm:text-2xl lg:text-3xl font-black text-black tabular-nums leading-none">
@@ -68,7 +68,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
       <div className="p-3 sm:p-4 flex flex-col justify-between border-b md:border-b-0 md:border-r border-black transition-colors">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-[10px] font-black bg-orange-500 text-white px-2 py-0.5 inline-block uppercase tracking-[0.15em] mb-1.5 sm:mb-2.5">
+            <p className="text-[10px]  text-black px-2 py-0.5 inline-block uppercase tracking-[0.15em] mb-1.5 sm:mb-2.5">
               Net Movement
             </p>
             <h4 className="text-xl sm:text-2xl lg:text-3xl font-black text-black tabular-nums leading-none">
@@ -91,10 +91,10 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
       <div className="p-3 sm:p-4 flex flex-col justify-between transition-colors">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-[10px] font-black bg-orange-500 text-white px-2 py-0.5 inline-block uppercase tracking-[0.15em] mb-1.5 sm:mb-2.5">
+            <p className="text-[10px]   text-black px-2 py-0.5 inline-block uppercase tracking-[0.15em] mb-1.5 sm:mb-2.5">
               Total Transactions
             </p>
-            <h4 className="text-xl sm:text-2xl lg:text-3xl font-black text-black tabular-nums leading-none">
+            <h4 className="text-xl sm:text-2xl lg:text-3xl  text-black tabular-nums leading-none">
               {totalMovements.toLocaleString()}
             </h4>
           </div>
