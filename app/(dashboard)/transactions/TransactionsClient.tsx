@@ -195,7 +195,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
   const handleActionClick = (e: React.MouseEvent, t: Transaction) => {
     const r = e.currentTarget.getBoundingClientRect();
-    setMenuPos({ top: r.bottom + 4, left: r.right - 128 });
+    setMenuPos({ top: r.bottom + 4, left: r.right - 80 });
     setMenuOpenId(menuOpenId === t.id ? null : t.id);
   };
 
@@ -239,18 +239,6 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
     setPendingExportItems([]);
   };
 
-  const handleDirectExport = async (t: Transaction) => {
-    const items: TemplateItem[] = t.items.map((item) => {
-      const rec = inventory.find((r) => r.id === item.inventory);
-      return {
-        barcode: rec?.product_details.barcode ?? "",
-        product_name: item.product_name,
-        unit: "Pcs",
-        quantity: item.quantity,
-      };
-    });
-    exportTemplateAsPdf(items, t.transaction_type);
-  };
 
   const displayed = useMemo(() => {
     if (!typeFilter) return transactions;
@@ -311,19 +299,16 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
             <button type="button" aria-label="Close menu" className="fixed inset-0 z-9998 cursor-default bg-transparent border-0 p-0" onClick={() => setMenuOpenId(null)} />
             <div
               style={{ position: "fixed", top: menuPos.top, left: menuPos.left, zIndex: 9999 }}
-              className="bg-white border border-black rounded-sm shadow-2xl py-1.5 w-32 overflow-hidden"
+              className="bg-white border border-black rounded-sm shadow-2xl py-0 w-20 overflow-hidden"
             >
               <button type="button" onClick={() => { setViewTarget(t); setMenuOpenId(null); }}
-                className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest uppercase text-gray-600 hover:bg-slate-50 transition">View</button>
+                className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest  text-gray-700 hover:bg-slate-50 transition">View</button>
               <button type="button" onClick={() => { setEditTarget(t); setMenuOpenId(null); }}
-                className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest uppercase text-gray-600 hover:bg-slate-50 transition">Edit</button>
-              <button type="button" onClick={() => { handleDirectExport(t); setMenuOpenId(null); }}
-                className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest uppercase text-gray-600 hover:bg-slate-50 transition">Export</button>
-              <button type="button" onClick={() => handlePrint(t)}
-                className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest uppercase text-blue-600 hover:bg-blue-50 transition">Print</button>
-              <div className="mx-3 my-1 border-t border-black" />
+                className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest  text-gray-700 hover:bg-slate-50 transition">Edit</button>
+              <button type="button" onClick={() => { handlePrint(t); setMenuOpenId(null); }}
+                className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest  text-gray-700 hover:bg-slate-50 transition">Print</button>
               <button type="button" onClick={() => { setDeleteTarget(t); setMenuOpenId(null); }}
-                className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest uppercase text-red-500 hover:bg-red-50 transition">Delete</button>
+                className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest  text-red-500 hover:bg-red-50 transition">Delete</button>
             </div>
           </>
         );
