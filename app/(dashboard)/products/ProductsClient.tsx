@@ -54,7 +54,7 @@ const emptyForm: ProductPayload = {
 };
 
 const inputCls =
-  "w-full px-2 py-1 rounded-md border border-black text-sm text-gray-800 placeholder:text-gray-300 outline-none focus:ring-2 focus:border-transparent bg-gray-50 focus:bg-white transition";
+  "w-full px-2 py-1 rounded-md border border-black text-[13px] text-gray-800 placeholder:text-gray-300 outline-none focus:ring-2 focus:border-transparent bg-gray-50 focus:bg-white transition";
 
 
 
@@ -799,11 +799,11 @@ export default function ProductsClient({
 
                 <div className="flex gap-3">
                   <button type="button" onClick={() => setModalOpen(false)}
-                    className="flex-1 py-3 rounded-md text-sm font-bold  text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
+                    className="flex-1 py-1.5 rounded-md text-[13px]  text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
                     Cancel
                   </button>
                   <button type="submit" disabled={saving}
-                    className="flex-1 py-1 rounded-lg text-sm font-bold text-white bg-orange-500 hover:opacity-90 active:scale-[0.97] transition disabled:opacity-60"
+                    className="flex-1 py-1.5 rounded-md text-[13px]  text-white bg-orange-500 hover:opacity-90 active:scale-[0.97] transition disabled:opacity-60"
                    >
                     {saveLabel}
                   </button>
