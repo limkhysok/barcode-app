@@ -18,29 +18,38 @@ type ViewModalProps = {
 export const ViewTransactionModal: React.FC<ViewModalProps> = ({ viewTarget, onClose }) => {
   if (!viewTarget) return null;
 
+  const sign = viewTarget.transaction_type === "Receive" ? "+" : "−";
+  const valCol = viewTarget.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
+  const grandTotal = viewTarget.total_transaction_value;
+
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
-      <div className="bg-white rounded-t-sm sm:rounded-sm shadow-2xl w-full sm:max-w-lg flex flex-col max-h-[90vh]">
-        <div className="h-1 w-full rounded-t-sm sm:rounded-t-sm" style={{ background: "#FA4900" }} />
-        <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-black shrink-0">
-          <div className="space-y-1">
-            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-none"
-              style={{ background: "#FFF0E8", color: "#FA4900" }}>
-              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "#FA4900" }} />
-              <span>View</span>
-            </span>
-            <h2 className="text-xl font-bold text-gray-900">Transaction #{viewTarget.id}</h2>
-            <p className="text-xs text-gray-400 mt-0.5" suppressHydrationWarning>{formatDateTime(viewTarget.transaction_date)}</p>
+      <div className="bg-white rounded-t-sm sm:rounded-sm shadow-2xl w-full sm:max-w-xl flex flex-col max-h-[90vh] overflow-hidden">
+        <div className="h-1 w-full shrink-0" style={{ background: "#FA4900" }} />
+        <div className="flex items-center justify-between px-5 py-4 border-b border-black shrink-0 bg-white">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-sm bg-black flex items-center justify-center shrink-0">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-base font-black text-gray-900 uppercase tracking-tight">Transaction #{viewTarget.id}</h2>
+              <p className="text-[10px] text-gray-400 mt-0.5 font-medium" suppressHydrationWarning>{formatDateTime(viewTarget.transaction_date)}</p>
+            </div>
           </div>
           <button onClick={onClose}
-            className="mt-1 p-2 rounded-sm text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition shrink-0">
+            className="p-1.5 rounded-sm text-gray-400 hover:text-black hover:bg-gray-100 transition-all shrink-0 active:scale-95">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          <div className="flex items-center gap-4 flex-wrap">
+
+        <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-white min-h-0">
+          {/* Meta */}
+          <div className="flex items-center gap-3">
             {(() => {
               const cfg = TYPE_CONFIG[viewTarget.transaction_type];
               return (
@@ -50,45 +59,68 @@ export const ViewTransactionModal: React.FC<ViewModalProps> = ({ viewTarget, onC
                 </span>
               );
             })()}
-            <span className="text-xs text-gray-500">by <span className="font-semibold text-gray-700">{viewTarget.performed_by_username}</span></span>
+            <span className="text-[10px] text-gray-400 font-medium">by <span className="font-black text-gray-700">{viewTarget.performed_by_username}</span></span>
           </div>
-          <div className="border border-black overflow-hidden">
-            <table className="w-full text-xs">
-              <thead className="bg-slate-50 border-b border-black">
-                <tr>
-                  {["Product", "Qty", "Unit Cost", "Total"].map((h) => (
-                    <th key={h} className="px-4 py-2.5 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-black">
-                {viewTarget.items.map((item) => {
-                  const sign = viewTarget.transaction_type === "Receive" ? "+" : "−";
-                  const valCol = viewTarget.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
+
+          {/* Item table */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[10px] font-black tracking-[0.2em] uppercase text-gray-800 flex items-center gap-2">
+                <span className="w-3 h-0.5 bg-gray-200" />{" "}
+                Item Registry
+              </p>
+              <span className="text-[10px] font-bold text-gray-400 tabular-nums uppercase tracking-widest">
+                {viewTarget.items.length} ITEMS
+              </span>
+            </div>
+            <div className="border border-black overflow-hidden">
+              <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-b border-black">
+                <span className="w-5 shrink-0 text-[10px] font-black text-gray-700 tracking-widest text-center">N0</span>
+                <span className="flex-1 text-[10px] font-black text-gray-700 uppercase tracking-widest">Product</span>
+                <span className="w-24 shrink-0 text-[10px] font-black text-gray-700 uppercase tracking-widest text-center">Quantity</span>
+                <span className="w-20 shrink-0 text-[10px] font-black text-gray-700 uppercase tracking-widest text-right">Total</span>
+              </div>
+              <div className="divide-y divide-black/10">
+                {viewTarget.items.map((item, idx) => {
+                  const lineTotal = Number.parseFloat(item.line_total);
                   return (
-                    <tr key={item.id}>
-                      <td className="px-4 py-3 font-semibold text-gray-800">{item.product_name}</td>
-                      <td className="px-4 py-3 text-gray-600 tabular-nums">{Math.abs(item.quantity)}</td>
-                      <td className="px-4 py-3 text-gray-600 tabular-nums">${Number.parseFloat(item.cost_per_unit).toFixed(2)}</td>
-                      <td className={`px-4 py-3 font-bold tabular-nums ${valCol}`}>
-                        {sign}${Number.parseFloat(item.line_total).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
-                    </tr>
+                    <div key={item.id} className="flex items-center gap-2 px-3 py-2.5 hover:bg-slate-50/60 transition-colors">
+                      <span className="w-5 shrink-0 text-[10px] font-black text-gray-300 text-center">{String(idx + 1).padStart(2, "0")}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">{item.product_name}</p>
+                        <p className="text-[10px] text-gray-400 font-medium">${Number.parseFloat(item.cost_per_unit).toFixed(2)} ea</p>
+                      </div>
+                      <div className="w-24 shrink-0 text-center">
+                        <span className="text-sm font-black text-gray-900 tabular-nums">{Math.abs(item.quantity)}</span>
+                      </div>
+                      <div className="w-20 shrink-0 text-right">
+                        <p className={`text-[11px] font-black tabular-nums ${valCol}`}>
+                          {sign}${lineTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
-          </div>
-          <div className="flex items-center justify-between px-1">
-            <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400">Grand Total</p>
-            <p className={`text-xl font-black tabular-nums ${viewTarget.transaction_type === "Receive" ? "text-green-600" : "text-red-500"}`}>
-              {fmtValue(viewTarget.total_transaction_value, viewTarget.transaction_type === "Receive" ? "+" : "−")}
-            </p>
+              </div>
+            </div>
+            <div className="border border-black border-t-0 px-4 py-4 bg-slate-50 flex items-center justify-between">
+              <div>
+                <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Grand Total</p>
+                <p className="text-[9px] font-bold text-gray-400 mt-0.5">{viewTarget.items.length} item{viewTarget.items.length === 1 ? "" : "s"}</p>
+              </div>
+              <div className="flex items-baseline gap-1">
+                <span className={`text-sm font-black ${valCol}`}>{sign}</span>
+                <p className={`text-2xl font-black tabular-nums tracking-tighter ${valCol}`}>
+                  {fmtValue(grandTotal, "")}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-        <div className="border-t border-black px-6 py-4 shrink-0">
+
+        <div className="border-t border-black px-5 py-3 shrink-0 bg-gray-50/50">
           <button type="button" onClick={onClose}
-            className="w-full py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
+            className="w-full py-2.5 rounded-sm text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition shadow-sm">
             Close
           </button>
         </div>
@@ -623,7 +655,7 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
-      <div className="bg-white rounded-t-sm sm:rounded-sm shadow-2xl w-full sm:max-w-3xl flex flex-col max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-t-sm sm:rounded-sm shadow-2xl w-full sm:max-w-xl flex flex-col max-h-[90vh] overflow-hidden">
         <div className="h-1 w-full shrink-0" style={{ background: "#FA4900" }} />
         <div className="flex items-center justify-between px-5 py-4 border-b border-black shrink-0 bg-white">
           <div className="flex items-center gap-3">
@@ -636,11 +668,9 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
               <h2 className="text-base font-black text-gray-900 uppercase tracking-tight">Edit Transaction #{editTarget.id}</h2>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="flex items-center gap-1 text-[8px] font-bold tracking-widest uppercase text-[#FA4900]">
-                  <span className="w-1 h-1 rounded-full bg-[#FA4900] animate-pulse" />
-                  <span>Edit Mode</span>
+                  <span className="w-1 h-1 rounded-full bg-[#FA4900] animate-pulse" />{" "}
+                  Edit Mode
                 </span>
-                <span className="text-gray-300 text-[8px]">|</span>
-                <p className="text-[10px] font-medium text-gray-400 uppercase tracking-widest italic">Modify and Update</p>
               </div>
             </div>
           </div>
@@ -652,80 +682,94 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
           </button>
         </div>
 
-        <div className="flex flex-col sm:flex-row flex-1 overflow-hidden min-h-0">
-          <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-white sm:border-r border-black">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] font-black tracking-[0.2em] uppercase text-gray-400 flex items-center gap-2">
-                  <span className="w-3 h-0.5 bg-gray-200" />
-                  <span>Scanner Terminal</span>
-                </p>
-                <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-black tracking-widest uppercase ${editTxType === "Receive" ? "text-green-600" : "text-gray-300"}`}>Receive</span>
-                  <button
-                    type="button"
-                    onClick={() => setEditTxType(editTxType === "Receive" ? "Sale" : "Receive")}
-                    className="relative w-10 h-5 rounded-full bg-slate-100 border border-slate-200 transition-colors duration-200 focus:outline-none"
-                  >
-                    <div className={`absolute top-0.5 left-0.5 w-2.5 h-2.5 rounded-full shadow-sm transition-transform duration-200 transform ${editTxType === "Sale" ? "translate-x-4 bg-red-600" : "bg-green-600"}`} />
-                  </button>
-                  <span className={`text-[10px] font-black tracking-widest uppercase ${editTxType === "Sale" ? "text-red-600" : "text-gray-300"}`}>Sale</span>
-                </div>
+        <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-white min-h-0">
+          {/* Scanner Terminal */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-black tracking-[0.2em] uppercase text-gray-400 flex items-center gap-2">
+                <span className="w-3 h-0.5 bg-gray-200" />
+                <span className="text-gray-800">Scanner Terminal</span>
+              </p>
+              <div className="flex items-center gap-2">
+                <span className={`text-[10px] font-black tracking-widest uppercase ${editTxType === "Receive" ? "text-green-600" : "text-gray-300"}`}>Receive</span>
+                <button
+                  type="button"
+                  onClick={() => setEditTxType(editTxType === "Receive" ? "Sale" : "Receive")}
+                  className="relative w-8 h-4 rounded-full bg-slate-100 border border-slate-200 transition-colors duration-200 focus:outline-none"
+                >
+                  <div className={`absolute top-0.5 left-0.5 w-2.5 h-2.5 rounded-full shadow-sm transition-transform duration-200 transform ${editTxType === "Sale" ? "translate-x-4 bg-red-600" : "bg-green-600"}`} />
+                </button>
+                <span className={`text-[10px] font-black tracking-widest uppercase ${editTxType === "Sale" ? "text-red-600" : "text-gray-300"}`}>Sale</span>
               </div>
-              <div className="group relative">
-                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                  <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-focus-within:bg-[#FA4900] transition-colors" />
-                </div>
-                <input
-                  ref={editScanInputRef}
-                  type="text"
-                  autoComplete="off"
-                  autoFocus
-                  id="edit-barcode-scan-input"
-                  placeholder="SCAN BARCODE..."
-                  value={scanInput}
-                  onChange={(e) => { setScanInput(e.target.value); setScanFeedback(null); }}
-                  onKeyDown={(e) => {
-                    const value = (e.target as HTMLInputElement).value.trim();
-                    if (e.key === "Enter" || e.key === "Tab") {
-                      e.preventDefault();
-                      if (value !== "") handleScanBarcodeWithValue(value);
-                    }
-                  }}
-                  className="w-full pl-9 pr-12 py-1 rounded-sm border-2 border-black text-sm bg-white text-black outline-none focus:border-[#FA4900] transition-all placeholder:text-gray-300 font-mono tracking-widest uppercase"
-                />
-                <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-300" viewBox="0 0 24 24" fill="none">
-                    <rect x="2" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
-                    <rect x="7" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
-                    <rect x="12" y="4" width="2" height="16" rx="0.5" fill="currentColor" />
-                    <rect x="18" y="4" width="1" height="16" rx="0.5" fill="currentColor" />
-                    <rect x="21" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
-                  </svg>
-                </div>
-              </div>
-              {scanFeedback && (
-                <p className={`text-[10px] font-bold tracking-widest uppercase px-4 py-2 border flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200 ${scanFeedback.ok ? "text-green-600 bg-green-50 border-green-200" : "text-red-600 bg-red-50 border-red-200"}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${scanFeedback.ok ? "bg-green-500" : "bg-red-500"}`} />
-                  {scanFeedback.msg}
-                </p>
-              )}
             </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] font-black tracking-[0.2em] uppercase text-gray-400 flex items-center gap-2">
-                  <span className="w-3 h-0.5 bg-gray-200" />
-                  <span>Item Registry</span>
-                </p>
-                <span className="text-[10px] font-bold text-gray-300 tabular-nums uppercase tracking-widest">{editItems.filter(i => i.inventory > 0).length} Registered</span>
+            <div className="group relative">
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-focus-within:bg-[#FA4900] transition-colors" />
               </div>
-              <div className="space-y-2 max-h-62.5 overflow-y-auto custom-scrollbar">
+              <input
+                ref={editScanInputRef}
+                type="text"
+                autoComplete="off"
+                autoFocus
+                id="edit-barcode-scan-input"
+                placeholder="SCAN BARCODE..."
+                value={scanInput}
+                onChange={(e) => { setScanInput(e.target.value); setScanFeedback(null); }}
+                onKeyDown={(e) => {
+                  const value = (e.target as HTMLInputElement).value.trim();
+                  if (e.key === "Enter" || e.key === "Tab") {
+                    e.preventDefault();
+                    if (value !== "") handleScanBarcodeWithValue(value);
+                  }
+                }}
+                className="w-full pl-9 pr-12 py-1 rounded-sm border-2 border-black text-sm bg-white text-black outline-none focus:border-[#FA4900] transition-all placeholder:text-gray-300 font-mono tracking-widest uppercase"
+              />
+              <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                <svg className="w-5 h-5 text-gray-800" viewBox="0 0 24 24" fill="none">
+                  <rect x="2" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
+                  <rect x="7" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
+                  <rect x="12" y="4" width="2" height="16" rx="0.5" fill="currentColor" />
+                  <rect x="18" y="4" width="1" height="16" rx="0.5" fill="currentColor" />
+                  <rect x="21" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
+                </svg>
+              </div>
+            </div>
+            {scanFeedback && (
+              <p className={`text-[10px] font-bold tracking-widest uppercase px-4 py-2 border flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200 ${scanFeedback.ok ? "text-green-600 bg-green-50 border-green-200" : "text-red-600 bg-red-50 border-red-200"}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${scanFeedback.ok ? "bg-green-500" : "bg-red-500"}`} />
+                {scanFeedback.msg}
+              </p>
+            )}
+          </div>
+
+          {/* Merged Item Registry + Receipt */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[10px] font-black tracking-[0.2em] uppercase text-gray-800 flex items-center gap-2">
+                <span className="w-3 h-0.5 bg-gray-200" />{" "}
+                Item Registry
+              </p>
+              <span className="text-[10px] font-bold text-gray-400 tabular-nums uppercase tracking-widest">
+                {editItems.filter(i => i.inventory > 0).length} ITEMS
+              </span>
+            </div>
+            <div className="border border-black overflow-hidden">
+              <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-b border-black">
+                <span className="w-5 shrink-0 text-[10px] font-black text-gray-700 tracking-widest text-center">N0</span>
+                <span className="flex-1 text-[10px] font-black text-gray-700 uppercase tracking-widest">Product</span>
+                <span className="w-24 shrink-0 text-[10px] font-black text-gray-700 uppercase tracking-widest text-center">Quantity</span>
+                <span className="w-20 shrink-0 text-[10px] font-black text-gray-700 uppercase tracking-widest text-right">Total</span>
+                <span className="w-5 shrink-0" />
+              </div>
+              <div className="divide-y divide-black/10">
                 {editItems.map((item, idx) => {
                   const rec = allEditInventory.find((r) => r.id === item.inventory);
+                  const lineTotal = rec ? item.quantity * Number.parseFloat(rec.product_details.cost_per_unit) : null;
+                  const sign = editTxType === "Receive" ? "+" : "−";
+                  const valCol = editTxType === "Receive" ? "text-green-600" : "text-red-600";
                   return (
-                    <div key={item.id} className="flex items-center gap-2 p-2 bg-slate-50 border border-black hover:bg-white transition-all group/item">
-                      <div className="w-6 text-[10px] font-black text-gray-300 text-center">{String(idx + 1).padStart(2, "0")}</div>
+                    <div key={item.id} className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50/60 transition-colors group/item">
+                      <span className="w-5 shrink-0 text-[10px] font-black text-gray-300 text-center">{String(idx + 1).padStart(2, "0")}</span>
                       <div className="flex-1 min-w-0">
                         <InventoryPicker
                           inventory={allEditInventory}
@@ -734,31 +778,33 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
                           excludeIds={editSelectedInvIds}
                         />
                       </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <div className="relative flex items-center">
-                          <input
-                            type="number"
-                            min={1}
-                            placeholder="0"
-                            value={item.quantity || ""}
-                            onChange={(e) => updateEditItem(idx, { quantity: Math.abs(Number.parseInt(e.target.value) || 0) })}
-                            className="w-14 px-2 py-2 rounded-sm border border-black text-sm outline-none focus:ring-1 focus:ring-black transition text-right font-black bg-white"
-                          />
-                          {rec && (
-                            <div className="flex items-center gap-1 ml-1.5 px-1">
-                              <span className="text-lg font-black text-gray-600 leading-none">/</span>
-                              <span className="text-sm font-black text-gray-600 tabular-nums leading-none">{rec.quantity_on_hand}</span>
-                            </div>
-                          )}
-                        </div>
+                      <div className="w-24 shrink-0 flex items-center gap-1">
+                        <input
+                          type="number"
+                          min={1}
+                          placeholder="1"
+                          value={item.quantity || ""}
+                          onChange={(e) => updateEditItem(idx, { quantity: Math.abs(Number.parseInt(e.target.value) || 0) })}
+                          className="w-10 py-1 rounded-sm text-sm outline-none transition text-right font-black cursor-pointer border border-transparent bg-transparent focus:border-black focus:bg-white focus:px-2 focus:cursor-text focus:ring-1 focus:ring-black"
+                        />
+                        {rec && (
+                          <span className="text-[10px] font-bold text-gray-400 tabular-nums shrink-0">/{rec.quantity_on_hand}</span>
+                        )}
+                      </div>
+                      <div className="w-20 shrink-0 text-right">
+                        {lineTotal === null ? null : (
+                          <p className={`text-[11px] font-black tabular-nums ${valCol}`}>
+                            {sign}${lineTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </p>
+                        )}
                       </div>
                       <button
                         type="button"
                         onClick={() => removeEditItem(idx)}
                         disabled={editItems.length === 1}
-                        className="p-1.5 rounded-sm text-gray-300 hover:text-red-600 hover:bg-red-50 transition-all disabled:opacity-0 active:scale-95"
+                        className="w-5 shrink-0 p-1 rounded-sm text-gray-200 hover:text-red-600 hover:bg-red-50 transition-all disabled:opacity-0 active:scale-95"
                       >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       </button>
@@ -769,7 +815,7 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
               <button
                 type="button"
                 onClick={addEditItem}
-                className="w-full py-2.5 bg-white border-2 border-dashed border-slate-100 text-[10px] text-slate-400 font-black tracking-[0.2em] uppercase hover:border-black hover:text-black transition-all flex items-center justify-center gap-2 active:scale-[0.99]"
+                className="w-full py-2.5 bg-white border-t border-dashed border-slate-200 text-[10px] text-slate-400 font-black tracking-[0.2em] uppercase hover:bg-slate-50 hover:text-black transition-all flex items-center justify-center gap-2 active:scale-[0.99]"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -777,92 +823,30 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
                 Include Entry
               </button>
             </div>
-          </div>
-
-          <div className="sm:w-80 shrink-0 flex flex-col bg-slate-50 border-t sm:border-t-0 border-black">
-            <div className="px-5 py-4 border-b border-black bg-white">
-              <div className="flex items-center justify-between">
-                <p className="text-[10px] font-black tracking-[0.2em] uppercase text-gray-900">Receipt</p>
-                <svg className="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
-                </svg>
-              </div>
-            </div>
-            <div className="flex-1 overflow-y-auto p-0 flex flex-col">
-              {(() => {
-                const filled = editItems.filter((i) => i.inventory > 0 && i.quantity > 0);
-                if (filled.length === 0) {
-                  return (
-                    <div className="flex-1 flex flex-col items-center justify-center py-20 px-10 text-center gap-4">
-                      <div className="w-12 h-12 rounded-full border-2 border-dashed border-slate-200 flex items-center justify-center">
-                        <svg className="w-6 h-6 text-slate-200" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
-                        </svg>
-                      </div>
-                      <p className="text-[11px] font-bold text-slate-300 uppercase tracking-widest leading-relaxed">Awaiting item registry entries for generation</p>
-                    </div>
-                  );
-                }
-                const sign = editTxType === "Receive" ? "+" : "−";
-                const valCol = editTxType === "Receive" ? "text-green-600" : "text-red-600";
-                const grandTotal = filled.reduce((sum, i) => {
-                  const rec = allEditInventory.find((r) => r.id === i.inventory);
-                  return sum + (rec ? i.quantity * Number.parseFloat(rec.product_details.cost_per_unit) : 0);
-                }, 0);
-                return (
-                  <div className="divide-y divide-black">
-                    <div className="min-h-0 border-b border-black">
-                      <table className="w-full">
-                        <thead className="bg-slate-100/50">
-                          <tr className="border-b border-black">
-                            <th className="px-4 py-2 text-left text-[10px] font-black tracking-widest uppercase text-gray-500">Item Details</th>
-                            <th className="px-4 py-2 text-right text-[10px] font-black tracking-widest uppercase text-gray-500">Valuation</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-black/5 bg-white/40">
-                          {filled.map((i) => {
-                            const rec = allEditInventory.find((r) => r.id === i.inventory);
-                            const lineTotal = rec ? i.quantity * Number.parseFloat(rec.product_details.cost_per_unit) : 0;
-                            return (
-                              <tr key={i.id} className="group/row hover:bg-white transition-colors">
-                                <td className="px-4 py-3">
-                                  <p className="text-[11px] font-black text-gray-900 leading-tight uppercase truncate max-w-35">{rec?.product_details.product_name ?? "—"}</p>
-                                  <div className="flex items-center gap-1.5 mt-0.5">
-                                    <span className="text-[10px] font-bold text-gray-700 tabular-nums">{i.quantity} UNIT{i.quantity === 1 ? "" : "S"}</span>
-                                    <span className="text-[10px] font-bold text-gray-700">/</span>
-                                    <span className="text-[10px] font-bold text-gray-700 truncate">{rec?.site}</span>
-                                  </div>
-                                </td>
-                                <td className="px-4 py-3 text-right align-top">
-                                  <p className={`text-[11px] font-black tabular-nums transition-colors ${valCol}`}>
-                                    {sign}${lineTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                  </p>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                    <div className="p-6 bg-white space-y-4">
-                      <div className="flex items-center justify-between">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Summary Total</p>
-                        <span className="text-[10px] font-black text-gray-900 tabular-nums tracking-widest">${grandTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                      </div>
-                      <div className="pt-4 border-t-2 border-black flex flex-col items-center gap-1">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-1">Grand Value</p>
-                        <div className="flex items-baseline gap-1">
-                          <span className={`text-[12px] font-black ${valCol}`}>{sign}</span>
-                          <p className={`text-3xl font-black tabular-nums tracking-tighter ${valCol}`}>
-                            ${grandTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+            {(() => {
+              const filled = editItems.filter((i) => i.inventory > 0 && i.quantity > 0);
+              if (filled.length === 0) return null;
+              const sign = editTxType === "Receive" ? "+" : "−";
+              const valCol = editTxType === "Receive" ? "text-green-600" : "text-red-600";
+              const grandTotal = filled.reduce((sum, i) => {
+                const rec = allEditInventory.find((r) => r.id === i.inventory);
+                return sum + (rec ? i.quantity * Number.parseFloat(rec.product_details.cost_per_unit) : 0);
+              }, 0);
+              return (
+                <div className="border border-black border-t-0 px-4 py-4 bg-slate-50 flex items-center justify-between">
+                  <div>
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Grand Total</p>
+                    <p className="text-[9px] font-bold text-gray-400 mt-0.5">{filled.length} item{filled.length === 1 ? "" : "s"}</p>
                   </div>
-                );
-              })()}
-            </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className={`text-sm font-black ${valCol}`}>{sign}</span>
+                    <p className={`text-2xl font-black tabular-nums tracking-tighter ${valCol}`}>
+                      ${grandTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
 
@@ -895,3 +879,4 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
     </div>
   );
 };
+
