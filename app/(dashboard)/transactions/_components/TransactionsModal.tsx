@@ -421,7 +421,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
             
             <div className="border border-black overflow-hidden">
               {/* Header */}
-              <div className="flex items-center gap-6 px-3 py-2 bg-slate-50 border-b border-black">
+              <div className="flex items-center gap-3 px-3 py-2 bg-slate-50 border-b border-black">
                 <span className="w-5 shrink-0 text-[12px] font-black text-gray-700  tracking-widest text-center">N0</span>
                 <span className="flex-1 text-[12px] font-black text-gray-700 uppercase tracking-widest">Product</span>
                 <span className="w-24 shrink-0 text-[12px] font-black text-gray-700 uppercase tracking-widest text-left">Quantity</span>
@@ -436,7 +436,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                   const sign = txType === "Receive" ? "+" : "−";
                   const valCol = txType === "Receive" ? "text-green-600" : "text-red-600";
                   return (
-                    <div key={item.id} className="flex items-center gap-6 px-3 py-1 hover:bg-slate-50/60 transition-colors group/item">
+                    <div key={item.id} className="flex items-center gap-3 px-3 py-1 hover:bg-slate-50/60 transition-colors group/item">
                       <span className="w-5 shrink-0 text-[10px] font-black text-gray-700 text-center">{String(idx + 1).padStart(2, "0")}</span>
                       <div className="flex-1 min-w-0">
                         <InventoryPicker
@@ -444,10 +444,9 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                           value={item.inventory}
                           onChange={(id) => updateItem(idx, { inventory: id, quantity: item.quantity || 1 })}
                           excludeIds={selectedInvIds}
-                  
                         />
                       </div>
-                      <div className="w-24 shrink-0 flex items-center gap-1">
+                      <div className="w-24 shrink-0 flex items-center gap-0">
                         <input
                           type="number"
                           min={1}
