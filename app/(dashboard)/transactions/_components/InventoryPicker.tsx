@@ -2,7 +2,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { InventoryRecord } from "@/src/types/inventory.types";
-import { ringStyle } from "../utils/constants";
 
 interface InventoryPickerProps {
   inventory: InventoryRecord[];
@@ -72,25 +71,13 @@ const InventoryPicker: React.FC<InventoryPickerProps> = ({ inventory, value, onC
         ref={inputRef}
         type="text"
         autoComplete="off"
-        placeholder="Search by name or barcode…"
+        placeholder="Search By Name/Barcode"
         value={search}
         onFocus={handleFocus}
         onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
-        className="w-full pl-4 pr-10 py-2 rounded-sm border border-black text-sm bg-gray-50 outline-none focus:ring-2 focus:border-transparent focus:bg-white transition placeholder:text-gray-300 text-gray-900"
-        style={ringStyle}
+        className="w-full text-[12px] pr-8 py-1.5 outline-none transition placeholder:text-gray-500 text-gray-900 text-left"
       />
-      <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-        <svg className="w-5 h-5 text-gray-800" viewBox="0 0 24 24" fill="none">
-          <rect x="2" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
-          <rect x="5" y="4" width="1" height="16" rx="0.5" fill="currentColor" />
-          <rect x="7.5" y="4" width="2" height="16" rx="0.5" fill="currentColor" />
-          <rect x="11" y="4" width="1" height="16" rx="0.5" fill="currentColor" />
-          <rect x="13.5" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
-          <rect x="16.5" y="4" width="1" height="16" rx="0.5" fill="currentColor" />
-          <rect x="19" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
-          <rect x="21.5" y="4" width="1" height="16" rx="0.5" fill="currentColor" />
-        </svg>
-      </div>
+    
       {open && (
         <div
           className="bg-white border border-black rounded-sm shadow-lg overflow-hidden"
