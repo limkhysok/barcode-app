@@ -548,9 +548,9 @@ export default function ProductsClient({
           <div className="flex-1 bg-white p-3 space-y-6">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="inline-block text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5 rounded-none">Accessories</p>
+                <p className="text-[13px] font-black text-gray-700 ">Accessories</p>
                 <p className="text-3xl font-bold text-slate-900 mt-2 leading-none tabular-nums">{categoryStats.accessories.count}</p>
-                <p className="text-xs text-slate-400 mt-1">products</p>
+                <p className="text-xs text-slate-400 mt-1">products </p>
               </div>
               <div className="w-9 h-9 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
                 <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
@@ -577,7 +577,7 @@ export default function ProductsClient({
           <div className="flex-1 bg-white p-3 space-y-6">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="inline-block text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5 rounded-none">Fasteners</p>
+                <p className="text-[13px] font-black text-gray-700 ">Fasteners</p>
                 <p className="text-3xl font-bold text-slate-900 mt-2 leading-none tabular-nums">{categoryStats.fasteners.count}</p>
                 <p className="text-xs text-slate-400 mt-1">products</p>
               </div>
@@ -606,7 +606,7 @@ export default function ProductsClient({
           <div className="flex-1 bg-white p-3 space-y-6">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="inline-block text-[11px] font-semibold tracking-widest uppercase text-white bg-orange-500 px-2 py-0.5 rounded-none">Total Value</p>
+                <p className="text-[13px] font-black text-gray-700 ">Total Value</p>
                 <p className="text-3xl font-bold text-slate-900 mt-2 leading-none tabular-nums">
                   ${categoryStats.totalValue.toFixed(2)}
                 </p>

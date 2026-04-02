@@ -77,8 +77,8 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
         {/* Right — greeting + user avatar dropdown */}
         <div className="flex items-center gap-2.5" ref={dropdownRef}>
           {/* Greeting text */}
-          <p className="hidden sm:block text-xs font-medium text-gray-500">
-            Hello, <span className="font-bold text-gray-900">{displayName}</span>
+          <p className="hidden sm:block text-sm font-light text-gray-600">
+            Hello, <span className="font-light text-gray-900">{displayName}</span>
           </p>
 
           {/* Avatar button */}
