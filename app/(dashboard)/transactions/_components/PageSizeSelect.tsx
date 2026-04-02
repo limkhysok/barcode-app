@@ -48,11 +48,11 @@ const PageSizeSelect: React.FC<PageSizeSelectProps> = ({ value, onChange }) => {
       {open && (
         <ul className="absolute z-200 top-full mt-1 w-full bg-white border border-black rounded-sm shadow-lg overflow-hidden">
           {options.map((o) => (
-            <li key={o.key} className="border-b border-black last:border-b-0">
+            <li key={o.key} >
               <button
                 type="button"
                 onClick={() => { onChange(o.key); setOpen(false); }}
-                className="w-full text-left px-3 py-2.5 text-[11px] font-semibold tracking-wide transition text-slate-700 hover:bg-slate-50 flex items-center justify-between"
+                className="w-full text-left px-3 py-1.5 text-[11px] font-black transition text-gray-800 hover:bg-gray-200 flex items-center justify-between"
               >
                 {o.label}
                 {String(value) === o.key && (
