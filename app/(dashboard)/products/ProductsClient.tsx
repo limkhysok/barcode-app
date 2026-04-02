@@ -154,11 +154,11 @@ function ProductTable({ loading, error, displayed, products, costDir, reorderDir
       {/* Desktop table - hidden on mobile */}
       <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 border-b border-black">
+          <thead className="bg-slate-50 ">
             <tr>
               <th className="px-5 py-3 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">#</th>
               <th className="px-5 py-3 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">Barcode</th>
-              <th className="px-5 py-3 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">Product Name</th>
+              <th className="px-5 py-3 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">Name</th>
               <th className="px-5 py-3 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">Category</th>
               <th className="px-5 py-3 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">
                 <span className="inline-flex items-center gap-1">
@@ -171,7 +171,7 @@ function ProductTable({ loading, error, displayed, products, costDir, reorderDir
               </th>
               <th className="px-5 py-3 text-left text-[11px] font-bold tracking-widest uppercase text-slate-900">
                 <span className="inline-flex items-center gap-1">
-                  {"Reorder Level"}{" "}
+                  {"Reorder"}{" "}
                   <span className="flex flex-col leading-none">
                     <svg className={`w-2.5 h-2.5 ${reorderDir === "asc" ? "text-orange-500" : "text-gray-300"}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l8 8H4z" /></svg>
                     <svg className={`w-2.5 h-2.5 ${reorderDir === "desc" ? "text-orange-500" : "text-gray-300"}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 20l-8-8h16z" /></svg>
@@ -485,148 +485,74 @@ export default function ProductsClient({
           </button>
         </div>
 
-        {/* Category stat cards — mobile: compact summary / desktop: stitched cards */}
-
-        {/* Mobile compact summary */}
-        <div className="sm:hidden rounded-sm border border-black overflow-hidden bg-white">
-          {/* Accent header */}
-          <div className="flex items-center justify-between px-4 py-2.5 border-b border-black" >
-            <p className="text-[11px] font-bold tracking-widest uppercase text-black ">Products Overview</p>
-            <p className="text-sm font-bold text-black tabular-nums">{categoryStats.total} <span className="text-[10px] font-normal opacity-80">items</span></p>
-          </div>
-
-          {/* Category rows */}
-          <div className="divide-y divide-black/10">
-            {/* Accessories */}
-            <div className="px-4 py-3 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold tracking-widest uppercase text-orange-500">Accessories</span>
-                <div className="text-right">
-                  <span className="text-sm font-bold text-slate-900 tabular-nums">{categoryStats.accessories.count}</span>
-                  <span className="text-[10px] text-slate-400 ml-1">units</span>
-                </div>
-              </div>
-              <div className="h-1 w-full rounded-full bg-slate-100 overflow-hidden">
-                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.round((categoryStats.accessories.count / Math.max(categoryStats.total, 1)) * 100)}%`, background: "#FA4900" }} />
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[9px] text-slate-400">{Math.round((categoryStats.accessories.count / Math.max(categoryStats.total, 1)) * 100)}% of total</span>
-                <span className="text-[10px] font-semibold text-slate-600 tabular-nums">${categoryStats.accessories.cost.toFixed(2)}</span>
-              </div>
-            </div>
-
-            {/* Fasteners */}
-            <div className="px-4 py-3 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold tracking-widest uppercase text-slate-500">Fasteners</span>
-                <div className="text-right">
-                  <span className="text-sm font-bold text-slate-900 tabular-nums">{categoryStats.fasteners.count}</span>
-                  <span className="text-[10px] text-slate-400 ml-1">units</span>
-                </div>
-              </div>
-              <div className="h-1 w-full rounded-full bg-slate-100 overflow-hidden">
-                <div className="h-full rounded-full bg-slate-400 transition-all duration-700" style={{ width: `${Math.round((categoryStats.fasteners.count / Math.max(categoryStats.total, 1)) * 100)}%` }} />
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[9px] text-slate-400">{Math.round((categoryStats.fasteners.count / Math.max(categoryStats.total, 1)) * 100)}% of total</span>
-                <span className="text-[10px] font-semibold text-slate-600 tabular-nums">${categoryStats.fasteners.cost.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Total value footer */}
-          <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-t border-black/10">
-            <p className="text-[9px] font-bold tracking-widest uppercase text-slate-400">Total Value</p>
-            <p className="text-sm font-bold text-slate-900 tabular-nums">${categoryStats.totalValue.toFixed(2)}</p>
-          </div>
-        </div>
-
-        {/* Desktop stitched cards */}
-        <div className="hidden sm:flex rounded-sm border border-black overflow-hidden divide-x divide-black">
+        {/* Category stat cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
           {/* Accessories */}
-          <div className="flex-1 bg-white p-3 space-y-6">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[13px] font-black text-gray-700 ">Accessories</p>
-                <p className="text-3xl font-bold text-slate-900 mt-2 leading-none tabular-nums">{categoryStats.accessories.count}</p>
-                <p className="text-xs text-slate-400 mt-1">products </p>
-              </div>
-              <div className="w-9 h-9 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
-                <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+          <div className="px-5 py-4 border border-black bg-white rounded-xl">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.18em]">Accessories</p>
+              <div className="w-7 h-7 rounded-none border border-black bg-slate-50 flex items-center justify-center text-black shrink-0">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
                 </svg>
               </div>
             </div>
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500">Total cost / unit</span>
-                <span className="font-semibold text-slate-900 tabular-nums">${categoryStats.accessories.cost.toFixed(2)}</span>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Count</span>
+                <span className="text-sm font-black text-black tabular-nums">{categoryStats.accessories.count}</span>
               </div>
-              <div className="h-1 w-full rounded-full bg-slate-100 overflow-hidden">
-                <div className="h-full rounded-full bg-black transition-all duration-700"
-                  style={{ width: `${Math.round((categoryStats.accessories.count / Math.max(categoryStats.total, 1)) * 100)}%` }} />
+              <div className="border-t border-dashed border-gray-200" />
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Cost</span>
+                <span className="text-sm font-bold text-black tabular-nums">${categoryStats.accessories.cost.toFixed(2)}</span>
               </div>
-              <p className="text-[11px] text-slate-400 text-right">
-                {Math.round((categoryStats.accessories.count / Math.max(categoryStats.total, 1)) * 100)}% of total
-              </p>
             </div>
           </div>
 
           {/* Fasteners */}
-          <div className="flex-1 bg-white p-3 space-y-6">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[13px] font-black text-gray-700 ">Fasteners</p>
-                <p className="text-3xl font-bold text-slate-900 mt-2 leading-none tabular-nums">{categoryStats.fasteners.count}</p>
-                <p className="text-xs text-slate-400 mt-1">products</p>
-              </div>
-              <div className="w-9 h-9 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
-                <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+          <div className="px-5 py-4 border border-black bg-white rounded-xl">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.18em]">Fasteners</p>
+              <div className="w-7 h-7 rounded-none border border-black bg-slate-50 flex items-center justify-center text-black shrink-0">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 11-3.586-3.586l8.684-7.152c.833-.736.995-1.874.904-2.95a4.5 4.5 0 016.336-4.486l-3.276 3.276a3.004 3.004 0 002.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852z" />
                 </svg>
               </div>
             </div>
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500">Total cost / unit</span>
-                <span className="font-semibold text-slate-900 tabular-nums">${categoryStats.fasteners.cost.toFixed(2)}</span>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Count</span>
+                <span className="text-sm font-black text-black tabular-nums">{categoryStats.fasteners.count}</span>
               </div>
-              <div className="h-1 w-full rounded-full bg-slate-100 overflow-hidden">
-                <div className="h-full rounded-full bg-black transition-all duration-700"
-                  style={{ width: `${Math.round((categoryStats.fasteners.count / Math.max(categoryStats.total, 1)) * 100)}%` }} />
+              <div className="border-t border-dashed border-gray-200" />
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Cost</span>
+                <span className="text-sm font-bold text-black tabular-nums">${categoryStats.fasteners.cost.toFixed(2)}</span>
               </div>
-              <p className="text-[11px] text-slate-400 text-right">
-                {Math.round((categoryStats.fasteners.count / Math.max(categoryStats.total, 1)) * 100)}% of total
-              </p>
             </div>
           </div>
 
           {/* Total Value */}
-          <div className="flex-1 bg-white p-3 space-y-6">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[13px] font-black text-gray-700 ">Total Value</p>
-                <p className="text-3xl font-bold text-slate-900 mt-2 leading-none tabular-nums">
-                  ${categoryStats.totalValue.toFixed(2)}
-                </p>
-                <p className="text-xs text-slate-400 mt-1">combined cost / unit</p>
-              </div>
-              <div className="w-9 h-9 rounded-md border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
-                <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+          <div className="px-5 py-4 border border-black bg-white rounded-xl">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.18em]">Total Value</p>
+              <div className="w-7 h-7 rounded-none border border-black bg-slate-50 flex items-center justify-center text-black shrink-0">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
             </div>
-            <div className="space-y-2 text-xs">
-              <div className="flex items-center justify-between text-slate-500">
-                <span>Accessories</span>
-                <span className="font-semibold text-slate-900 tabular-nums">${categoryStats.accessories.cost.toFixed(2)}</span>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Count</span>
+                <span className="text-sm font-black text-black tabular-nums">{categoryStats.total}</span>
               </div>
-              <div className="h-px w-full bg-slate-100" />
-              <div className="flex items-center justify-between text-slate-500">
-                <span>Fasteners</span>
-                <span className="font-semibold text-slate-900 tabular-nums">${categoryStats.fasteners.cost.toFixed(2)}</span>
+              <div className="border-t border-dashed border-gray-200" />
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Combined Cost</span>
+                <span className="text-sm font-bold text-black tabular-nums">${categoryStats.totalValue.toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -657,7 +583,7 @@ export default function ProductsClient({
             <div className="bg-white rounded-sm">
               <CustomSelect id="sort-reorder" value={reorderDir} onChange={(v) => setReorderDir(v as SortDir)}
                 options={[
-                  { value: "", label: "Reorder Level (sort)" },
+                  { value: "", label: "Reorder (sort)" },
                   { value: "asc", label: "Low → High" },
                   { value: "desc", label: "High → Low" },
                 ]} />
@@ -679,13 +605,13 @@ export default function ProductsClient({
                 ]}
               />
             </div>
-            <div className="flex items-center gap-2 bg-white rounded-sm border border-black px-3 py-2">
+            <div className="flex items-center gap-2 bg-white rounded-md border border-black px-3 py-1">
               <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
               </svg>
               <input id="product-search" name="product-search" type="text" placeholder="Search name, barcode, supplier"
                 value={search} onChange={(e) => setSearch(e.target.value)}
-                className="flex-1 min-w-0 text-xs font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal bg-transparent outline-none" />
+                className="flex-1 min-w-0 text-xs font-black text-slate-900 placeholder:text-slate-700 placeholder:font-normal bg-transparent outline-none" />
               {search && (
                 <button type="button" onClick={() => setSearch("")} aria-label="Clear search" className="text-slate-300 hover:text-black transition shrink-0">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -742,7 +668,7 @@ export default function ProductsClient({
                     ]} />
                 </div>
                 <div className="space-y-1.5">
-                  <p className="text-[10px] font-semibold text-slate-500">Reorder Level (sort)</p>
+                  <p className="text-[10px] font-semibold text-slate-500">Reorder(sort)</p>
                   <CustomSelect id="mob-sort-reorder" value={reorderDir} onChange={(v) => setReorderDir(v as SortDir)}
                     options={[
                       { value: "", label: "Default" },
@@ -799,7 +725,7 @@ export default function ProductsClient({
 
 
         {/* Table */}
-        <div className="rounded-sm border border-black overflow-hidden bg-white ">
+        <div className="rounded-xl border border-black overflow-hidden bg-white ">
           <ProductTable
             loading={loading} error={error}
             displayed={displayed} products={products}
