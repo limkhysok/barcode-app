@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const EXPANDED_W  = 200;
+const EXPANDED_W  = 190;
 const COLLAPSED_W = 50;
 const MOBILE_W    = 280;
 const easing      = "0.3s cubic-bezier(0.4, 0, 0.2, 1)";
@@ -69,16 +69,16 @@ function NavItem({
       title={isCollapsed ? label : undefined}
       className={`
         flex items-center
-        transition-all duration-150 select-none
+        transition-all duration-150 select-none 
         ${active
-          ? "bg-orange-50 text-orange-700"
-          : "text-black hover:bg-slate-50 hover:text-slate-800"
+          ? "bg-gray-100 text-gray-900"
+          : "text-black hover:bg-gray-100 hover:text-gray-700"
         }
       `}
       style={{
         padding: isCollapsed ? "9px 0" : "9px 30px",
         justifyContent: isCollapsed ? "center" : "flex-start",
-        gap: isCollapsed ? 0 : 10,
+        gap: isCollapsed ? 0 : 12,
         transition: `padding ${easing}, gap ${easing}`,
       }}
     >
@@ -87,7 +87,7 @@ function NavItem({
 
       {/* Label — animated collapse */}
       <span
-        className="text-xs font-bold uppercase tracking-wide"
+        className="text-[13px] font-black"
         style={{
           maxWidth: isCollapsed ? 0 : 160,
           opacity: isCollapsed ? 0 : 1,
@@ -113,7 +113,7 @@ function SidebarContent({
 
       {/* ── Brand — mobile only (desktop navbar already shows brand) ── */}
       <div
-        className="md:hidden flex items-center shrink-0 h-14 border-b border-slate-100"
+        className="md:hidden flex items-center shrink-0 h-14 border-b border-gray-100"
         style={{
           padding: isCollapsed ? "0 10px" : "0 30px",
           gap: isCollapsed ? 0 : 10,
@@ -147,7 +147,7 @@ function SidebarContent({
 
           {/* Group label */}
           <p
-            className="text-[10px] font-semibold tracking-widest uppercase text-slate-400 mb-2"
+            className="text-[13px] font-semibold  text-slate-400 mb-2"
             style={{
               padding: isCollapsed ? "0 4px" : "0 30px",
               maxWidth: isCollapsed ? 0 : 200,
@@ -194,7 +194,7 @@ function SidebarContent({
 
           {/* Company name */}
           <span
-            className="text-[10px] font-bold uppercase text-black leading-snug"
+            className="text-[10px] font-light  text-black "
             style={{
               maxWidth: isCollapsed ? 0 : 180,
               opacity: isCollapsed ? 0 : 1,
@@ -203,7 +203,7 @@ function SidebarContent({
               transition: `max-width ${easing}, opacity ${easing}`,
             }}
           >
-            CTK SPARE PARTS CO., LTD.
+            CTK SPARE PARTS CO., LTD
           </span>
         </div>
       </div>
@@ -224,7 +224,7 @@ function CollapseToggle({
       onClick={onToggleCollapse}
       aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       className="
-        absolute top-4 -right-3 z-30 hidden md:flex
+        absolute top-2 -right-3 z-30 hidden md:flex
         items-center justify-center w-6 h-6 rounded-full
         bg-white border border-black 
         text-black hover:text-slate-700 hover:border-black 

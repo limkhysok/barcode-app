@@ -467,7 +467,7 @@ export default function ProductsClient({
   const saveLabel = getSaveLabel(saving, editing);
 
   return (
-    <div className="px-4 py-4 sm:px-8 sm:py-8 space-y-6">
+    <div className="px-4 py-5 sm:px-5 sm:py-5 space-y-4">
 
         {/* Header */}
         <div className="flex items-center justify-between">
