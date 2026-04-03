@@ -424,8 +424,8 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
               <div className="flex items-center gap-1 sm:gap-3 px-2 py-2 bg-slate-50 border-b border-black">
                 <span className="hidden sm:inline-block w-5 shrink-0 text-[12px] font-black text-gray-700 text-center">N0</span>
                 <span className="flex-1 sm:w-64 sm:shrink-0 text-[12px] font-black text-gray-700">Product</span>
-                <span className="flex-1 min-w-0 text-[12px] font-black text-gray-700 text-right">Total</span>
-                <span className="w-16 sm:w-24 shrink-0 text-[12px] font-black text-gray-700 text-right sm:pr-2">Quantity</span>
+                <span className="flex-1 min-w-0 text-[12px] font-black text-gray-700 text-left">Total</span>
+                <span className="w-16 sm:w-24 shrink-0 text-[12px] font-black text-gray-700 text-left sm:pr-2">Quantity</span>
                 <span className="w-5 shrink-0" />
               </div>
               {/* Rows */}
@@ -452,7 +452,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                           </div>
                         )}
                       </div>
-                      <div className="flex-1 min-w-0 text-right">
+                      <div className="flex-1 min-w-0 text-left">
                         {lineTotal === null ? null : (
                           <p className={`text-[11px] font-black tabular-nums ${valCol}`}>
                             {sign}${lineTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -467,7 +467,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                             placeholder="1"
                             value={item.quantity || ""}
                             onChange={(e) => updateItem(idx, { quantity: Math.abs(Number.parseInt(e.target.value) || 0) })}
-                            className="w-full bg-transparent outline-none text-[10px] font-black tabular-nums text-right placeholder:text-gray-300"
+                            className="w-full bg-transparent outline-none text-[10px] font-black tabular-nums text-left placeholder:text-gray-300"
                           />
                         </div>
                       </div>
@@ -532,14 +532,14 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
           )}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <button type="button" onClick={onClose}
-              className="py-2.5 rounded-sm text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition shadow-sm">
+              className="py-1.5 rounded-md text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition shadow-sm">
               Cancel
             </button>
             <button
               type="button"
               onClick={(e) => handleSubmit(e, false)}
               disabled={saving}
-              className="py-2 rounded-sm text-[11px] bg-orange-600 font-black tracking-widest uppercase text-white active:scale-[0.98] transition disabled:opacity-60 shadow-md transform hover:-translate-y-0.5"
+              className="py-1.5 rounded-md text-[11px] bg-orange-600 font-black tracking-widest uppercase text-white active:scale-[0.98] transition disabled:opacity-60 shadow-md transform hover:-translate-y-0.5"
 
             >
               {saving ? "Saving..." : "Save"}
@@ -548,7 +548,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
               type="button"
               disabled={saving}
               onClick={(e) => handleSubmit(e, true)}
-              className="py-2 rounded-sm text-[11px] font-black tracking-widest uppercase text-white bg-orange-500 active:scale-[0.98] transition disabled:opacity-60 whitespace-nowrap shadow-md transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+              className="py-1.5 rounded-md text-[11px] font-black tracking-widest uppercase text-white bg-orange-500 active:scale-[0.98] transition disabled:opacity-60 whitespace-nowrap shadow-md transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
             >
               <span>{saving ? "Processing..." : "Save & Print"}</span>
             </button>
