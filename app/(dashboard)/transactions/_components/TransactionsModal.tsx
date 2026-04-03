@@ -5,14 +5,14 @@ import type { Transaction, TransactionPayload } from "@/src/types/transaction.ty
 import type { InventoryRecord } from "@/src/types/inventory.types";
 function formatDateTime(ts: string): string {
   const d = new Date(ts);
-  const day   = String(d.getDate()).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
   const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year  = d.getFullYear();
-  const h24   = d.getHours();
-  const mins  = d.getMinutes();
-  const ampm  = h24 >= 12 ? "PM" : "AM";
-  const h12   = h24 % 12 || 12;
-  const time  = mins === 0 ? `${h12}${ampm}` : `${h12}:${String(mins).padStart(2, "0")}${ampm}`;
+  const year = d.getFullYear();
+  const h24 = d.getHours();
+  const mins = d.getMinutes();
+  const ampm = h24 >= 12 ? "PM" : "AM";
+  const h12 = h24 % 12 || 12;
+  const time = mins === 0 ? `${h12}${ampm}` : `${h12}:${String(mins).padStart(2, "0")}${ampm}`;
   return `${day}/${month}/${year} ${time}`;
 }
 
@@ -22,7 +22,7 @@ function fmtValue(v: string, sign: string) {
 
 const TYPE_CONFIG: Record<string, { label: string; bg: string; text: string; dot: string }> = {
   Receive: { label: "Receive", bg: "bg-green-50", text: "text-green-600", dot: "bg-green-500" },
-  Sale:    { label: "Sale",    bg: "bg-red-50",   text: "text-red-600",   dot: "bg-red-500"   },
+  Sale: { label: "Sale", bg: "bg-red-50", text: "text-red-600", dot: "bg-red-500" },
 };
 
 type ItemDraft = { id: number; inventory: number; quantity: number };
@@ -99,29 +99,29 @@ export const ViewTransactionModal: React.FC<ViewModalProps> = ({ viewTarget, onC
               </span>
             </div>
             <div className="border border-black overflow-hidden">
-              <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-b border-black">
-                <span className="w-5 shrink-0 text-[10px] font-black text-gray-700 tracking-widest text-center">N0</span>
-                <span className="flex-1 text-[10px] font-black text-gray-700 uppercase tracking-widest">Product</span>
-                <span className="w-24 shrink-0 text-[10px] font-black text-gray-700 uppercase tracking-widest text-center">Quantity</span>
-                <span className="w-20 shrink-0 text-[10px] font-black text-gray-700 uppercase tracking-widest text-right">Total</span>
+              <div className="flex items-center gap-1 sm:gap-2 px-3 py-2 bg-slate-50 border-b border-black">
+                <span className="hidden sm:inline-block w-5 shrink-0 text-[10px] font-black text-gray-700 tracking-widest text-center">N0</span>
+                <span className="flex-1 sm:w-64 sm:shrink-0 text-[10px] font-black text-gray-700 uppercase tracking-widest text-left">Product</span>
+                <span className="flex-1 min-w-0 text-[10px] font-black text-gray-700 uppercase tracking-widest text-right">Total</span>
+                <span className="w-16 sm:w-24 shrink-0 text-[10px] font-black text-gray-700 uppercase tracking-widest text-right">Quantity</span>
               </div>
               <div className="divide-y divide-black/10">
                 {viewTarget.items.map((item, idx) => {
                   const lineTotal = Number.parseFloat(item.line_total);
                   return (
-                    <div key={item.id} className="flex items-center gap-2 px-3 py-2.5 hover:bg-slate-50/60 transition-colors">
-                      <span className="w-5 shrink-0 text-[10px] font-black text-gray-300 text-center">{String(idx + 1).padStart(2, "0")}</span>
-                      <div className="flex-1 min-w-0">
+                    <div key={item.id} className="flex items-center gap-1 sm:gap-2 px-3 py-2.5 hover:bg-slate-50/60 transition-colors">
+                      <span className="hidden sm:inline-block w-5 shrink-0 text-[10px] font-black text-gray-300 text-center">{String(idx + 1).padStart(2, "0")}</span>
+                      <div className="flex-1 sm:w-64 sm:shrink-0 min-w-0">
                         <p className="text-sm font-semibold text-gray-900 truncate">{item.product_name}</p>
                         <p className="text-[10px] text-gray-400 font-medium">${Number.parseFloat(item.cost_per_unit).toFixed(2)} ea</p>
                       </div>
-                      <div className="w-24 shrink-0 text-center">
-                        <span className="text-sm font-black text-gray-900 tabular-nums">{Math.abs(item.quantity)}</span>
-                      </div>
-                      <div className="w-20 shrink-0 text-right">
+                      <div className="flex-1 min-w-0 text-right">
                         <p className={`text-[11px] font-black tabular-nums ${valCol}`}>
                           {sign}${lineTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
+                      </div>
+                      <div className="w-16 sm:w-24 shrink-0 text-right">
+                        <span className="text-sm font-black text-gray-900 tabular-nums">{Math.abs(item.quantity)}</span>
                       </div>
                     </div>
                   );
@@ -267,7 +267,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
 
     try {
       const scanRes = await scanBarcode(q);
-      
+
       if (!scanRes.found || !scanRes.inventory.length) {
         setScanFeedback({ ok: false, msg: scanRes.detail || `"${q}" not found in inventory.` });
         return;
@@ -280,11 +280,11 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
       // Ensure we have the full record info for this ID locally
       const existsInProp = inventory.some(r => r.id === invId);
       const existsInExtra = extraRecords.some(r => r.id === invId);
-      
+
       if (!existsInProp && !existsInExtra) {
         setExtraRecords(prev => [...prev, targetRecord]);
       }
-      
+
       setItems((prev) => {
         const currentItems = [...prev];
         const existingIdx = currentItems.findIndex((i) => i.inventory === invId);
@@ -342,7 +342,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
             </div>
             <div>
               <h2 className="text-base font-black text-gray-900 uppercase tracking-tight">New Transaction</h2>
-              
+
             </div>
           </div>
           <button onClick={onClose}
@@ -396,7 +396,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                     if (value !== "") handleScanBarcodeWithValue(value);
                   }
                 }}
-                className="w-full pl-9 pr-12 py-2 rounded-sm border-2 border-black text-[12px] bg-white text-black outline-none focus:border-[#FA4900] transition-all placeholder:text-gray-300 font-mono tracking-widest uppercase"
+                className="w-full pl-9 pr-12 py-1.5 rounded-md border-2 border-black text-[12px] bg-white text-black outline-none focus:border-[#FA4900] transition-all placeholder:text-gray-300 font-mono tracking-widest uppercase"
               />
               <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
                 <svg className="w-5 h-5 text-gray-800" viewBox="0 0 24 24" fill="none">
@@ -418,14 +418,14 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
 
           {/* Merged Item Registry + Receipt */}
           <div>
-            
+
             <div className="border border-black overflow-hidden">
               {/* Header */}
-              <div className="flex items-center gap-3 px-3 py-2 bg-slate-50 border-b border-black">
-                <span className="w-5 shrink-0 text-[12px] font-black text-gray-700  tracking-widest text-center">N0</span>
-                <span className="flex-1 text-[12px] font-black text-gray-700 uppercase tracking-widest">Product</span>
-                <span className="w-24 shrink-0 text-[12px] font-black text-gray-700 uppercase tracking-widest text-left">Quantity</span>
-                <span className="w-20 shrink-0 text-[12px] font-black text-gray-700 uppercase tracking-widest text-right">Total</span>
+              <div className="flex items-center gap-1 sm:gap-3 px-2 py-2 bg-slate-50 border-b border-black">
+                <span className="hidden sm:inline-block w-5 shrink-0 text-[12px] font-black text-gray-700 text-center">N0</span>
+                <span className="flex-1 sm:w-64 sm:shrink-0 text-[12px] font-black text-gray-700">Product</span>
+                <span className="flex-1 min-w-0 text-[12px] font-black text-gray-700 text-right">Total</span>
+                <span className="w-16 sm:w-24 shrink-0 text-[12px] font-black text-gray-700 text-right sm:pr-2">Quantity</span>
                 <span className="w-5 shrink-0" />
               </div>
               {/* Rows */}
@@ -436,41 +436,45 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                   const sign = txType === "Receive" ? "+" : "−";
                   const valCol = txType === "Receive" ? "text-green-600" : "text-red-600";
                   return (
-                    <div key={item.id} className="flex items-center gap-3 px-3 py-1 hover:bg-slate-50/60 transition-colors group/item">
-                      <span className="w-5 shrink-0 text-[10px] font-black text-gray-700 text-center">{String(idx + 1).padStart(2, "0")}</span>
-                      <div className="flex-1 min-w-0">
+                    <div key={item.id} className="flex items-center gap-2 sm:gap-3 px-2 py-1.5 hover:bg-slate-50/60 transition-colors group/item">
+                      <span className="hidden sm:inline-block w-5 shrink-0 text-[10px] font-black text-gray-700 text-center">{String(idx + 1).padStart(2, "0")}</span>
+                      <div className="flex-1 sm:w-64 sm:shrink-0 min-w-0">
                         <InventoryPicker
                           inventory={allInventory}
                           value={item.inventory}
                           onChange={(id) => updateItem(idx, { inventory: id, quantity: item.quantity || 1 })}
                           excludeIds={selectedInvIds}
                         />
-                      </div>
-                      <div className="w-24 shrink-0 flex items-center gap-0">
-                        <input
-                          type="number"
-                          min={1}
-                          placeholder="1"
-                          value={item.quantity || ""}
-                          onChange={(e) => updateItem(idx, { quantity: Math.abs(Number.parseInt(e.target.value) || 0) })}
-                          className="w-12 py-1 rounded-sm text-[12px] outline-none transition text-left font-black cursor-pointer border border-transparent bg-transparent "
-                        />
                         {rec && (
-                          <span className="text-[11px] font-bold text-gray-700 tabular-nums shrink-0">/ {rec.quantity_on_hand}</span>
+                          <div className="flex items-center gap-1 mt-0.5 ml-1 select-none">
+                            <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">Stock</span>
+                            <span className="text-[10px] font-black text-[#FA4900] tabular-nums">{rec.quantity_on_hand}</span>
+                          </div>
                         )}
                       </div>
-                      <div className="w-20 shrink-0 text-right">
+                      <div className="flex-1 min-w-0 text-right">
                         {lineTotal === null ? null : (
                           <p className={`text-[11px] font-black tabular-nums ${valCol}`}>
                             {sign}${lineTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </p>
                         )}
                       </div>
+                      <div className="w-13 sm:w-24 shrink-0">
+                        <div className="flex items-center justify-between gap-1 px-2 py-1 rounded-sm border-2 border-transparent hover:border-black/10 focus-within:border-black bg-slate-50 focus-within:bg-white transition-all group/qty">
+                          <input
+                            type="number"
+                            min={1}
+                            placeholder="1"
+                            value={item.quantity || ""}
+                            onChange={(e) => updateItem(idx, { quantity: Math.abs(Number.parseInt(e.target.value) || 0) })}
+                            className="w-full bg-transparent outline-none text-[10px] font-black tabular-nums text-right placeholder:text-gray-300"
+                          />
+                        </div>
+                      </div>
                       <button
                         type="button"
                         onClick={() => removeItem(idx)}
-                        disabled={items.length === 1}
-                        className="w-5 shrink-0 p-1 rounded-sm text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all disabled:opacity-0 active:scale-95"
+                        className="w-5 shrink-0 p-1 rounded-sm text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all active:scale-95"
                       >
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -501,7 +505,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                 return sum + (rec ? i.quantity * Number.parseFloat(rec.product_details.cost_per_unit) : 0);
               }, 0);
               return (
-                <div className="border border-black border-t-0 px-5 py-4 bg-slate-50 flex items-center justify-between">
+                <div className="border border-black border-t-0 px-5 py-2 bg-slate-50 flex items-center justify-between">
                   <div>
                     <p className="text-[11px] font-bold text-gray-700 mt-0.5 uppercase">Total {filled.length} item{filled.length === 1 ? "" : "s"}</p>
                   </div>
@@ -536,7 +540,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
               onClick={(e) => handleSubmit(e, false)}
               disabled={saving}
               className="py-2 rounded-sm text-[11px] bg-orange-600 font-black tracking-widest uppercase text-white active:scale-[0.98] transition disabled:opacity-60 shadow-md transform hover:-translate-y-0.5"
-              
+
             >
               {saving ? "Saving..." : "Save"}
             </button>
@@ -617,7 +621,7 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
     setScanInput("");
     try {
       const scanRes = await scanBarcode(q);
-      
+
       if (!scanRes.found || !scanRes.inventory.length) {
         setScanFeedback({ ok: false, msg: scanRes.detail || `"${q}" not found in inventory.` });
         return;
@@ -628,7 +632,7 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
 
       const existsInProp = inventory.some(r => r.id === invId);
       const existsInExtra = extraRecords.some(r => r.id === invId);
-      
+
       if (!existsInProp && !existsInExtra) {
         setExtraRecords(prev => [...prev, targetRecord]);
       }
@@ -778,11 +782,11 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
               </span>
             </div>
             <div className="border border-black overflow-hidden">
-              <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-b border-black">
-                <span className="w-5 shrink-0 text-[10px] font-black text-gray-700 tracking-widest text-center">N0</span>
-                <span className="flex-1 text-[10px] font-black text-gray-700 uppercase tracking-widest">Product</span>
-                <span className="w-24 shrink-0 text-[10px] font-black text-gray-700 uppercase tracking-widest text-center">Quantity</span>
-                <span className="w-20 shrink-0 text-[10px] font-black text-gray-700 uppercase tracking-widest text-right">Total</span>
+              <div className="flex items-center gap-1 sm:gap-2 px-3 py-2 bg-slate-50 border-b border-black">
+                <span className="hidden sm:inline-block w-5 shrink-0 text-[10px] font-black text-gray-700 tracking-widest text-center">N0</span>
+                <span className="flex-1 sm:w-64 sm:shrink-0 text-[10px] font-black text-gray-700 uppercase tracking-widest">Product</span>
+                <span className="flex-1 min-w-0 text-[10px] font-black text-gray-700 uppercase tracking-widest text-right">Total</span>
+                <span className="w-16 sm:w-24 shrink-0 text-[10px] font-black text-gray-700 uppercase tracking-widest text-right">Quantity</span>
                 <span className="w-5 shrink-0" />
               </div>
               <div className="divide-y divide-black/10">
@@ -792,41 +796,45 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
                   const sign = editTxType === "Receive" ? "+" : "−";
                   const valCol = editTxType === "Receive" ? "text-green-600" : "text-red-600";
                   return (
-                    <div key={item.id} className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50/60 transition-colors group/item">
-                      <span className="w-5 shrink-0 text-[10px] font-black text-gray-300 text-center">{String(idx + 1).padStart(2, "0")}</span>
-                      <div className="flex-1 min-w-0">
+                    <div key={item.id} className="flex items-center gap-1 sm:gap-2 px-3 py-2 hover:bg-slate-50/60 transition-colors group/item">
+                      <span className="hidden sm:inline-block w-5 shrink-0 text-[10px] font-black text-gray-300 text-center">{String(idx + 1).padStart(2, "0")}</span>
+                      <div className="flex-1 sm:w-64 sm:shrink-0 min-w-0">
                         <InventoryPicker
                           inventory={allEditInventory}
                           value={item.inventory}
                           onChange={(id) => updateEditItem(idx, { inventory: id, quantity: item.quantity || 1 })}
                           excludeIds={editSelectedInvIds}
                         />
-                      </div>
-                      <div className="w-24 shrink-0 flex items-center gap-1">
-                        <input
-                          type="number"
-                          min={1}
-                          placeholder="1"
-                          value={item.quantity || ""}
-                          onChange={(e) => updateEditItem(idx, { quantity: Math.abs(Number.parseInt(e.target.value) || 0) })}
-                          className="w-10 py-1 rounded-sm text-sm outline-none transition text-right font-black cursor-pointer border border-transparent bg-transparent focus:border-black focus:bg-white focus:px-2 focus:cursor-text focus:ring-1 focus:ring-black"
-                        />
                         {rec && (
-                          <span className="text-[10px] font-bold text-gray-400 tabular-nums shrink-0">/{rec.quantity_on_hand}</span>
+                          <div className="flex items-center gap-1 mt-0.5 ml-1 select-none">
+                            <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">Stock</span>
+                            <span className="text-[10px] font-black text-[#FA4900] tabular-nums">{rec.quantity_on_hand}</span>
+                          </div>
                         )}
                       </div>
-                      <div className="w-20 shrink-0 text-right">
+                      <div className="flex-1 min-w-0 text-right">
                         {lineTotal === null ? null : (
                           <p className={`text-[11px] font-black tabular-nums ${valCol}`}>
                             {sign}${lineTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </p>
                         )}
                       </div>
+                      <div className="w-16 sm:w-24 shrink-0">
+                        <div className="flex items-center justify-between gap-1 px-2 py-1.5 rounded-sm border-2 border-transparent hover:border-black/10 focus-within:border-[#FA4900] bg-slate-50 focus-within:bg-white transition-all group/qty">
+                          <input
+                            type="number"
+                            min={1}
+                            placeholder="1"
+                            value={item.quantity || ""}
+                            onChange={(e) => updateEditItem(idx, { quantity: Math.abs(Number.parseInt(e.target.value) || 0) })}
+                            className="w-full bg-transparent outline-none text-[10px] font-black tabular-nums text-right placeholder:text-gray-300"
+                          />
+                        </div>
+                      </div>
                       <button
                         type="button"
                         onClick={() => removeEditItem(idx)}
-                        disabled={editItems.length === 1}
-                        className="w-5 shrink-0 p-1 rounded-sm text-gray-200 hover:text-red-600 hover:bg-red-50 transition-all disabled:opacity-0 active:scale-95"
+                        className="w-5 shrink-0 p-1 rounded-sm text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all active:scale-95"
                       >
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
