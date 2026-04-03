@@ -85,7 +85,7 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
           <div className="relative">
             <button
               onClick={() => setOpen((v) => !v)}
-              className="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-2 ring-transparent hover:ring-orange-300 transition"
+              className="w-6 h-6 rounded-full overflow-hidden shrink-0 ring-2 ring-transparent hover:ring-orange-300 transition"
               aria-label="User menu"
             >
               <Image src="/albert-einstein.png" alt="Avatar" width={32} height={32} className="w-full h-full object-cover" />
@@ -93,33 +93,48 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
 
             {/* Dropdown */}
             {open && (
-              <div className="absolute right-0 mt-2 w-38 bg-white rounded-sm border border-gray-800 shadow-xl overflow-hidden z-50">
-                {/* Profile */}
-                <div className="py-0">
+              <div className="absolute right-0 mt-3 w-42 bg-white border-1 border-gray-400 overflow-hidden z-50 rounded-md">
+                {/* User Info Header */}
+                <div className="px-3 py-2 bg-slate-50 border-b-1 border-gray-400 flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full overflow-hidden border-2 border-black shrink-0">
+                    <Image src="/albert-einstein.png" alt="Avatar" width={32} height={32} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[12px] font-black text-gray-900 truncate">@{displayName}</p>
+
+                  </div>
+                </div>
+
+                {/* Profile Link */}
+                <div >
                   <Link
                     href="/profile"
                     onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition"
+                    className="flex items-center gap-2 px-2 py-1 rounded-sm text-gray-600 hover:bg-slate-100 hover:text-black transition-all group"
                   >
-                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round"
-                        d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                    </svg>
-                    <span className="text-xs font-medium">Profile</span>
+                    <div className="w-7 h-7 rounded-sm flex items-center justify-center bg-slate-50 group-hover:bg-white border border-transparent group-hover:border-black/10 transition-all">
+                      <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round"
+                          d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                      </svg>
+                    </div>
+                    <span className="text-[12px] font-black ">My Profile</span>
                   </Link>
                 </div>
 
-                {/* Logout */}
-                <div className="border-t border-gray-100 py-0">
+                {/* Logout Button */}
+                <div className="border-t-1 border-gray-200">
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-red-500 hover:bg-red-50 transition"
+                    className="w-full flex items-center gap-2 px-2 py-1 rounded-sm text-red-500 hover:bg-red-50 transition-all group"
                   >
-                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round"
-                        d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                    </svg>
-                    <span className="text-xs font-bold">Logout</span>
+                    <div className="w-7 h-7 rounded-sm flex items-center justify-center bg-red-50 group-hover:bg-white border border-transparent group-hover:border-red-100 transition-all">
+                      <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round"
+                          d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                      </svg>
+                    </div>
+                    <span className="text-[12px] font-black">Log Out</span>
                   </button>
                 </div>
               </div>

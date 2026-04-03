@@ -530,7 +530,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
               {formError}
             </p>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <button type="button" onClick={onClose}
               className="py-1.5 rounded-md text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition shadow-sm">
               Cancel

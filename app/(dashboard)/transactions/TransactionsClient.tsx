@@ -302,13 +302,13 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
               className="bg-white border border-black rounded-sm shadow-2xl py-0 w-20 overflow-hidden"
             >
               <button type="button" onClick={() => { setViewTarget(t); setMenuOpenId(null); }}
-                className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest  text-gray-700 hover:bg-slate-50 transition">View</button>
+                className="w-full text-left px-4 py-2 text-[12px] font-black text-gray-700 hover:bg-slate-50 transition">View</button>
               <button type="button" onClick={() => { setEditTarget(t); setMenuOpenId(null); }}
-                className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest  text-gray-700 hover:bg-slate-50 transition">Edit</button>
+                className="w-full text-left px-4 py-2 text-[12px] font-black text-gray-700 hover:bg-slate-50 transition">Edit</button>
               <button type="button" onClick={() => { handlePrint(t); setMenuOpenId(null); }}
-                className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest  text-gray-700 hover:bg-slate-50 transition">Print</button>
+                className="w-full text-left px-4 py-2 text-[12px] font-black text-gray-700 hover:bg-slate-50 transition">Print</button>
               <button type="button" onClick={() => { setDeleteTarget(t); setMenuOpenId(null); }}
-                className="w-full text-left px-4 py-2 text-xs font-bold tracking-widest  text-red-500 hover:bg-red-50 transition">Delete</button>
+                className="w-full text-left px-4 py-2 text-[12px] font-black text-red-500 hover:bg-red-50 transition">Delete</button>
             </div>
           </>
         );

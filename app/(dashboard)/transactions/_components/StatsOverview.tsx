@@ -28,7 +28,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
               </svg>
             </div>
             <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider text-center">Receive</p>
-            <span className="text-[13px] font-black text-black tabular-nums">+${fmt(receiveVal)}</span>
+            <span className="text-[13px] font-black text-black tabular-nums">+{receiveCount}</span>
           </div>
           <div className="flex-1 flex flex-col items-center gap-1.5 px-3 py-3">
             <div className="w-6 h-6 bg-black rounded-md flex items-center justify-center shrink-0">
@@ -37,7 +37,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
               </svg>
             </div>
             <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider text-center">Sale</p>
-            <span className="text-[13px] font-black text-black tabular-nums">-${fmt(saleVal)}</span>
+            <span className="text-[13px] font-black text-black tabular-nums">-{saleCount}</span>
           </div>
           <div className="flex-1 flex flex-col items-center gap-1.5 px-3 py-3">
             <div className="w-6 h-6 bg-black rounded-md flex items-center justify-center shrink-0">
