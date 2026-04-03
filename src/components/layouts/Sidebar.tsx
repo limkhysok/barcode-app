@@ -3,17 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const EXPANDED_W  = 190;
+const EXPANDED_W = 180;
 const COLLAPSED_W = 50;
-const MOBILE_W    = 280;
-const easing      = "0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+const MOBILE_W = 200;
+const easing = "0.3s cubic-bezier(0.4, 0, 0.2, 1)";
 
 const navItems = [
   {
     label: "Transactions",
     href: "/transactions",
     icon: (
-      <svg className="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round"
           d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
       </svg>
@@ -23,7 +23,7 @@ const navItems = [
     label: "Products",
     href: "/products",
     icon: (
-      <svg className="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round"
           d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
       </svg>
@@ -33,7 +33,7 @@ const navItems = [
     label: "Inventory",
     href: "/inventory",
     icon: (
-      <svg className="w-4.5 h-4.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round"
           d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 2.625c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125m16.5 2.625c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
       </svg>
@@ -60,7 +60,7 @@ function NavItem({
   onClick?: () => void;
 }>) {
   const pathname = usePathname();
-  const active   = pathname === href;
+  const active = pathname === href;
 
   return (
     <Link
@@ -78,7 +78,7 @@ function NavItem({
       style={{
         padding: isCollapsed ? "9px 0" : "9px 30px",
         justifyContent: isCollapsed ? "center" : "flex-start",
-        gap: isCollapsed ? 0 : 12,
+        gap: isCollapsed ? 0 : 10,
         transition: `padding ${easing}, gap ${easing}`,
       }}
     >
@@ -122,9 +122,9 @@ function SidebarContent({
         }}
       >
         {/* Logo mark */}
-       
-          
-       
+
+
+
 
         {/* Brand text */}
         <div

@@ -507,7 +507,7 @@ export default function ProductsClient({
       <div className="sm:hidden border border-black bg-white rounded-xl overflow-hidden">
         <div className="flex divide-x divide-black/10">
           <div className="flex-1 flex flex-col items-center gap-1.5 px-2 py-3">
-            <div className="w-5 h-5 bg-black rounded-md flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 bg-black rounded-md flex items-center justify-center shrink-0">
               <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
               </svg>
@@ -516,7 +516,7 @@ export default function ProductsClient({
             <span className="text-xs font-black text-black tabular-nums">{categoryStats.accessories.count}</span>
           </div>
           <div className="flex-1 flex flex-col items-center gap-1.5 px-2 py-3">
-            <div className="w-5 h-5 bg-black rounded-md flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 bg-black rounded-md flex items-center justify-center shrink-0">
               <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 11-3.586-3.586l8.684-7.152c.833-.736.995-1.874.904-2.95a4.5 4.5 0 016.336-4.486l-3.276 3.276a3.004 3.004 0 002.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852z" />
               </svg>
@@ -525,7 +525,7 @@ export default function ProductsClient({
             <span className="text-xs font-black text-black tabular-nums">{categoryStats.fasteners.count}</span>
           </div>
           <div className="flex-1 flex flex-col items-center gap-1.5 px-2 py-3">
-            <div className="w-5 h-5 bg-black rounded-md flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 bg-black rounded-md flex items-center justify-center shrink-0">
               <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -542,8 +542,8 @@ export default function ProductsClient({
         {/* Accessories */}
         <div className="px-5 py-4 border border-black bg-white rounded-xl">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.18em]">Accessories</p>
-            <div className="w-7 h-7 bg-black flex items-center justify-center shrink-0 rounded-lg">
+            <p className="text-[13px] font-black text-gray-700">Accessories</p>
+            <div className="w-10 h-10 bg-black flex items-center justify-center shrink-0 rounded-lg">
               <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
               </svg>
@@ -551,12 +551,12 @@ export default function ProductsClient({
           </div>
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Count</span>
+              <span className="text-[12px] font-light text-gray-600">Total Count</span>
               <span className="text-sm font-black text-black tabular-nums">{categoryStats.accessories.count}</span>
             </div>
             <div className="border-t border-dashed border-gray-200" />
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Cost</span>
+              <span className="text-[12px] font-light text-gray-600">Total Cost</span>
               <span className="text-sm font-bold text-black tabular-nums">${categoryStats.accessories.cost.toFixed(2)}</span>
             </div>
           </div>
@@ -565,8 +565,8 @@ export default function ProductsClient({
         {/* Fasteners */}
         <div className="px-5 py-4 border border-black bg-white rounded-xl">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.18em]">Fasteners</p>
-            <div className="w-7 h-7 bg-black flex items-center justify-center shrink-0 rounded-lg">
+            <p className="text-[13px] font-black text-gray-700">Fasteners</p>
+            <div className="w-10 h-10 bg-black flex items-center justify-center shrink-0 rounded-lg">
               <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 11-3.586-3.586l8.684-7.152c.833-.736.995-1.874.904-2.95a4.5 4.5 0 016.336-4.486l-3.276 3.276a3.004 3.004 0 002.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852z" />
               </svg>
@@ -574,12 +574,12 @@ export default function ProductsClient({
           </div>
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Count</span>
+              <span className="text-[12px] font-light text-gray-600">Total Count</span>
               <span className="text-sm font-black text-black tabular-nums">{categoryStats.fasteners.count}</span>
             </div>
             <div className="border-t border-dashed border-gray-200" />
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Cost</span>
+              <span className="text-[12px] font-light text-gray-600">Total Cost</span>
               <span className="text-sm font-bold text-black tabular-nums">${categoryStats.fasteners.cost.toFixed(2)}</span>
             </div>
           </div>
@@ -588,8 +588,8 @@ export default function ProductsClient({
         {/* Total Value */}
         <div className="px-5 py-4 border border-black bg-white rounded-xl">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.18em]">Total Value</p>
-            <div className="w-7 h-7 bg-black flex items-center justify-center shrink-0 rounded-lg">
+            <p className="text-[13px] font-black text-gray-700">Total Value</p>
+            <div className="w-10 h-10 bg-black flex items-center justify-center shrink-0 rounded-lg">
               <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -597,12 +597,12 @@ export default function ProductsClient({
           </div>
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Count</span>
+              <span className="text-[12px] font-light text-gray-600">Total Count</span>
               <span className="text-sm font-black text-black tabular-nums">{categoryStats.total}</span>
             </div>
             <div className="border-t border-dashed border-gray-200" />
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Combined Cost</span>
+              <span className="text-[12px] font-light text-gray-600">Combined Cost</span>
               <span className="text-sm font-bold text-black tabular-nums">${categoryStats.totalValue.toFixed(2)}</span>
             </div>
           </div>

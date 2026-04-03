@@ -5,14 +5,14 @@ import type { Transaction } from "@/src/types/transaction.types";
 
 function formatDateTime(ts: string): string {
   const d = new Date(ts);
-  const day   = String(d.getDate()).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
   const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year  = d.getFullYear();
-  const h24   = d.getHours();
-  const mins  = d.getMinutes();
-  const ampm  = h24 >= 12 ? "PM" : "AM";
-  const h12   = h24 % 12 || 12;
-  const time  = mins === 0 ? `${h12}${ampm}` : `${h12}:${String(mins).padStart(2, "0")}${ampm}`;
+  const year = d.getFullYear();
+  const h24 = d.getHours();
+  const mins = d.getMinutes();
+  const ampm = h24 >= 12 ? "PM" : "AM";
+  const h12 = h24 % 12 || 12;
+  const time = mins === 0 ? `${h12}${ampm}` : `${h12}:${String(mins).padStart(2, "0")}${ampm}`;
   return `${day}/${month}/${year} ${time}`;
 }
 
@@ -22,7 +22,7 @@ function fmtValue(v: string, sign: string) {
 
 const TYPE_CONFIG: Record<string, { label: string; text: string }> = {
   Receive: { label: "Receive", text: "text-black" },
-  Sale:    { label: "Sale",    text: "text-black" },
+  Sale: { label: "Sale", text: "text-black" },
 };
 
 type TransactionsTableProps = {
@@ -74,10 +74,10 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
           const valCol = t.transaction_type === "Receive" ? "text-green-700 bg-green-50 border-green-100" : "text-red-700 bg-red-50 border-red-100";
           const first = t.items[0];
           const more = t.items.length - 1;
-          
+
           return (
             <div key={t.id} className="px-3 py-2 bg-white">
-              
+
               {/* Card Header (Row 1) */}
               <div className="flex items-center justify-between gap-3 pb-2 border-b border-slate-50">
                 <div className="flex flex-col gap-1 flex-1 min-w-0">
@@ -100,9 +100,9 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                     </span>
                   </div>
                   <div className="flex items-center -mr-1">
-                    <button 
-                      onClick={(e) => onActionClick(e, t)} 
-                      className="p-1 px-1.5 rounded-lg text-gray-300 hover:text-gray-900 transition-colors active:scale-95" 
+                    <button
+                      onClick={(e) => onActionClick(e, t)}
+                      className="p-1 px-1.5 rounded-lg text-gray-300 hover:text-gray-900 transition-colors active:scale-95"
                       title="Actions"
                     >
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -135,9 +135,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                 <div className="flex items-center gap-2">
                   <div className={`w-1.5 h-1.5 rounded-full shrink-0 animate-pulse ${t.transaction_type === "Receive" ? "bg-green-500" : "bg-red-500"}`} />
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Transaction Log</span>
-                  <p className="text-[11px] font-black text-gray-900 font-mono tabular-nums leading-none ml-1 uppercase tracking-tighter">
-                    {t.transaction_type}
-                  </p>
+
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-slate-200 text-[12px]">•</span>
