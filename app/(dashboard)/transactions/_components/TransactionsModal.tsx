@@ -213,7 +213,7 @@ type NewModalProps = {
 };
 
 export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, inventory, onSave, saving, formError }) => {
-  const [txType, setTxType] = React.useState<"Receive" | "Sale">("Receive");
+  const [txType, setTxType] = React.useState<"Receive" | "Sale">("Sale");
   const [items, setItems] = React.useState<ItemDraft[]>([emptyItem()]);
   const [scanInput, setScanInput] = React.useState("");
   const [scanFeedback, setScanFeedback] = React.useState<{ ok: boolean; msg: string } | null>(null);
@@ -238,7 +238,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
 
   React.useEffect(() => {
     if (!isOpen) {
-      setTxType("Receive");
+      setTxType("Sale");
       setItems([emptyItem()]);
       setScanInput("");
       setScanFeedback(null);
@@ -366,9 +366,9 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                 <button
                   type="button"
                   onClick={() => setTxType(txType === "Receive" ? "Sale" : "Receive")}
-                  className="relative w-10 h-5 rounded-full bg-slate-100 border border-slate-200 transition-colors duration-200 focus:outline-none"
+                  className={`relative w-10 h-5 rounded-full border transition-colors duration-200 focus:outline-none ${txType === "Sale" ? "bg-red-100 border-red-300" : "bg-green-100 border-green-300"}`}
                 >
-                  <div className={`absolute top-1 left-1 right-1 w-2.5 h-2.5 rounded-full shadow-sm transition-transform duration-200 transform ${txType === "Sale" ? "translate-x-5 bg-red-600" : "bg-green-600"}`} />
+                  <div className={`absolute top-1 left-1 w-2.5 h-2.5 rounded-full shadow-sm transition-transform duration-200 transform ${txType === "Sale" ? "translate-x-5 bg-red-600" : "translate-x-0 bg-green-600"}`} />
                 </button>
                 <span className={`text-[12px] font-black tracking-widest uppercase ${txType === "Sale" ? "text-red-600" : "text-gray-300"}`}>Sale</span>
               </div>
