@@ -22,301 +22,6 @@ const emptyForm: InventoryPayload = {
   quantity_on_hand: 0,
 };
 
-// ─── FilterSection ────────────────────────────────────────────────────────────
-
-function FilterSection({
-  title,
-  options,
-  value,
-  onChange,
-}: Readonly<{
-  title: string;
-  options: { value: string; label: string }[];
-  value: string;
-  onChange: (v: string) => void;
-}>) {
-  return (
-    <div>
-      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-3 pt-3 pb-1">{title}</p>
-      {options.map((o) => {
-        const active = o.value === value;
-        return (
-          <button
-            key={o.value}
-            type="button"
-            onClick={() => onChange(o.value)}
-            className={`w-full text-left px-3 py-2 text-[11px] font-semibold tracking-wide flex items-center justify-between gap-2 transition ${active ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
-              }`}
-          >
-            {o.label}
-            {active && (
-              <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-              </svg>
-            )}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-// ─── FilterDropdown ───────────────────────────────────────────────────────────
-
-function FilterDropdown({
-  siteFilter, setSiteFilter, siteOptions,
-  quantitySort, setQuantitySort,
-  stockValueMode, setStockValueMode,
-  dateSort, setDateSort,
-}: Readonly<{
-  siteFilter: string; setSiteFilter: (v: string) => void; siteOptions: string[];
-  quantitySort: QuantitySort; setQuantitySort: (v: QuantitySort) => void;
-  stockValueMode: StockValueMode; setStockValueMode: (v: StockValueMode) => void;
-  dateSort: DateSort; setDateSort: (v: DateSort) => void;
-
-}>) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  const activeCount = [siteFilter, quantitySort, stockValueMode, dateSort].filter(Boolean).length;
-
-  const siteSectionOptions = [
-    { value: "", label: "All Sites" },
-    ...siteOptions.map((s) => ({ value: s, label: s })),
-  ];
-
-  return (
-    <div className="relative" ref={ref}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className={`px-4 py-1 rounded-sm border text-sm font-medium flex items-center gap-2 transition focus:outline-none bg-gray-50 whitespace-nowrap ${open ? "border-black ring-1 ring-black" : "border-black hover:bg-slate-50"
-          } ${activeCount > 0 ? "text-slate-900" : "text-slate-400"}`}
-      >
-        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
-        </svg>
-        <span>Filters</span>
-        {activeCount > 0 && (
-          <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-black text-white text-[10px] font-bold leading-none">{activeCount}</span>
-        )}
-        <svg
-          className="w-3.5 h-3.5 text-slate-500 shrink-0 transition-transform duration-200"
-          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
-          fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-        </svg>
-      </button>
-
-      {open && (
-        <div className="absolute z-200 top-full mt-1 right-0 min-w-55 bg-white border border-black rounded-sm shadow-lg overflow-hidden pb-2">
-          <FilterSection
-            title="Site"
-            options={siteSectionOptions}
-            value={siteFilter}
-            onChange={setSiteFilter}
-          />
-          <div className="h-px bg-slate-100 mx-3 my-1" />
-          <FilterSection
-            title="Quantity"
-            options={[
-              { value: "", label: "All Quantity" },
-              { value: "asc", label: "Qty: Low → High" },
-              { value: "desc", label: "Qty: High → Low" },
-            ]}
-            value={quantitySort}
-            onChange={(v) => setQuantitySort(v as QuantitySort)}
-
-          />
-          <div className="h-px bg-slate-100 mx-3 my-1" />
-          <FilterSection
-            title="Stock Value"
-            options={[
-              { value: "", label: "All Stock Value" },
-              { value: "asc", label: "Value: Low → High" },
-              { value: "desc", label: "Value: High → Low" },
-              { value: "low_only", label: "Low Stock Only" },
-              { value: "high_only", label: "High Stock Only" },
-            ]}
-            value={stockValueMode}
-            onChange={(v) => setStockValueMode(v as StockValueMode)}
-
-          />
-          <div className="h-px bg-slate-100 mx-3 my-1" />
-          <FilterSection
-            title="Date"
-            options={[
-              { value: "", label: "Newest → Oldest" },
-              { value: "asc", label: "Oldest → Newest" },
-            ]}
-            value={dateSort}
-            onChange={(v) => setDateSort(v as DateSort)}
-
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── InventoryBarChart ────────────────────────────────────────────────────────
-
-type ActivityEntry = { date?: string; week_start?: string; new_records: number };
-type StatsPeriod = "7d" | "14d" | "30d" | "3m";
-type ChartSlot = { date: string; label: string; count: number };
-
-function buildWeeklyChartData(activityData: ActivityEntry[]): ChartSlot[] {
-  const today = new Date();
-  const weeks: ChartSlot[] = [];
-  for (let i = 12; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i * 7);
-    const day = d.getDay();
-    d.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
-    const dateStr = d.toISOString().split("T")[0];
-    const dd = String(d.getDate()).padStart(2, "0");
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    weeks.push({ date: dateStr, label: `${dd}/${mm}`, count: 0 });
-  }
-  for (const entry of activityData) {
-    if (entry.week_start) {
-      const slot = weeks.find((w) => w.date === entry.week_start);
-      if (slot) slot.count = entry.new_records;
-    }
-  }
-  return weeks;
-}
-
-function buildDailyChartData(activityData: ActivityEntry[], numDays: number): ChartSlot[] {
-  const today = new Date();
-  const result: ChartSlot[] = [];
-  for (let i = numDays - 1; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    const dateStr = d.toISOString().split("T")[0];
-    const dd = String(d.getDate()).padStart(2, "0");
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    result.push({ date: dateStr, label: `${dd}/${mm}`, count: 0 });
-  }
-  for (const entry of activityData) {
-    if (entry.date) {
-      const slot = result.find((r) => r.date === entry.date);
-      if (slot) slot.count = entry.new_records;
-    }
-  }
-  return result;
-}
-
-function InventoryBarChart({ activityData, period }: Readonly<{ activityData: ActivityEntry[]; period: StatsPeriod }>) {
-  const [hovered, setHovered] = useState<number | null>(null);
-
-  const chartData = useMemo(() => {
-    if (period === "3m") return buildWeeklyChartData(activityData);
-    const dayCountMap: Record<string, number> = { "7d": 7, "14d": 14, "30d": 30 };
-    const numDays = dayCountMap[period] ?? 30;
-    return buildDailyChartData(activityData, numDays);
-  }, [activityData, period]);
-
-  const maxCount = Math.max(...chartData.map((d) => d.count), 1);
-
-  const W = 800, H = 240;
-  const pl = 30, pr = 10, pt = 20, pb = 35;
-  const cw = W - pl - pr;
-  const ch = H - pt - pb;
-  const n = chartData.length;
-  const gap = period === "3m" ? 8 : 4;
-  const bw = (cw / n) - gap;
-  
-  const half = Math.round(maxCount * 0.5);
-  const quarter = Math.round(maxCount * 0.25);
-  const threeQuarters = Math.round(maxCount * 0.75);
-  const yTicks = Array.from(new Set([0, quarter, half, threeQuarters, maxCount].filter((v) => v >= 0))).sort((a, b) => a - b);
-
-  return (
-    <div className="w-full h-full min-h-55 sm:min-h-65 relative mt-2">
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        className="w-full h-full"
-        preserveAspectRatio="xMidYMid meet"
-        style={{ overflow: "visible" }}
-        onMouseLeave={() => setHovered(null)}
-      >
-        {/* Y grid lines + labels */}
-        {yTicks.map((val) => {
-          const y = pt + ch * (1 - val / maxCount);
-          return (
-            <g key={`ytick-${val}`} className="transition-opacity duration-300">
-              <line 
-                x1={pl} y1={y} x2={W - pr} y2={y} 
-                stroke={val === 0 ? "#000" : "#e2e8f0"} 
-                strokeWidth={val === 0 ? 1.5 : 1} 
-                strokeDasharray={val === 0 ? "0" : "4 4"}
-              />
-              <text x={pl - 8} y={y + 3} textAnchor="end" fontSize={11} fill="#64748b" className="font-bold tabular-nums">{val}</text>
-            </g>
-          );
-        })}
-
-        {/* Bars */}
-        {chartData.map((d, i) => {
-          const x = pl + i * (bw + gap);
-          const barH = Math.max((d.count / maxCount) * ch, d.count > 0 ? 4 : 0);
-          const y = pt + ch - barH;
-          const isHovered = hovered === i;
-          
-          let showLabel = false;
-          if (n <= 10) showLabel = true;
-          else if (n <= 15) showLabel = i % 2 === 0;
-          else if (n <= 31) showLabel = i % 6 === 0 || i === n - 1;
-          else showLabel = i % 3 === 0;
-
-          let barFill = "#f97316"; 
-          if (d.count === 0) barFill = "#f8fafc";
-          else if (isHovered) barFill = "#000";
-
-          return (
-            <g key={d.date} onMouseEnter={() => setHovered(i)} className="cursor-pointer">
-              <rect x={x - gap/2} y={pt} width={bw + gap} height={ch} fill="transparent" />
-              <rect
-                x={x} y={y} width={bw} height={barH}
-                fill={barFill}
-                rx={bw > 8 ? 2 : 1}
-                className="transition-all duration-200"
-                stroke={isHovered && d.count > 0 ? "#000" : "none"}
-                strokeWidth={1}
-                style={{ opacity: hovered !== null && !isHovered ? 0.4 : 1 }}
-              />
-              {showLabel && (
-                <text x={x + bw / 2} y={pt + ch + 22} textAnchor="middle" fontSize={12} fill="#000" className="font-bold">
-                  {d.label}
-                </text>
-              )}
-              {isHovered && d.count > 0 && (
-                <g className="pointer-events-none">
-                  <rect x={Math.min(Math.max(x + bw / 2 - 40, 0), W - 80)} y={y - 40} width={80} height={32} fill="#000" rx={2} />
-                  <polygon points={`${x + bw/2 - 6},${y-8} ${x+bw/2+6},${y-8} ${x+bw/2},${y}`} fill="#000" />
-                  <text x={Math.min(Math.max(x + bw / 2, 40), W - 40)} y={y - 19} textAnchor="middle" fontSize={12} fill="white" fontWeight="900">
-                    {d.count} REC
-                  </text>
-                </g>
-              )}
-            </g>
-          );
-        })}
-      </svg>
-    </div>
-  );
-}
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDateTime(dateStr: string): string {
@@ -357,8 +62,6 @@ export default function InventoryClient({
   const [pageSize, setPageSize] = useState<number | string>(Number.parseInt(initialPageSize) || 20);
   const [error, setError] = useState("");
   const [statsData, setStatsData] = useState<any>(initialStats);
-  const [statsPeriod, setStatsPeriod] = useState<StatsPeriod>("30d");
-
   useEffect(() => {
     getInventoryStats().then(setStatsData).catch(() => { });
   }, []);
@@ -373,6 +76,16 @@ export default function InventoryClient({
   const [ordering, setOrdering] = useState<string>("-updated_at");
 
   const [search, setSearch] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const filtersRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (filtersRef.current && !filtersRef.current.contains(e.target as Node)) setFiltersOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   // ── Create / edit modal state ───────────────────────────────────────────────
   const [modalOpen, setModalOpen] = useState(false);
@@ -490,19 +203,6 @@ export default function InventoryClient({
     return { total: paginated.count, totalValue, totalQty, needsReorder, bySite: undefined };
   }, [records, statsData, paginated.count]);
 
-  const periodKeyMap: Record<StatsPeriod, string> = {
-    "7d": "last_7_days",
-    "14d": "last_14_days",
-    "30d": "last_30_days",
-    "3m": "last_3_months",
-  };
-
-  const chartActivity = useMemo<ActivityEntry[]>(() => {
-    if (!statsData?.activity) return [];
-    const key = periodKeyMap[statsPeriod];
-    return statsData.activity[key]?.data ?? [];
-  }, [statsData, statsPeriod]);
-
   const siteOptions = useMemo(
     () => Array.from(new Set(records.map((r) => r.site))).sort((a, b) => a.localeCompare(b)),
     [records]
@@ -579,47 +279,66 @@ export default function InventoryClient({
         {/* Mobile cards */}
         <div className="sm:hidden divide-y divide-black">
           {displayed.map((r) => {
+            const cost = Number.parseFloat(r.product_details.cost_per_unit);
+            const totalValue = r.quantity_on_hand * cost;
             return (
-              <div key={r.id} className="px-4 py-4 flex items-start gap-3 active:bg-gray-50 transition-colors">
-                <div className="flex-1 min-w-0 space-y-1.5">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-gray-800 text-sm leading-snug">{r.product_details.product_name}</span>
+              <div key={r.id} className="px-4 py-3 bg-white">
+
+                {/* Row 1: id pill + product name + qty + actions */}
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                    <span className="text-[9px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-md shrink-0">#{r.id}</span>
+                    <p className="font-black text-gray-900 text-[13px] leading-snug truncate">{r.product_details.product_name}</p>
+                    <span className="shrink-0 text-[11px] font-black text-gray-900 tabular-nums">
+                      {r.quantity_on_hand.toLocaleString()}<span className="text-gray-400 font-normal">u</span>
+                    </span>
                   </div>
-                  <div className="flex items-center gap-1.5 flex-wrap text-xs text-gray-500">
-                    <span className="font-medium text-gray-600">{r.site}</span>
-                    <span className="text-gray-300">·</span>
-                    <span>{r.location}</span>
+                  <div className="flex items-center gap-0.5 -mr-1 shrink-0">
+                    <button onClick={() => openEdit(r)} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 active:scale-95 transition" title="Edit">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                      </svg>
+                    </button>
+                    <button onClick={() => setDeleteTarget(r)} className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 active:scale-95 transition" title="Delete">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                      </svg>
+                    </button>
                   </div>
-                  <div className="flex items-center gap-3 flex-wrap text-xs">
-                    <span><span className="text-gray-400">Cost: </span><span className="font-semibold text-gray-700">${Number.parseFloat(r.product_details.cost_per_unit).toFixed(2)}</span></span>
-                    <span><span className="text-gray-400">Qty: </span><span className="font-bold text-gray-700">{r.quantity_on_hand.toLocaleString()}</span></span>
-                    <span><span className="text-gray-400">Value: </span><span className="font-semibold text-gray-700">${(r.quantity_on_hand * Number.parseFloat(r.product_details.cost_per_unit)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></span>
-                    {r.reorder_status === "Yes" && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-red-50 text-red-500">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />Reorder
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-gray-400">{formatDateTime(r.created_at)}</p>
                 </div>
-                <div className="flex items-center gap-1 shrink-0 mt-0.5">
-                  <button onClick={() => openEdit(r)}
-                    className="p-2.5 rounded-sm text-gray-400 hover:text-blue-500 hover:bg-blue-50 active:scale-95 transition"
-                    title="Edit">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round"
-                        d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                    </svg>
-                  </button>
-                  <button onClick={() => setDeleteTarget(r)}
-                    className="p-2.5 rounded-sm text-gray-400 hover:text-red-500 hover:bg-red-50 active:scale-95 transition"
-                    title="Delete">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round"
-                        d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                    </svg>
-                  </button>
+
+                {/* Row 2: Site + Location labels + reorder badge */}
+                <div className="flex items-center gap-3 mb-2.5">
+                  <p className="text-xs">
+                    <span className="text-gray-400 font-medium">Site: </span>
+                    <span className="font-semibold text-gray-700">{r.site}</span>
+                  </p>
+                  <p className="text-xs">
+                    <span className="text-gray-400 font-medium">Location: </span>
+                    <span className="font-semibold text-gray-700">{r.location}</span>
+                  </p>
+                  {r.reorder_status === "Yes" && (
+                    <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-red-50 text-red-500 shrink-0">
+                      <span className="w-1 h-1 rounded-full bg-red-500 shrink-0" />Reorder
+                    </span>
+                  )}
                 </div>
+
+                {/* Row 3: Unit Cost + Total Value */}
+                <div className="flex items-start gap-5">
+                  <div>
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-0.5">Unit Cost</p>
+                    <p className="text-sm font-black text-gray-900 tabular-nums">${cost.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400 mb-0.5">Total Value</p>
+                    <p className="text-sm font-black text-gray-900 tabular-nums">${totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                  </div>
+                </div>
+
+                {/* Row 4: date */}
+                <p className="text-[10px] text-gray-400 mt-2.5">{formatDateTime(r.created_at)}</p>
+
               </div>
             );
           })}
@@ -631,86 +350,70 @@ export default function InventoryClient({
             <thead className="bg-slate-50 border-b border-black">
               <tr>
                 {["#", "Product", "Site", "Location", "Cost / Unit", "Quantity", "Stock Value", "Reorder", "Order Date", "Actions"].map((h) => {
-                  // Only allow sorting on allowed fields
                   const canSort = orderingFields[h];
-                  let sortIcon = null;
-                  if (canSort) {
-                    if (ordering ===  canSort) sortIcon = <span className="text-orange-500 ml-1">↑</span>;
-                    else if (ordering === '-' + canSort) sortIcon = <span className="text-orange-500 ml-1">↓</span>;
-                    else sortIcon = <span className="text-slate-300 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">↕</span>;
-                  }
+                  const isAsc = ordering === canSort;
+                  const isDesc = ordering === '-' + canSort;
                   return (
                     <th
                       key={h}
-                      className="px-5 py-4 text-left text-[10px] font-bold tracking-widest uppercase text-slate-500 cursor-pointer select-none group hover:bg-slate-100/50 transition-colors"
+                      className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900 select-none"
                       onClick={() => canSort && handleSort(h)}
+                      style={canSort ? { cursor: "pointer" } : undefined}
                     >
-                      <span className="flex items-center">{h} {sortIcon}</span>
+                      {canSort ? (
+                        <span className="inline-flex items-center gap-1">
+                          {h}
+                          <span className="flex flex-col leading-none">
+                            <svg className={`w-2.5 h-2.5 ${isAsc ? "text-orange-500" : "text-gray-300"}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l8 8H4z" /></svg>
+                            <svg className={`w-2.5 h-2.5 ${isDesc ? "text-orange-500" : "text-gray-300"}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 20l-8-8h16z" /></svg>
+                          </span>
+                        </span>
+                      ) : h}
                     </th>
                   );
                 })}
               </tr>
             </thead>
-            <tbody className="divide-y divide-black/10 bg-white text-[11px]">
-              {displayed.map((r) => {
-                return (
-                  <tr key={r.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-3.5 text-xs font-bold text-gray-400">#{r.id}</td>
-                    <td className="px-5 py-3.5">
-                      <p className="font-semibold text-gray-800">{r.product_details.product_name}</p>
-                      {r.product_description && (
-                        <p className="text-[11px] text-gray-400 truncate max-w-40">{r.product_description}</p>
-                      )}
-                    </td>
-                    <td className="px-5 py-3.5 text-gray-600">{r.site}</td>
-                    <td className="px-5 py-3.5 text-gray-500 text-xs">{r.location}</td>
-                    <td className="px-5 py-3.5 font-semibold text-gray-700">
-                      ${Number.parseFloat(r.product_details.cost_per_unit).toFixed(2)}
-                    </td>
-                    <td className="px-5 py-3.5 font-bold text-gray-700">{r.quantity_on_hand.toLocaleString()}</td>
-                    <td className="px-5 py-3.5 font-semibold text-gray-700">
-                      ${(r.quantity_on_hand * Number.parseFloat(r.product_details.cost_per_unit)).toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      {r.reorder_status === "Yes" ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-red-50 text-red-500">
-                          <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />Yes
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-gray-50 text-gray-400">
-                          <span className="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />No
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3.5 text-xs text-gray-500 whitespace-nowrap">
-                      {formatDateTime(r.created_at)}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-2">
-                        <button onClick={() => openEdit(r)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition"
-                          title="Edit">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round"
-                              d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                          </svg>
-                        </button>
-                        <button onClick={() => setDeleteTarget(r)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition"
-                          title="Delete">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round"
-                              d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+            <tbody className="divide-y divide-black bg-white text-[12px]">
+              {displayed.map((r) => (
+                <tr key={r.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-5 py-2 font-black text-gray-400">#{r.id}</td>
+                  <td className="px-5 py-2 font-semibold text-gray-800">{r.product_details.product_name}</td>
+                  <td className="px-5 py-2 text-gray-500">{r.site}</td>
+                  <td className="px-5 py-2 text-gray-500">{r.location}</td>
+                  <td className="px-5 py-2 font-bold text-gray-800 tabular-nums">${Number.parseFloat(r.product_details.cost_per_unit).toFixed(2)}</td>
+                  <td className="px-5 py-2 font-bold text-gray-800 tabular-nums">{r.quantity_on_hand.toLocaleString()}</td>
+                  <td className="px-5 py-2 font-bold text-gray-800 tabular-nums">
+                    ${(r.quantity_on_hand * Number.parseFloat(r.product_details.cost_per_unit)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </td>
+                  <td className="px-5 py-2">
+                    {r.reorder_status === "Yes" ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-red-50 text-red-500">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />Yes
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-gray-50 text-gray-400">
+                        <span className="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />No
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-5 py-2 text-gray-500 whitespace-nowrap">{formatDateTime(r.created_at)}</td>
+                  <td className="px-5 py-2">
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => openEdit(r)} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition" title="Edit">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                        </svg>
+                      </button>
+                      <button onClick={() => setDeleteTarget(r)} className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition" title="Delete">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -721,19 +424,16 @@ export default function InventoryClient({
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <div className="px-4 py-5 sm:px-8 sm:py-8 space-y-6">
+    <div className="px-4 py-5 sm:px-5 sm:py-5 space-y-4">
 
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-0.5">
-          <p className="text-xs font-medium tracking-[0.25em] uppercase" style={{ color: "#FA4900" }}>
-            Inventory
-          </p>
-          <h1 className="text-2xl font-bold text-gray-900 uppercase">MANAGEMENT</h1>
+          <h1 className="text-xl font-light text-gray-900">Inventory</h1>
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2 sm:px-5 rounded-sm text-xs font-bold tracking-widest uppercase bg-orange-500 text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
+          className="flex items-center gap-2 px-2 py-1.5 sm:px-4 rounded-lg text-xs font-light tracking-widest bg-orange-500 text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
 
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -745,133 +445,114 @@ export default function InventoryClient({
       </div>
 
       {/* Overview Dashboard */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
-        
-        {/* Main Chart Card - Spans 3 columns */}
-        <div className="lg:col-span-3 bg-white rounded-sm border border-black shadow-sm overflow-hidden flex flex-col transition-all">
-          <div className="px-5 py-3 border-b border-black flex flex-col md:flex-row md:items-center justify-between bg-slate-50 gap-3">
-            <div>
-              <h3 className="text-[11px] font-bold text-black uppercase tracking-widest">Inventory Activity</h3>
-              <p className="text-[10px] text-slate-500 font-bold uppercase mt-0.5">Real-time Velocity</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex bg-slate-100 p-0.5 rounded-sm border border-black/10">
-                {(["7d", "30d", "3m"] as StatsPeriod[]).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setStatsPeriod(p)}
-                    className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm transition-all ${
-                      statsPeriod === p 
-                        ? "bg-black text-white" 
-                        : "text-slate-500 hover:text-black"
-                    }`}
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="p-4 sm:p-6 flex-1 min-h-65 sm:min-h-75">
-             <InventoryBarChart activityData={chartActivity} period={statsPeriod} />
-          </div>
-        </div>
 
-        {/* Stats Column */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-1 gap-4">
-          {/* Card: Total Records */}
-          <div className="bg-white rounded-sm border border-black shadow-sm p-4 sm:p-5 flex flex-col justify-between hover:bg-slate-50 transition-colors group">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Records</p>
-                <h4 className="text-2xl sm:text-3xl font-black text-black tabular-nums leading-none">
-                  {stats.total.toLocaleString()}
-                </h4>
-              </div>
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-sm border border-black bg-orange-50 flex items-center justify-center text-orange-500 transition-transform">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.235 15.235L15 18s.225-1.225-.765-2.235m-5.47 5.47L11.25 18H18" />
-                </svg>
-              </div>
+      {/* Mobile: single combined box */}
+      <div className="sm:hidden border border-black bg-white rounded-xl overflow-hidden">
+        <div className="flex divide-x divide-black/10">
+          <div className="flex-1 flex flex-col items-center gap-1.5 px-3 py-3">
+            <div className="w-6 h-6 bg-black rounded-md flex items-center justify-center shrink-0">
+              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.235 15.235L15 18s.225-1.225-.765-2.235m-5.47 5.47L11.25 18H18" />
+              </svg>
             </div>
-            <div className="mt-4 pt-3 border-t border-black/5 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-tight">
-              <span className="text-green-600 flex items-center tracking-normal">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5 animate-pulse" />Live
-              </span>
-              <span>• DB Sync Active</span>
-            </div>
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider text-center">Records</p>
+            <span className="text-sm font-black text-black tabular-nums">{stats.total.toLocaleString()}</span>
           </div>
-
-          {/* Card: Portfolio Value */}
-          <div className="bg-white rounded-sm border border-black shadow-sm p-4 sm:p-5 flex flex-col justify-between hover:bg-slate-50 transition-colors group">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Portfolio Value</p>
-                <h4 className="text-2xl sm:text-3xl font-black text-black tabular-nums leading-none">
-                  ${stats.totalValue.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                </h4>
-              </div>
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-sm border border-black bg-blue-50 flex items-center justify-center text-blue-500 transition-transform">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
+          <div className="flex-1 flex flex-col items-center gap-1.5 px-3 py-3">
+            <div className="w-6 h-6 bg-black rounded-md flex items-center justify-center shrink-0">
+              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
-            <div className="mt-4 pt-3 border-t border-black/5 flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase">
-              <span className="text-slate-400">Avg Unit:</span>
-              <span className="text-black">${(stats.totalValue / Math.max(stats.totalQty, 1)).toFixed(2)}</span>
-            </div>
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider text-center">Portfolio</p>
+            <span className="text-sm font-black text-black tabular-nums">${stats.totalValue.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
           </div>
-
-          {/* Card: Unit Volume */}
-          <div className="bg-white rounded-sm border border-black shadow-sm p-4 sm:p-5 flex flex-col justify-between hover:bg-slate-50 transition-colors group">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Unit Volume</p>
-                <h4 className="text-2xl sm:text-3xl font-black text-black tabular-nums leading-none">
-                  {stats.totalQty.toLocaleString()}
-                </h4>
-              </div>
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-sm border border-black bg-emerald-50 flex items-center justify-center text-emerald-500 transition-transform">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25" />
-                </svg>
-              </div>
+          <div className="flex-1 flex flex-col items-center gap-1.5 px-3 py-3">
+            <div className="w-6 h-6 bg-black rounded-md flex items-center justify-center shrink-0">
+              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25" />
+              </svg>
             </div>
-            <div className="mt-4 pt-3 border-t border-black/5">
-               <div className="w-full bg-slate-100 h-1 rounded-full overflow-hidden border border-black/5">
-                  <div className="bg-emerald-500 h-full rounded-full" style={{ width: '70%' }}></div>
-               </div>
-               <p className="text-[9px] font-bold text-slate-400 mt-1.5 uppercase tracking-wider text-right">Capacity Utilized</p>
-            </div>
+            <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider text-center">Units</p>
+            <span className="text-sm font-black text-black tabular-nums">{stats.totalQty.toLocaleString()}</span>
           </div>
-
         </div>
       </div>
 
-      {/* Filters + Page Size */}
-      <div className="flex flex-wrap items-center gap-3 bg-white p-2 sm:p-3 rounded-sm border border-black shadow-sm">
-        <div className="relative flex-1 min-w-60 sm:min-w-70">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-          </svg>
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Quick search products, sites..."
-            className="w-full pl-10 pr-4 py-1 rounded-sm border border-black bg-slate-50 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-black transition-all"
-          />
+      {/* Desktop: 3 separate cards */}
+      <div className="hidden sm:grid sm:grid-cols-3 gap-4">
+
+        {/* Card: Total Records */}
+        <div className="px-5 py-4 border border-black bg-white rounded-xl flex flex-col gap-3 hover:bg-slate-50 transition-colors">
+          <div className="flex items-center justify-between">
+            <p className="text-[13px] font-black text-gray-700">Total Records</p>
+            <div className="w-7 h-7 bg-black flex items-center justify-center shrink-0 rounded-lg">
+              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.235 15.235L15 18s.225-1.225-.765-2.235m-5.47 5.47L11.25 18H18" />
+              </svg>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[12px] font-light text-gray-600">Total Count</span>
+            <span className="text-sm font-black text-black tabular-nums">{stats.total.toLocaleString()}</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="flex-1 sm:flex-none">
-            <FilterDropdown
-              siteFilter={siteFilter}
-              setSiteFilter={setSiteFilter}
-              siteOptions={siteOptions}
-              quantitySort={quantitySort}
-              setQuantitySort={(v) => {
-                setQuantitySort(v);
+
+        {/* Card: Portfolio Value */}
+        <div className="px-5 py-4 border border-black bg-white rounded-xl flex flex-col gap-3 hover:bg-slate-50 transition-colors">
+          <div className="flex items-center justify-between">
+            <p className="text-[13px] font-black text-gray-700">Portfolio Value</p>
+            <div className="w-7 h-7 bg-black flex items-center justify-center shrink-0 rounded-lg">
+              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[12px] font-light text-gray-600">Total Value</span>
+            <span className="text-sm font-black text-black tabular-nums">${stats.totalValue.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+          </div>
+        </div>
+
+        {/* Card: Unit Volume */}
+        <div className="px-5 py-4 border border-black bg-white rounded-xl flex flex-col gap-3 hover:bg-slate-50 transition-colors">
+          <div className="flex items-center justify-between">
+            <p className="text-[13px] font-black text-gray-700">Unit Volume</p>
+            <div className="w-7 h-7 bg-black flex items-center justify-center shrink-0 rounded-lg">
+              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25" />
+              </svg>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[12px] font-light text-gray-600">Total Units</span>
+            <span className="text-sm font-black text-black tabular-nums">{stats.totalQty.toLocaleString()}</span>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Filters + Page Size */}
+      {/* Desktop filters */}
+      <div className="hidden lg:block">
+        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_minmax(0,140px)_2fr] gap-2.5">
+          <div className="bg-white rounded-sm">
+            <CustomSelect
+              id="filter-site"
+              value={siteFilter}
+              onChange={setSiteFilter}
+              options={[
+                { value: "", label: "All Sites" },
+                ...siteOptions.map((s) => ({ value: s, label: s })),
+              ]}
+            />
+          </div>
+          <div className="bg-white rounded-sm">
+            <CustomSelect
+              id="sort-quantity"
+              value={quantitySort}
+              onChange={(v) => {
+                setQuantitySort(v as QuantitySort);
                 const field = "quantity_on_hand";
                 let newOrdering = "-updated_at";
                 if (v === "asc") newOrdering = field;
@@ -879,9 +560,19 @@ export default function InventoryClient({
                 setOrdering(newOrdering);
                 fetchInventory(undefined, newOrdering);
               }}
-              stockValueMode={stockValueMode}
-              setStockValueMode={(v) => {
-                setStockValueMode(v);
+              options={[
+                { value: "", label: "Quantity (sort)" },
+                { value: "asc", label: "Low → High" },
+                { value: "desc", label: "High → Low" },
+              ]}
+            />
+          </div>
+          <div className="bg-white rounded-sm">
+            <CustomSelect
+              id="sort-stock-value"
+              value={stockValueMode}
+              onChange={(v) => {
+                setStockValueMode(v as StockValueMode);
                 if (v === "asc" || v === "desc") {
                   const field = "stock_value";
                   const newOrdering = v === "asc" ? field : "-" + field;
@@ -894,34 +585,184 @@ export default function InventoryClient({
                   fetchInventory(undefined, undefined, reorderStatus);
                 }
               }}
-              dateSort={dateSort}
-              setDateSort={(v) => {
-                setDateSort(v);
+              options={[
+                { value: "", label: "Stock Value (sort)" },
+                { value: "asc", label: "Low → High" },
+                { value: "desc", label: "High → Low" },
+                { value: "low_only", label: "Low Stock Only" },
+                { value: "high_only", label: "High Stock Only" },
+              ]}
+            />
+          </div>
+          <div className="bg-white rounded-sm">
+            <CustomSelect
+              id="sort-date"
+              value={dateSort}
+              onChange={(v) => {
+                setDateSort(v as DateSort);
                 const newOrdering = v === "asc" ? "updated_at" : "-updated_at";
                 setOrdering(newOrdering);
                 fetchInventory(undefined, newOrdering);
               }}
+              options={[
+                { value: "", label: "Date (newest)" },
+                { value: "asc", label: "Oldest → Newest" },
+              ]}
             />
           </div>
-          <div className="h-8 w-px bg-black/10 mx-1 hidden sm:block" />
-          <div className="bg-white min-w-30 sm:min-w-35 flex-1 sm:flex-none">
+          <div className="bg-white rounded-sm">
             <CustomSelect
-              id="page-size-selector"
+              id="page-size-selector-desktop"
               value={pageSize === "all" ? "all" : String(pageSize)}
               onChange={handlePageSizeChange}
               options={[
-                { value: "20", label: "20 rows" },
-                { value: "40", label: "40 rows" },
-                { value: "100", label: "100 rows" },
-                { value: "all", label: "Show all" },
+                { value: "20", label: "Show 20" },
+                { value: "40", label: "Show 40" },
+                { value: "100", label: "Show 100" },
+                { value: "all", label: "Show ALL" },
               ]}
             />
+          </div>
+          <div className="flex items-center gap-1 bg-white rounded-md border border-black px-2 py-1">
+            <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+            </svg>
+            <input id="inventory-search" name="inventory-search" type="text" placeholder="Search products, sites..."
+              value={search} onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 min-w-0 text-xs font-black text-slate-900 placeholder:text-slate-700 placeholder:font-normal bg-transparent outline-none" />
+            {search && (
+              <button type="button" onClick={() => setSearch("")} aria-label="Clear search" className="text-slate-300 hover:text-black transition shrink-0">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
       </div>
 
+      {/* Mobile filters */}
+      <div className="flex lg:hidden gap-2 items-center">
+        <div className="relative" ref={filtersRef}>
+          {(() => {
+            const activeCount = [siteFilter, quantitySort, stockValueMode, dateSort].filter(Boolean).length;
+            return (
+              <button type="button" onClick={() => setFiltersOpen((v) => !v)}
+                className={`flex items-center gap-2 px-4 py-1 rounded-md border text-[13px] font-bold  transition ${filtersOpen ? "bg-black text-white border-black" : "bg-white text-slate-700 border-black hover:bg-slate-50"}`}>
+                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                </svg>
+                Filters
+                {activeCount > 0 && (
+                  <span className="flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold bg-orange-500 text-white">
+                    {activeCount}
+                  </span>
+                )}
+              </button>
+            );
+          })()}
+          {filtersOpen && (
+            <div className="absolute top-full left-0 mt-1 z-50 w-64 bg-white border border-black rounded-sm shadow-xl p-3 space-y-3">
+              <p className="text-[9px] font-bold tracking-widest uppercase text-slate-400">Filters &amp; Sorting</p>
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-semibold text-slate-500">Site</p>
+                <CustomSelect id="mob-filter-site" value={siteFilter} onChange={setSiteFilter}
+                  options={[{ value: "", label: "All Sites" }, ...siteOptions.map((s) => ({ value: s, label: s }))]} />
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-semibold text-slate-500">Quantity (sort)</p>
+                <CustomSelect id="mob-sort-quantity" value={quantitySort}
+                  onChange={(v) => {
+                    setQuantitySort(v as QuantitySort);
+                    const field = "quantity_on_hand";
+                    let newOrdering = "-updated_at";
+                    if (v === "asc") newOrdering = field;
+                    else if (v === "desc") newOrdering = "-" + field;
+                    setOrdering(newOrdering);
+                    fetchInventory(undefined, newOrdering);
+                  }}
+                  options={[{ value: "", label: "Default" }, { value: "asc", label: "Low → High" }, { value: "desc", label: "High → Low" }]} />
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-semibold text-slate-500">Stock Value (sort)</p>
+                <CustomSelect id="mob-sort-stock-value" value={stockValueMode}
+                  onChange={(v) => {
+                    setStockValueMode(v as StockValueMode);
+                    if (v === "asc" || v === "desc") {
+                      const field = "stock_value";
+                      const newOrdering = v === "asc" ? field : "-" + field;
+                      setOrdering(newOrdering);
+                      fetchInventory(undefined, newOrdering);
+                    } else if (v === "low_only" || v === "high_only" || v === "") {
+                      let reorderStatus = "";
+                      if (v === "low_only") reorderStatus = "Yes";
+                      else if (v === "high_only") reorderStatus = "No";
+                      fetchInventory(undefined, undefined, reorderStatus);
+                    }
+                  }}
+                  options={[
+                    { value: "", label: "Default" },
+                    { value: "asc", label: "Low → High" },
+                    { value: "desc", label: "High → Low" },
+                    { value: "low_only", label: "Low Stock Only" },
+                    { value: "high_only", label: "High Stock Only" },
+                  ]} />
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-semibold text-slate-500">Date (sort)</p>
+                <CustomSelect id="mob-sort-date" value={dateSort}
+                  onChange={(v) => {
+                    setDateSort(v as DateSort);
+                    const newOrdering = v === "asc" ? "updated_at" : "-updated_at";
+                    setOrdering(newOrdering);
+                    fetchInventory(undefined, newOrdering);
+                  }}
+                  options={[{ value: "", label: "Newest → Oldest" }, { value: "asc", label: "Oldest → Newest" }]} />
+              </div>
+              {[siteFilter, quantitySort, stockValueMode, dateSort].some(Boolean) && (
+                <button type="button"
+                  onClick={() => { setSiteFilter(""); setQuantitySort(""); setStockValueMode(""); setDateSort(""); setOrdering("-updated_at"); fetchInventory(undefined, "-updated_at"); }}
+                  className="w-full py-1.5 text-[10px] font-bold tracking-widest uppercase text-red-500 border border-red-200 rounded-sm hover:bg-red-50 transition">
+                  Clear All
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-sm shrink-0">
+          <CustomSelect
+            id="page-size-selector-mobile"
+            value={pageSize === "all" ? "all" : String(pageSize)}
+            onChange={handlePageSizeChange}
+            options={[
+              { value: "20", label: "Show 20" },
+              { value: "40", label: "Show 40" },
+              { value: "100", label: "Show 100" },
+              { value: "all", label: "Show ALL" },
+            ]}
+          />
+        </div>
+
+        <div className="flex-1 min-w-0 flex items-center gap-2 bg-white rounded-md border border-black px-3 py-1">
+          <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+          <input id="inventory-search-mobile" name="inventory-search" type="text" placeholder="Search"
+            value={search} onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 min-w-0 text-sm font-medium text-slate-800 placeholder:text-slate-400 placeholder:font-normal bg-transparent outline-none" />
+          {search && (
+            <button type="button" onClick={() => setSearch("")} aria-label="Clear search" className="text-slate-300 hover:text-black transition shrink-0">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Table Section */}
-      <div className="rounded-sm border border-black overflow-hidden bg-white shadow-sm">
+      <div className="rounded-xl border border-black overflow-hidden bg-white">
         {tableContent}
       </div>
 

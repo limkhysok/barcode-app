@@ -7,7 +7,7 @@ import type { Product } from "@/src/types/product.types";
 // ─── Shared style constants ──────────────────────────────────────────────────
 
 const inputCls =
-  "w-full px-4 py-3 rounded-sm border border-black text-sm text-gray-800 placeholder:text-gray-300 outline-none focus:ring-2 focus:border-transparent bg-gray-50 focus:bg-white transition";
+  "w-full px-2 py-1 rounded-md border border-black text-[13px] text-gray-800 placeholder:text-gray-300 outline-none focus:ring-2 focus:border-transparent bg-gray-50 focus:bg-white transition";
 const ringStyle = { "--tw-ring-color": "#FA4900" } as React.CSSProperties;
 
 // ─── Field ───────────────────────────────────────────────────────────────────
@@ -32,7 +32,6 @@ function Field({
   return (
     <div className="space-y-1.5">
       <label htmlFor={id} className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase text-gray-400">
-        <span className="inline-block w-1 h-3 rounded-full" style={{ background: "#FA4900" }} />
         {label}
       </label>
       <input
@@ -85,8 +84,7 @@ function SiteCombobox({
   return (
     <div className="space-y-1.5" ref={ref}>
       <label htmlFor="site" className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase text-gray-400">
-        <span className="inline-block w-1 h-3 rounded-full" style={{ background: "#FA4900" }} />
-        <span>Site</span>
+        Site
       </label>
       <div className="relative">
         <input
@@ -109,11 +107,11 @@ function SiteCombobox({
             {filtered.map((site) => {
               const active = value === site;
               return (
-                <li key={site} className="border-b border-black last:border-b-0">
+                <li key={site} >
                   <button
                     type="button"
                     onClick={() => select(site)}
-                    className={`w-full text-left px-3 py-2.5 text-[11px] font-semibold tracking-wide flex items-center justify-between gap-2 transition ${active ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
+                    className={`w-full text-left px-3 py-1.5 text-[11px] font-semibold tracking-wide flex items-center justify-between gap-2 transition ${active ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
                       }`}
                   >
                     {site}
@@ -196,8 +194,7 @@ function FilterableProductSelect({
   return (
     <div className="space-y-1.5" ref={ref}>
       <label htmlFor="product" className="flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase text-gray-400">
-        <span className="inline-block w-1 h-3 rounded-full" style={{ background: "#FA4900" }} />
-        <span>Product</span>
+        Product
       </label>
       <div className="relative">
         <input
@@ -231,12 +228,12 @@ function FilterableProductSelect({
         {open && (
           <ul className="absolute z-200 top-full mt-1 w-full bg-white border border-black rounded-sm shadow-lg overflow-hidden max-h-52 overflow-y-auto">
             {filtered.length === 0 && (
-              <li className="px-4 py-3 text-xs text-gray-400 font-medium">No products found.</li>
+              <li className="px-2 py-3 text-xs text-gray-400 font-medium">No products found.</li>
             )}
             {filtered.map((p) => {
               const active = value === p.id;
               return (
-                <li key={p.id} className="border-b border-black last:border-b-0">
+                <li key={p.id} className="">
                   <button
                     type="button"
                     onClick={() => {
@@ -244,7 +241,7 @@ function FilterableProductSelect({
                       setSearch(`${p.product_name} (${p.barcode})`);
                       setOpen(false);
                     }}
-                    className={`w-full text-left px-3 py-2.5 text-[11px] font-semibold tracking-wide flex items-center justify-between gap-2 transition ${active ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
+                    className={`w-full text-left px-3 py-1.5 text-[11px] font-semibold tracking-wide flex items-center justify-between gap-2 transition ${active ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
                       }`}
                   >
                     <span className="truncate">{p.product_name}</span>
@@ -292,38 +289,32 @@ export function InventoryModal({
   else if (editing) saveLabel = "Save Changes";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 sm:px-4">
-      <div className="w-full sm:max-w-lg max-h-[95vh] overflow-y-auto bg-white rounded-t-sm sm:rounded-sm shadow-2xl flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
+      <div className="bg-white rounded-t-sm sm:rounded-sm shadow-2xl w-full sm:max-w-lg flex flex-col max-h-[90vh]">
 
-        {/* Orange accent strip + header */}
-        <div className="relative px-6 pt-6 pb-5">
-          <div className="absolute top-0 left-0 right-0 h-1 rounded-t-sm sm:rounded-t-sm" style={{ background: "#FA4900" }} />
-          {/* Mobile drag handle */}
-          <div className="flex justify-center sm:hidden mb-4">
-            <div className="w-10 h-1 rounded-full bg-gray-200" />
-          </div>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <span className="inline-block text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full mb-2"
-                style={{ background: "#FFF0E8", color: "#FA4900" }}>
-                {editing ? "Editing" : "New"}
-              </span>
-              <h2 className="text-xl font-bold text-gray-900">
-                {editing ? "Edit Inventory Record" : "Create Inventory Record"}
-              </h2>
-              <p className="text-xs text-gray-400 mt-0.5">Fill in the fields below and save.</p>
-            </div>
-            <button onClick={onClose}
-              className="mt-1 p-2 rounded-sm text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition shrink-0">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-black shrink-0 bg-white">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-sm bg-black flex items-center justify-center shrink-0">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
               </svg>
-            </button>
+            </div>
+            <div>
+              <h2 className="text-base font-black text-gray-900 uppercase tracking-tight">{editing ? "Edit Record" : "New Record"}</h2>
+              <p className="text-[10px] text-gray-400 font-medium">{editing ? "Update inventory details below" : "Fill in the inventory details below"}</p>
+            </div>
           </div>
+          <button onClick={onClose}
+            className="p-1.5 rounded-sm text-gray-400 hover:text-black hover:bg-gray-100 transition-all shrink-0 active:scale-95">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={onSave} className="px-6 pb-6 space-y-4 flex-1">
+        <form onSubmit={onSave} className="flex-1 p-5 space-y-4 bg-white">
 
           <FilterableProductSelect
             products={products}
@@ -362,19 +353,13 @@ export function InventoryModal({
             return (
               <div className="grid grid-cols-2 gap-3 px-4 py-3.5 bg-gray-50 rounded-sm border border-black">
                 <div>
-                  <p className="flex items-center gap-1.5 text-[9px] font-bold tracking-widest uppercase text-gray-400 mb-1.5">
-                    <span className="inline-block w-1 h-3 rounded-full" style={{ background: "#FA4900" }} />
-                    <span>Stock Value</span>
-                  </p>
+                  <p className="text-[9px] font-bold tracking-widest uppercase text-gray-400 mb-1.5">Stock Value</p>
                   <p className="text-sm font-bold text-gray-800">
                     ${stockValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
                 <div>
-                  <p className="flex items-center gap-1.5 text-[9px] font-bold tracking-widest uppercase text-gray-400 mb-1.5">
-                    <span className="inline-block w-1 h-3 rounded-full" style={{ background: "#FA4900" }} />
-                    <span>Reorder Status</span>
-                  </p>
+                  <p className="text-[9px] font-bold tracking-widest uppercase text-gray-400 mb-1.5">Reorder Status</p>
                   <span className={`inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2 py-1 rounded-full ${needsReorder ? "bg-red-50 text-red-500" : "bg-gray-100 text-gray-500"
                     }`}>
                     <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${needsReorder ? "bg-red-500" : "bg-gray-300"}`} />
@@ -386,24 +371,23 @@ export function InventoryModal({
           })()}
 
           {formError && (
-            <p className="text-xs font-medium text-red-500 bg-red-50 border border-red-100 rounded-sm px-4 py-2.5">
+            <p className="text-xs font-medium text-red-500 bg-red-50 border border-red-100 px-4 py-2.5">
               {formError}
             </p>
           )}
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition"
+              className="flex-1 py-1.5 rounded-md text-[13px] text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-white hover:opacity-90 active:scale-[0.97] transition disabled:opacity-60"
-              style={{ background: "#FA4900" }}
+              className="flex-1 py-1.5 rounded-md text-[13px] text-white bg-orange-500 hover:opacity-90 active:scale-[0.97] transition disabled:opacity-60"
             >
               {saveLabel}
             </button>
@@ -429,7 +413,7 @@ export function DeleteModal({ target, onCancel, onConfirm, deleting }: Readonly<
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
-      <div className="bg-white rounded-t-sm sm:rounded-sm shadow-2xl w-full sm:max-w-sm px-5 pt-4 pb-8 sm:p-7 space-y-5 text-center">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm px-5 pt-4 pb-8 sm:p-7 space-y-5 text-center">
         <div className="flex justify-center sm:hidden mb-1">
           <div className="w-10 h-1 rounded-full bg-gray-200" />
         </div>
@@ -451,14 +435,14 @@ export function DeleteModal({ target, onCancel, onConfirm, deleting }: Readonly<
           <button
             onClick={onCancel}
             disabled={deleting}
-            className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition disabled:opacity-60"
+            className="flex-1 py-3 rounded-l-lg text-sm font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition disabled:opacity-60"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={deleting}
-            className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-white bg-red-500 hover:bg-red-600 active:scale-[0.97] transition disabled:opacity-60"
+            className="flex-1 py-3 rounded-r-lg text-sm font-bold tracking-widest uppercase text-white bg-red-500 hover:bg-red-600 active:scale-[0.97] transition disabled:opacity-60"
           >
             {deleting ? "Deleting…" : "Delete"}
           </button>

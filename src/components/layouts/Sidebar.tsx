@@ -87,7 +87,7 @@ function NavItem({
 
       {/* Label — animated collapse */}
       <span
-        className="text-[13px] font-black"
+        className="text-[13px] font-light"
         style={{
           maxWidth: isCollapsed ? 0 : 160,
           opacity: isCollapsed ? 0 : 1,
