@@ -69,6 +69,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   const [editFormError, setEditFormError] = useState("");
 
   const [pageSize, setPageSize] = useState<string | number>(20);
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
   useEffect(() => {
     if (menuOpenId === null) return;
@@ -266,18 +267,45 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
       <StatsOverview stats={stats} />
 
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-3">
         <TypeFilterSelect value={typeFilter} onChange={setTypeFilter} />
         <PageSizeSelect value={pageSize} onChange={setPageSize} />
+        <div className="ml-auto flex items-center gap-1 bg-slate-100 border border-black/10 rounded-sm p-1">
+          {(["list", "grid"] as const).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => setViewMode(mode)}
+              title={mode === "list" ? "List view" : "Grid view"}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[10px] font-black tracking-widest uppercase transition-all duration-150 ${
+                viewMode === mode
+                  ? "bg-black text-white shadow-sm"
+                  : "text-gray-400 hover:text-gray-700 hover:bg-white/60"
+              }`}
+            >
+              {mode === "list" ? (
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+              ) : (
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                </svg>
+              )}
+              <span className="hidden sm:inline">{mode}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="rounded-xl border border-black overflow-hidden bg-white">
+      <div className=" overflow-hidden bg-white">
         <TransactionsTable
           displayed={displayed}
           loading={loading}
           error={error}
           onActionClick={handleActionClick}
           menuOpenId={menuOpenId}
+          viewMode={viewMode}
         />
       </div>
 

@@ -31,6 +31,7 @@ type TransactionsTableProps = {
   error: string;
   onActionClick: (e: React.MouseEvent, t: Transaction) => void;
   menuOpenId: number | null;
+  viewMode?: "list" | "grid";
 };
 
 const TransactionsTable: React.FC<TransactionsTableProps> = ({
@@ -39,6 +40,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
   error,
   onActionClick,
   menuOpenId,
+  viewMode = "list",
 }) => {
   if (loading) {
     return (
@@ -76,7 +78,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
           const more = t.items.length - 1;
 
           return (
-            <div key={t.id} className="px-3 py-2 bg-white">
+            <div key={t.id} className="px-3 py-2 bg-white border border-black rounded-sm mb-3">
 
               {/* Card Header (Row 1) */}
               <div className="flex items-center justify-between gap-3 pb-2 border-b border-slate-50">
@@ -128,6 +130,13 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                   </svg>
                   <span className="truncate font-medium">{t.items.length} ITEMS</span>
                 </div>
+                <span className="text-slate-300 select-none">•</span>
+                <div className="flex items-center gap-1.5 min-w-0 text-slate-500">
+                  <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
+                  </svg>
+                  <span className="truncate font-medium tabular-nums text-gray-800">{t.items.reduce((sum, item) => sum + Math.abs(item.quantity), 0)} QTY</span>
+                </div>
               </div>
 
               {/* Card Footer (Row 3) */}
@@ -150,12 +159,70 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
         })}
       </div>
 
-      {/* Desktop table */}
+      {/* Desktop — grid view */}
+      {viewMode === "grid" && (
+        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-3 p-0 bg-slate-50 ">
+          {displayed.map((t) => {
+            const sign = t.transaction_type === "Receive" ? "+" : "−";
+            const valCol = t.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
+            const totalQty = t.items.reduce((sum, item) => sum + Math.abs(item.quantity), 0);
+            const first = t.items[0];
+            const more = t.items.length - 1;
+            return (
+              <div key={t.id} className="bg-white p-4 flex flex-col gap-3 hover:bg-slate-50 transition-colors border border-black rounded-sm">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex flex-col gap-1 min-w-0">
+                    <span className="text-[10px] font-mono font-black text-white bg-black px-1.5 py-0.5 rounded-sm w-fit">#{t.id}</span>
+                    <p className="text-[11px] font-black text-gray-900 uppercase tracking-tighter truncate">
+                      {first?.product_name ?? "—"}
+                      {more > 0 && <span className="text-gray-400 font-normal"> +{more} more</span>}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => onActionClick(e, t)}
+                    className="p-1.5 rounded-lg text-gray-300 hover:text-gray-700 hover:bg-gray-100 transition shrink-0"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 6a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 divide-x divide-black/10 border border-black/10 rounded-sm overflow-hidden">
+                  <div className="flex flex-col items-center py-2 gap-0.5">
+                    <span className="text-[8px] font-black tracking-[0.15em] uppercase text-gray-400">Items</span>
+                    <span className="text-[13px] font-black tabular-nums text-gray-900 leading-none">{t.items.length}</span>
+                  </div>
+                  <div className="flex flex-col items-center py-2 gap-0.5">
+                    <span className="text-[8px] font-black tracking-[0.15em] uppercase text-gray-400">Qty</span>
+                    <span className="text-[13px] font-black tabular-nums text-gray-900 leading-none">{totalQty}</span>
+                  </div>
+                  <div className="flex flex-col items-center py-2 gap-0.5">
+                    <span className="text-[8px] font-black tracking-[0.15em] uppercase text-gray-400">Total</span>
+                    <span className={`text-[13px] font-black tabular-nums leading-none ${valCol}`}>{sign}${Math.abs(Number.parseFloat(t.total_transaction_value)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={`text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${t.transaction_type === "Receive" ? "bg-green-50 text-green-600" : "bg-red-50 text-red-500"}`}>
+                    {t.transaction_type}
+                  </span>
+                  <span className="text-[9px] font-black text-gray-400 tabular-nums" suppressHydrationWarning>
+                    {formatDateTime(t.transaction_date)}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Desktop — list view */}
+      {viewMode === "list" && (
       <div className="hidden sm:block overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm border border-black rounded-4xl">
           <thead className="bg-slate-50 border-b border-black">
             <tr>
-              {["#", "Type", "Items", "Total Value", "Date", "Actions"].map((h) => (
+              {["#", "Type", "Items", "Total Value", "Total Quantity", "Date", "Actions"].map((h) => (
                 <th key={h} className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">{h}</th>
               ))}
             </tr>
@@ -179,6 +246,9 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                   <td className={`px-5 py-2 font-bold tabular-nums ${valCol}`}>
                     {fmtValue(t.total_transaction_value, sign)}
                   </td>
+                  <td className="px-5 py-2 font-semibold tabular-nums text-gray-800">
+                    {t.items.reduce((sum, item) => sum + Math.abs(item.quantity), 0)}
+                  </td>
                   <td className="px-5 py-2 text-gray-500 whitespace-nowrap" suppressHydrationWarning>
                     {formatDateTime(t.transaction_date)}
                   </td>
@@ -200,6 +270,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
           </tbody>
         </table>
       </div>
+      )}
     </>
   );
 };
