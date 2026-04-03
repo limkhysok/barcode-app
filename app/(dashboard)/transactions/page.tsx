@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { serverFetch } from "@/src/lib/server-fetch";
 import { getTransactions, getTransactionStats } from "@/src/services/transaction.service";
 import { getInventory } from "@/src/services/inventory.service";
