@@ -424,7 +424,6 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
               <div className="flex items-center gap-1 sm:gap-3 px-2 py-2 bg-slate-50 border-b border-black">
                 <span className="hidden sm:inline-block w-5 shrink-0 text-[12px] font-black text-gray-700 text-center">N0</span>
                 <span className="flex-1 sm:w-64 sm:shrink-0 text-[12px] font-black text-gray-700">Product</span>
-                <span className="flex-1 min-w-0 text-[12px] font-black text-gray-700 text-left">Total</span>
                 <span className="w-16 sm:w-24 shrink-0 text-[12px] font-black text-gray-700 text-left sm:pr-2">Quantity</span>
                 <span className="w-5 shrink-0" />
               </div>
@@ -432,9 +431,6 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
               <div className="divide-y divide-black/10">
                 {items.map((item, idx) => {
                   const rec = allInventory.find((r) => r.id === item.inventory);
-                  const lineTotal = rec ? item.quantity * Number.parseFloat(rec.product_details.cost_per_unit) : null;
-                  const sign = txType === "Receive" ? "+" : "−";
-                  const valCol = txType === "Receive" ? "text-green-600" : "text-red-600";
                   return (
                     <div key={item.id} className="flex items-center gap-2 sm:gap-3 px-2 py-1.5 hover:bg-slate-50/60 transition-colors group/item">
                       <span className="hidden sm:inline-block w-5 shrink-0 text-[10px] font-black text-gray-700 text-center">{String(idx + 1).padStart(2, "0")}</span>
@@ -450,13 +446,6 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                             <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">Stock</span>
                             <span className="text-[10px] font-black text-[#FA4900] tabular-nums">{rec.quantity_on_hand}</span>
                           </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0 text-left">
-                        {lineTotal === null ? null : (
-                          <p className={`text-[11px] font-black tabular-nums ${valCol}`}>
-                            {sign}${lineTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </p>
                         )}
                       </div>
                       <div className="w-13 sm:w-24 shrink-0">
@@ -793,16 +782,12 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
               <div className="flex items-center gap-1 sm:gap-2 px-3 py-2 bg-slate-50 border-b border-black">
                 <span className="hidden sm:inline-block w-5 shrink-0 text-[10px] font-black text-gray-700 tracking-widest text-center">N0</span>
                 <span className="flex-1 sm:w-64 sm:shrink-0 text-[10px] font-black text-gray-700 uppercase tracking-widest">Product</span>
-                <span className="flex-1 min-w-0 text-[10px] font-black text-gray-700 uppercase tracking-widest text-right">Total</span>
                 <span className="w-16 sm:w-24 shrink-0 text-[10px] font-black text-gray-700 uppercase tracking-widest text-right">Quantity</span>
                 <span className="w-5 shrink-0" />
               </div>
               <div className="divide-y divide-black/10">
                 {editItems.map((item, idx) => {
                   const rec = allEditInventory.find((r) => r.id === item.inventory);
-                  const lineTotal = rec ? item.quantity * Number.parseFloat(rec.product_details.cost_per_unit) : null;
-                  const sign = editTxType === "Receive" ? "+" : "−";
-                  const valCol = editTxType === "Receive" ? "text-green-600" : "text-red-600";
                   return (
                     <div key={item.id} className="flex items-center gap-1 sm:gap-2 px-3 py-2 hover:bg-slate-50/60 transition-colors group/item">
                       <span className="hidden sm:inline-block w-5 shrink-0 text-[10px] font-black text-gray-300 text-center">{String(idx + 1).padStart(2, "0")}</span>
@@ -818,13 +803,6 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
                             <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">Stock</span>
                             <span className="text-[10px] font-black text-[#FA4900] tabular-nums">{rec.quantity_on_hand}</span>
                           </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0 text-right">
-                        {lineTotal === null ? null : (
-                          <p className={`text-[11px] font-black tabular-nums ${valCol}`}>
-                            {sign}${lineTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </p>
                         )}
                       </div>
                       <div className="w-16 sm:w-24 shrink-0">
