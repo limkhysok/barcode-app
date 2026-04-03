@@ -108,37 +108,76 @@ function ProductTable({ loading, error, displayed, products, costDir, reorderDir
   return (
     <>
       {/* Mobile cards */}
-      <div className="sm:hidden divide-y divide-black">
-        {displayed.map((p, idx) => (
-          <div key={p.id ?? idx} className="px-4 py-4 flex items-start gap-3 active:bg-gray-50 transition-colors">
-            <div className="flex-1 min-w-0 space-y-1.5">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-semibold text-gray-800 text-sm leading-snug">{p.product_name}</span>
-                <span className="text-[10px] font-bold tracking-widest uppercase text-black">{p.category}</span>
+      <div className="sm:hidden divide-y divide-slate-100 bg-slate-50/30">
+        {displayed.map((p, idx) => {
+          const cost = Number.parseFloat(p.cost_per_unit) || 0;
+          return (
+            <div key={p.id ?? idx} className="px-3 py-2.5 bg-white mb-2 first:mt-2 last:mb-0 border-y border-slate-100 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+              {/* Row 1: Header - ID + Category + Name + Actions */}
+              <div className="flex items-center justify-between gap-3 pb-2 border-b border-slate-50">
+                <div className="flex flex-col gap-1 flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono font-black text-white bg-black px-1.5 py-0.5 rounded-sm shrink-0">#{p.id}</span>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest bg-gray-100 px-2 py-0.5 rounded-md truncate">{p.category}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest shrink-0">Name:</span>
+                    <p className="font-black text-gray-900 text-[11px] leading-snug truncate uppercase tracking-tighter">{p.product_name}</p>
+                  </div>
+                </div>
+                <div className="flex items-center -mr-1">
+                  <button onClick={() => onEdit(p)} className="p-1 px-1.5 rounded-lg text-gray-300 hover:text-gray-900 transition-colors active:scale-95" title="Edit">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                    </svg>
+                  </button>
+                  <button onClick={() => onDelete(p)} className="p-1 px-1.5 rounded-lg text-gray-300 hover:text-red-500 transition-colors active:scale-95" title="Delete">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                    </svg>
+                  </button>
+                </div>
               </div>
-              <p className="text-xs text-gray-400 font-mono">{p.barcode}</p>
-              <div className="flex items-center gap-3 text-xs flex-wrap">
-                <span className="font-black text-black tabular-nums">${Number.parseFloat(p.cost_per_unit).toFixed(2)}</span>
-                <span className="text-gray-400">by <span className="font-semibold text-gray-600">{p.supplier}</span></span>
-                <span className="text-gray-400">Reorder: {p.reorder_level}</span>
+
+              {/* Row 2: Metadata - Supplier + Barcode + Unit Price */}
+              <div className="flex items-center gap-3 mt-2 px-1 py-1 bg-slate-50/70 border border-slate-100/50 rounded-lg text-[10px] shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205l3 1" />
+                  </svg>
+                  <span className="font-bold text-gray-700 truncate">{p.supplier}</span>
+                </div>
+                <span className="text-slate-300 select-none">•</span>
+                <div className="flex items-center gap-1.5 min-w-0 text-slate-500">
+                  <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 16.5h.75v.75h-.75v-.75zM16.5 13.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z" />
+                  </svg>
+                  <span className="truncate font-mono">{p.barcode}</span>
+                </div>
+                <div className="ml-auto flex items-center gap-1.5 shrink-0">
+                  <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest">Unit</span>
+                  <span className="font-black text-slate-900 tabular-nums bg-white px-1.5 py-0.5 rounded border border-slate-100 shadow-sm">${cost.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {/* Row 3: Metrics - Reorder level + Created at */}
+              <div className="flex items-center justify-between px-1.5 mt-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0" />
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Reorder at</span>
+                  <span className="text-[11px] font-black text-gray-900 tabular-nums ml-0.5">{p.reorder_level}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-slate-200 text-[12px]">•</span>
+                  <p className="text-[9px] font-black text-slate-500 font-mono tracking-tighter uppercase tabular-nums">
+                    {new Date(p.created_at).toLocaleDateString()}
+                  </p>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-1 shrink-0 mt-0.5">
-              <button onClick={() => onEdit(p)}
-                className="p-2.5 rounded-sm text-gray-400 hover:text-gray-700 hover:bg-gray-100 active:scale-95 transition" title="Edit">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                </svg>
-              </button>
-              <button onClick={() => onDelete(p)}
-                className="p-2.5 rounded-sm text-gray-400 hover:text-red-500 hover:bg-red-50 active:scale-95 transition" title="Delete">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Desktop table */}
@@ -448,228 +487,126 @@ export default function ProductsClient({
   return (
     <div className="px-4 py-5 sm:px-5 sm:py-5 space-y-4">
 
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <h1 className="text-xl font-light text-gray-900">Products</h1>
-          </div>
-          <button onClick={openCreate}
-            className="flex items-center gap-2 px-2 py-1.5 sm:px-4 rounded-lg text-xs font-light tracking-widest bg-orange-500 text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            <span className="hidden sm:inline">Add Product</span>
-            <span className="sm:hidden">Add</span>
-          </button>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="space-y-0.5">
+          <h1 className="text-xl font-light text-gray-900">Products</h1>
         </div>
+        <button onClick={openCreate}
+          className="flex items-center gap-2 px-2 py-1.5 sm:px-4 rounded-lg text-xs font-light tracking-widest bg-orange-500 text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          <span className="hidden sm:inline">Add Product</span>
+          <span className="sm:hidden">Add</span>
+        </button>
+      </div>
 
-        {/* Category stat cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {/* Category stat cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
-          {/* Accessories */}
-          <div className="px-5 py-4 border border-black bg-white rounded-xl">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.18em]">Accessories</p>
-              <div className="w-7 h-7 rounded-none border border-black bg-slate-50 flex items-center justify-center text-black shrink-0">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
-                </svg>
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Count</span>
-                <span className="text-sm font-black text-black tabular-nums">{categoryStats.accessories.count}</span>
-              </div>
-              <div className="border-t border-dashed border-gray-200" />
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Cost</span>
-                <span className="text-sm font-bold text-black tabular-nums">${categoryStats.accessories.cost.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Fasteners */}
-          <div className="px-5 py-4 border border-black bg-white rounded-xl">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.18em]">Fasteners</p>
-              <div className="w-7 h-7 rounded-none border border-black bg-slate-50 flex items-center justify-center text-black shrink-0">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 11-3.586-3.586l8.684-7.152c.833-.736.995-1.874.904-2.95a4.5 4.5 0 016.336-4.486l-3.276 3.276a3.004 3.004 0 002.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852z" />
-                </svg>
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Count</span>
-                <span className="text-sm font-black text-black tabular-nums">{categoryStats.fasteners.count}</span>
-              </div>
-              <div className="border-t border-dashed border-gray-200" />
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Cost</span>
-                <span className="text-sm font-bold text-black tabular-nums">${categoryStats.fasteners.cost.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Total Value */}
-          <div className="px-5 py-4 border border-black bg-white rounded-xl">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.18em]">Total Value</p>
-              <div className="w-7 h-7 rounded-none border border-black bg-slate-50 flex items-center justify-center text-black shrink-0">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Count</span>
-                <span className="text-sm font-black text-black tabular-nums">{categoryStats.total}</span>
-              </div>
-              <div className="border-t border-dashed border-gray-200" />
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Combined Cost</span>
-                <span className="text-sm font-bold text-black tabular-nums">${categoryStats.totalValue.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        {/* Toolbar */}
-        {/* Desktop filters */}
-        <div className="hidden lg:block">
-          {/* Row 1: category, sort cost, sort reorder, show XX, search */}
-          <div className="grid grid-cols-[1fr_1fr_1fr_minmax(0,140px)_2fr] gap-2.5">
-            <div className="bg-white rounded-sm">
-              <CustomSelect id="filter-category" value={categoryFilter} onChange={setCategoryFilter}
-                options={[
-                  { value: "", label: "All Categories" },
-                  { value: "Accessories", label: "Accessories" },
-                  { value: "Fasteners", label: "Fasteners" },
-                ]} />
-            </div>
-            <div className="bg-white rounded-sm">
-              <CustomSelect id="sort-cost" value={costDir} onChange={(v) => setCostDir(v as SortDir)}
-                options={[
-                  { value: "", label: "Cost / Unit (sort)" },
-                  { value: "asc", label: "Low → High" },
-                  { value: "desc", label: "High → Low" },
-                ]} />
-            </div>
-            <div className="bg-white rounded-sm">
-              <CustomSelect id="sort-reorder" value={reorderDir} onChange={(v) => setReorderDir(v as SortDir)}
-                options={[
-                  { value: "", label: "Reorder (sort)" },
-                  { value: "asc", label: "Low → High" },
-                  { value: "desc", label: "High → Low" },
-                ]} />
-            </div>
-            <div className="bg-white rounded-sm">
-              <CustomSelect
-                id="page-size-selector-desktop"
-                value={pageSize === "all" ? "all" : String(pageSize)}
-                onChange={handlePageSizeChange}
-                triggerLabel={`${products.length} of ${pageSize === "all" ? "ALL" : pageSize}`}
-                options={[
-                  { value: "20", label: "Show 20" },
-                  { value: "50", label: "Show 50" },
-                  { value: "100", label: "Show 100" },
-                  { value: "200", label: "Show 200" },
-                  { value: "500", label: "Show 500" },
-                  { value: "1000", label: "Show 1000" },
-                  { value: "all", label: "Show ALL" },
-                ]}
-              />
-            </div>
-            <div className="flex items-center gap-2 bg-white rounded-md border border-black px-3 py-1">
-              <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+        {/* Accessories */}
+        <div className="px-5 py-4 border border-black bg-white rounded-xl">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.18em]">Accessories</p>
+            <div className="w-7 h-7 bg-black flex items-center justify-center shrink-0 rounded-lg">
+              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
               </svg>
-              <input id="product-search" name="product-search" type="text" placeholder="Search name, barcode, supplier"
-                value={search} onChange={(e) => setSearch(e.target.value)}
-                className="flex-1 min-w-0 text-xs font-black text-slate-900 placeholder:text-slate-700 placeholder:font-normal bg-transparent outline-none" />
-              {search && (
-                <button type="button" onClick={() => setSearch("")} aria-label="Clear search" className="text-slate-300 hover:text-black transition shrink-0">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Count</span>
+              <span className="text-sm font-black text-black tabular-nums">{categoryStats.accessories.count}</span>
+            </div>
+            <div className="border-t border-dashed border-gray-200" />
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Cost</span>
+              <span className="text-sm font-bold text-black tabular-nums">${categoryStats.accessories.cost.toFixed(2)}</span>
             </div>
           </div>
         </div>
 
-        {/* Mobile filters — Filters button + Show XX + Search */}
-        <div className="flex flex-wrap lg:hidden gap-2">
-          {/* Filters dropdown */}
-          <div className="relative" ref={filtersRef}>
-            {(() => {
-              const activeCount = [categoryFilter, costDir, reorderDir].filter(Boolean).length;
-              return (
-                <button type="button" onClick={() => setFiltersOpen((v) => !v)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-sm border text-[11px] font-bold tracking-widest uppercase transition ${filtersOpen ? "bg-black text-white border-black" : "bg-white text-slate-700 border-black hover:bg-slate-50"
-                    }`}>
-                  <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
-                  </svg>
-                  Filters
-                  {activeCount > 0 && (
-                    <span className="flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold bg-orange-500 text-white">
-                      {activeCount}
-                    </span>
-                  )}
-                </button>
-              );
-            })()}
-
-            {filtersOpen && (
-              <div className="absolute top-full left-0 mt-1 z-50 w-64 bg-white border border-black rounded-sm shadow-xl p-3 space-y-3">
-                <p className="text-[9px] font-bold tracking-widest uppercase text-slate-400">Filters &amp; Sorting</p>
-                <div className="space-y-1.5">
-                  <p className="text-[10px] font-semibold text-slate-500">Category</p>
-                  <CustomSelect id="mob-filter-category" value={categoryFilter} onChange={setCategoryFilter}
-                    options={[
-                      { value: "", label: "All Categories" },
-                      { value: "Accessories", label: "Accessories" },
-                      { value: "Fasteners", label: "Fasteners" },
-                    ]} />
-                </div>
-                <div className="space-y-1.5">
-                  <p className="text-[10px] font-semibold text-slate-500">Cost / Unit (sort)</p>
-                  <CustomSelect id="mob-sort-cost" value={costDir} onChange={(v) => setCostDir(v as SortDir)}
-                    options={[
-                      { value: "", label: "Default" },
-                      { value: "asc", label: "Low → High" },
-                      { value: "desc", label: "High → Low" },
-                    ]} />
-                </div>
-                <div className="space-y-1.5">
-                  <p className="text-[10px] font-semibold text-slate-500">Reorder(sort)</p>
-                  <CustomSelect id="mob-sort-reorder" value={reorderDir} onChange={(v) => setReorderDir(v as SortDir)}
-                    options={[
-                      { value: "", label: "Default" },
-                      { value: "asc", label: "Low → High" },
-                      { value: "desc", label: "High → Low" },
-                    ]} />
-                </div>
-                {[categoryFilter, costDir, reorderDir].some(Boolean) && (
-                  <button type="button"
-                    onClick={() => { setCategoryFilter(""); setCostDir(""); setReorderDir(""); }}
-                    className="w-full py-1.5 text-[10px] font-bold tracking-widest uppercase text-red-500 border border-red-200 rounded-sm hover:bg-red-50 transition">
-                    Clear All
-                  </button>
-                )}
-              </div>
-            )}
+        {/* Fasteners */}
+        <div className="px-5 py-4 border border-black bg-white rounded-xl">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.18em]">Fasteners</p>
+            <div className="w-7 h-7 bg-black flex items-center justify-center shrink-0 rounded-lg">
+              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 11-3.586-3.586l8.684-7.152c.833-.736.995-1.874.904-2.95a4.5 4.5 0 016.336-4.486l-3.276 3.276a3.004 3.004 0 002.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852z" />
+              </svg>
+            </div>
           </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Count</span>
+              <span className="text-sm font-black text-black tabular-nums">{categoryStats.fasteners.count}</span>
+            </div>
+            <div className="border-t border-dashed border-gray-200" />
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Cost</span>
+              <span className="text-sm font-bold text-black tabular-nums">${categoryStats.fasteners.cost.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
 
-          {/* Show XX page size */}
-          <div className="bg-white rounded-sm min-w-28">
+        {/* Total Value */}
+        <div className="px-5 py-4 border border-black bg-white rounded-xl">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.18em]">Total Value</p>
+            <div className="w-7 h-7 bg-black flex items-center justify-center shrink-0 rounded-lg">
+              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Count</span>
+              <span className="text-sm font-black text-black tabular-nums">{categoryStats.total}</span>
+            </div>
+            <div className="border-t border-dashed border-gray-200" />
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Combined Cost</span>
+              <span className="text-sm font-bold text-black tabular-nums">${categoryStats.totalValue.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Toolbar */}
+      <div className="hidden lg:block">
+        <div className="grid grid-cols-[1fr_1fr_1fr_minmax(0,140px)_2fr] gap-2.5">
+          <div className="bg-white rounded-sm">
+            <CustomSelect id="filter-category" value={categoryFilter} onChange={setCategoryFilter}
+              options={[
+                { value: "", label: "All Categories" },
+                { value: "Accessories", label: "Accessories" },
+                { value: "Fasteners", label: "Fasteners" },
+              ]} />
+          </div>
+          <div className="bg-white rounded-sm">
+            <CustomSelect id="sort-cost" value={costDir} onChange={(v) => setCostDir(v as SortDir)}
+              options={[
+                { value: "", label: "Cost / Unit (sort)" },
+                { value: "asc", label: "Low → High" },
+                { value: "desc", label: "High → Low" },
+              ]} />
+          </div>
+          <div className="bg-white rounded-sm">
+            <CustomSelect id="sort-reorder" value={reorderDir} onChange={(v) => setReorderDir(v as SortDir)}
+              options={[
+                { value: "", label: "Reorder (sort)" },
+                { value: "asc", label: "Low → High" },
+                { value: "desc", label: "High → Low" },
+              ]} />
+          </div>
+          <div className="bg-white rounded-sm">
             <CustomSelect
-              id="page-size-selector-mobile"
+              id="page-size-selector-desktop"
               value={pageSize === "all" ? "all" : String(pageSize)}
               onChange={handlePageSizeChange}
               triggerLabel={`${products.length} of ${pageSize === "all" ? "ALL" : pageSize}`}
@@ -684,14 +621,13 @@ export default function ProductsClient({
               ]}
             />
           </div>
-
-          {/* Search */}
-          <div className="flex-1 min-w-40 flex items-center gap-2 bg-white rounded-sm border border-black px-3 py-1">
-            <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <div className="flex items-center gap-2 bg-white rounded-md border border-black px-3 py-1 shadow-sm transition-all focus-within:ring-2 focus-within:ring-orange-500/20">
+            <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
             </svg>
-            <input id="product-search-mobile" name="product-search" type="text" placeholder="Search Name" value={search} onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 min-w-0 text-sm font-medium text-slate-800 placeholder:text-slate-400 placeholder:font-normal bg-transparent outline-none" />
+            <input id="product-search" name="product-search" type="text" placeholder="Search name, barcode, supplier"
+              value={search} onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 min-w-0 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal bg-transparent outline-none" />
             {search && (
               <button type="button" onClick={() => setSearch("")} aria-label="Clear search" className="text-slate-300 hover:text-black transition shrink-0">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -701,152 +637,242 @@ export default function ProductsClient({
             )}
           </div>
         </div>
+      </div>
 
+      {/* Mobile filters — Single Row Layout */}
+      <div className="flex flex-nowrap lg:hidden gap-2 items-center">
+        {/* Filters dropdown */}
+        <div className="relative shrink-0" ref={filtersRef}>
+          {(() => {
+            const activeCount = [categoryFilter, costDir, reorderDir].filter(Boolean).length;
+            return (
+              <button type="button" onClick={() => setFiltersOpen((v) => !v)}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[13px] transition ${filtersOpen ? "bg-black text-white border-black" : "bg-white text-slate-700 border-black hover:bg-slate-50"
+                  }`}>
+                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                </svg>
+                {activeCount > 0 && (
+                  <span className="flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold bg-orange-500 text-white mr-0.5">
+                    {activeCount}
+                  </span>
+                )}
+                Filters
+              </button>
+            );
+          })()}
 
-        {/* Table */}
-        <div className="rounded-xl border border-black overflow-hidden bg-white ">
-          <ProductTable
-            loading={loading} error={error}
-            displayed={displayed} products={products}
-            costDir={costDir} reorderDir={reorderDir}
-            onEdit={openEdit} onDelete={setDeleteTarget}
+          {filtersOpen && (
+            <div className="absolute top-full left-0 mt-1 z-50 w-64 bg-white border border-black rounded-lg shadow-xl p-3 space-y-3">
+              <p className="text-[9px] font-bold tracking-widest uppercase text-slate-400">Filters &amp; Sorting</p>
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-semibold text-slate-500">Category</p>
+                <CustomSelect id="mob-filter-category" value={categoryFilter} onChange={setCategoryFilter}
+                  options={[
+                    { value: "", label: "All Categories" },
+                    { value: "Accessories", label: "Accessories" },
+                    { value: "Fasteners", label: "Fasteners" },
+                  ]} />
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-semibold text-slate-500">Cost / Unit (sort)</p>
+                <CustomSelect id="mob-sort-cost" value={costDir} onChange={(v) => setCostDir(v as SortDir)}
+                  options={[
+                    { value: "", label: "Default" },
+                    { value: "asc", label: "Low → High" },
+                    { value: "desc", label: "High → Low" },
+                  ]} />
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-semibold text-slate-500">Reorder(sort)</p>
+                <CustomSelect id="mob-sort-reorder" value={reorderDir} onChange={(v) => setReorderDir(v as SortDir)}
+                  options={[
+                    { value: "", label: "Default" },
+                    { value: "asc", label: "Low → High" },
+                    { value: "desc", label: "High → Low" },
+                  ]} />
+              </div>
+              {[categoryFilter, costDir, reorderDir].some(Boolean) && (
+                <button type="button"
+                  onClick={() => { setCategoryFilter(""); setCostDir(""); setReorderDir(""); }}
+                  className="w-full py-1.5 text-[10px] font-bold tracking-widest uppercase text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition">
+                  Clear All
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Show XX page size */}
+        <div className="bg-white rounded-md shrink-0 w-24">
+          <CustomSelect
+            id="page-size-selector-mobile"
+            value={pageSize === "all" ? "all" : String(pageSize)}
+            onChange={handlePageSizeChange}
+            triggerLabel={pageSize === "all" ? "ALL" : String(pageSize)}
+            options={[
+              { value: "20", label: "20" },
+              { value: "50", label: "50" },
+              { value: "100", label: "100" },
+              { value: "all", label: "ALL" },
+            ]}
           />
         </div>
 
+        {/* Search */}
+        <div className="flex-1 flex items-center gap-2 bg-white rounded-md border border-black px-2.5 py-1 shadow-sm min-w-0">
+          <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+          <input id="product-search-mobile" name="product-search" type="text"
+            placeholder="Search..."
+            value={search} onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 min-w-0 text-[13px] font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal bg-transparent outline-none" />
+          {search && (
+            <button type="button" onClick={() => setSearch("")} aria-label="Clear search" className="text-slate-300 hover:text-black transition shrink-0">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
 
-        {/* Add / Edit Modal */}
-        {modalOpen && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
-            <div className="bg-white rounded-t-sm sm:rounded-sm shadow-2xl w-full sm:max-w-lg flex flex-col max-h-[90vh] overflow-hidden">
-              {/* Header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-black shrink-0 bg-white">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-sm bg-black flex items-center justify-center shrink-0">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-base font-black text-gray-900 uppercase tracking-tight">{editing ? "Edit Product" : "New Product"}</h2>
-                    <p className="text-[10px] text-gray-400 font-medium">{editing ? "Update product details below" : "Fill in the product details below"}</p>
-                  </div>
-                </div>
-                <button onClick={() => setModalOpen(false)}
-                  className="p-1.5 rounded-sm text-gray-400 hover:text-black hover:bg-gray-100 transition-all shrink-0 active:scale-95">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+      {/* Table */}
+      <div className="rounded-xl border border-black overflow-hidden bg-white ">
+        <ProductTable
+          loading={loading} error={error}
+          displayed={displayed} products={products}
+          costDir={costDir} reorderDir={reorderDir}
+          onEdit={openEdit} onDelete={setDeleteTarget}
+        />
+      </div>
+
+      {/* Add / Edit Modal */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
+          <div className="bg-white rounded-t-sm sm:rounded-sm shadow-2xl w-full sm:max-w-lg flex flex-col max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-black shrink-0 bg-white">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-sm bg-black flex items-center justify-center shrink-0">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
                   </svg>
-                </button>
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-gray-900 uppercase tracking-tight">{editing ? "Edit Product" : "New Product"}</h2>
+                  <p className="text-[10px] text-gray-400 font-medium">{editing ? "Update product details below" : "Fill in the product details below"}</p>
+                </div>
               </div>
-
-              {/* Form */}
-              <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-5 space-y-4 bg-white min-h-0">
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field label="Product Name" id="product_name" value={form.product_name} placeholder="Engine Oil Filter"
-                    onChange={(v) => setForm((f) => ({ ...f, product_name: v }))} />
-                  <Field label="Barcode" id="barcode" value={form.barcode} placeholder="SN-ABC123"
-                    onChange={(v) => setForm((f) => ({ ...f, barcode: v }))} disabled={!!editing} />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <CustomSelect id="category" label="Category" value={form.category} placeholder="Select…"
-                    onChange={(v) => setForm((f) => ({ ...f, category: v }))}
-                    options={[
-                      { value: "Accessories", label: "Accessories" },
-                      { value: "Fasteners", label: "Fasteners" },
-                    ]} />
-                  <div className="space-y-1.5">
-                    <CustomSelect id="reorder_level" label="Reorder Level"
-                      value={reorderCustom ? "custom" : form.reorder_level} placeholder="Select…"
-                      onChange={(v) => {
-                        if (v === "custom") {
-                          setReorderCustom(true);
-                          setForm((f) => ({ ...f, reorder_level: 0 }));
-                        } else {
-                          setReorderCustom(false);
-                          setForm((f) => ({ ...f, reorder_level: Number.parseInt(v) }));
-                        }
-                      }}
-                      options={[
-                        { value: 5, label: "5" },
-                        { value: 10, label: "10" },
-                        { value: 15, label: "15" },
-                        { value: 20, label: "20" },
-                        { value: "custom", label: "Custom…" },
-                      ]} />
-                    {reorderCustom && (
-                      <input type="number" min={1} placeholder="Enter value" required
-                        value={form.reorder_level || ""}
-                        onChange={(e) => setForm((f) => ({ ...f, reorder_level: Number.parseInt(e.target.value) || 0 }))}
-                        className={`${inputCls} mt-1`} />
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field label="Supplier" id="supplier" value={form.supplier} placeholder="CTK Supply Co."
-                    onChange={(v) => setForm((f) => ({ ...f, supplier: v }))} />
-                  <Field label="Cost / Unit ($)" id="cost_per_unit" type="number" value={form.cost_per_unit} placeholder="12.50"
-                    onChange={(v) => setForm((f) => ({ ...f, cost_per_unit: Number.parseFloat(v) || 0 }))} />
-                </div>
-
-                {formError && (
-                  <p className="text-xs font-medium text-red-500 bg-red-50 border border-red-100 px-4 py-2.5">
-                    {formError}
-                  </p>
-                )}
-
-                <div className="flex gap-3">
-                  <button type="button" onClick={() => setModalOpen(false)}
-                    className="flex-1 py-1.5 rounded-md text-[13px]  text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
-                    Cancel
-                  </button>
-                  <button type="submit" disabled={saving}
-                    className="flex-1 py-1.5 rounded-md text-[13px]  text-white bg-orange-500 hover:opacity-90 active:scale-[0.97] transition disabled:opacity-60"
-                   >
-                    {saveLabel}
-                  </button>
-                </div>
-
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Delete Confirm Modal */}
-        {deleteTarget && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
-            <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm px-5 pt-4 pb-8 sm:p-7 space-y-5 text-center">
-              {/* drag handle mobile only */}
-              <div className="flex justify-center sm:hidden mb-1">
-                <div className="w-10 h-1 rounded-full bg-gray-200" />
-              </div>
-              <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto">
-                <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round"
-                    d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+              <button onClick={() => setModalOpen(false)}
+                className="p-1.5 rounded-sm text-gray-400 hover:text-black hover:bg-gray-100 transition-all shrink-0 active:scale-95">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-5 space-y-4 bg-white min-h-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field label="Product Name" id="product_name" value={form.product_name} placeholder="Engine Oil Filter"
+                  onChange={(v) => setForm((f) => ({ ...f, product_name: v }))} />
+                <Field label="Barcode" id="barcode" value={form.barcode} placeholder="SN-ABC123"
+                  onChange={(v) => setForm((f) => ({ ...f, barcode: v }))} disabled={!!editing} />
               </div>
-              <div className="space-y-1">
-                <h2 className="text-base font-bold text-gray-900">Delete Product?</h2>
-                <p className="text-sm text-gray-500">
-                  <span className="font-semibold">{deleteTarget.product_name}</span> will be permanently removed.
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <CustomSelect id="category" label="Category" value={form.category} placeholder="Select…"
+                  onChange={(v) => setForm((f) => ({ ...f, category: v }))}
+                  options={[
+                    { value: "Accessories", label: "Accessories" },
+                    { value: "Fasteners", label: "Fasteners" },
+                  ]} />
+                <div className="space-y-1.5">
+                  <CustomSelect id="reorder_level" label="Reorder Level"
+                    value={reorderCustom ? "custom" : form.reorder_level} placeholder="Select…"
+                    onChange={(v) => {
+                      if (v === "custom") {
+                        setReorderCustom(true);
+                        setForm((f) => ({ ...f, reorder_level: 0 }));
+                      } else {
+                        setReorderCustom(false);
+                        setForm((f) => ({ ...f, reorder_level: Number.parseInt(v) }));
+                      }
+                    }}
+                    options={[
+                      { value: 5, label: "5" },
+                      { value: 10, label: "10" },
+                      { value: 15, label: "15" },
+                      { value: 20, label: "20" },
+                      { value: "custom", label: "Custom…" },
+                    ]} />
+                  {reorderCustom && (
+                    <input type="number" min={1} placeholder="Enter value" required
+                      value={form.reorder_level || ""}
+                      onChange={(e) => setForm((f) => ({ ...f, reorder_level: Number.parseInt(e.target.value) || 0 }))}
+                      className={`${inputCls} mt-1`} />
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field label="Supplier" id="supplier" value={form.supplier} placeholder="CTK Supply Co."
+                  onChange={(v) => setForm((f) => ({ ...f, supplier: v }))} />
+                <Field label="Cost / Unit ($)" id="cost_per_unit" type="number" value={form.cost_per_unit} placeholder="12.50"
+                  onChange={(v) => setForm((f) => ({ ...f, cost_per_unit: Number.parseFloat(v) || 0 }))} />
+              </div>
+
+              {formError && (
+                <p className="text-xs font-medium text-red-500 bg-red-50 border border-red-100 px-4 py-2.5">
+                  {formError}
                 </p>
-              </div>
-              <div className="flex gap-3">
-                <button onClick={() => setDeleteTarget(null)}
-                  className="flex-1 py-3 rounded-l-lg text-sm font-bold  text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setModalOpen(false)}
+                  className="flex-1 py-2 rounded-md text-[13px] text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
                   Cancel
                 </button>
-                <button onClick={handleDelete} disabled={deleting}
-                  className="flex-1 py-3 rounded-r-lg text-sm font-bold tracking-widest uppercase text-white bg-red-500 hover:bg-red-600 active:scale-[0.97] transition disabled:opacity-60">
-                  {deleting ? "Deleting…" : "Delete"}
+                <button type="submit" disabled={saving}
+                  className="flex-1 py-2 rounded-md text-[13px] text-white bg-orange-500 hover:opacity-90 active:scale-[0.97] transition disabled:opacity-60"
+                >
+                  {saveLabel}
                 </button>
               </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirm Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm px-5 pt-4 pb-8 sm:p-7 space-y-5 text-center">
+            <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto">
+              <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round"
+                  d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+              </svg>
+            </div>
+            <div className="space-y-1">
+              <h2 className="text-base font-bold text-gray-900">Delete Product?</h2>
+              <p className="text-sm text-gray-500">
+                <span className="font-semibold">{deleteTarget.product_name}</span> will be permanently removed.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteTarget(null)}
+                className="flex-1 py-2.5 rounded-lg text-sm font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
+                Cancel
+              </button>
+              <button onClick={handleDelete} disabled={deleting}
+                className="flex-1 py-2.5 rounded-lg text-sm font-bold tracking-widest uppercase text-white bg-red-500 hover:bg-red-600 active:scale-[0.97] transition disabled:opacity-60">
+                {deleting ? "Deleting…" : "Delete"}
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
     </div>
   );
 }
