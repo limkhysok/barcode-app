@@ -108,11 +108,11 @@ function ProductTable({ loading, error, displayed, products, costDir, reorderDir
   return (
     <>
       {/* Mobile cards */}
-      <div className="sm:hidden divide-y divide-slate-100 bg-slate-50/30">
+      <div className="sm:hidden divide-y divide-black border-y border-black bg-white">
         {displayed.map((p, idx) => {
           const cost = Number.parseFloat(p.cost_per_unit) || 0;
           return (
-            <div key={p.id ?? idx} className="px-3 py-2.5 bg-white mb-2 first:mt-2 last:mb-0 border-y border-slate-100 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+            <div key={p.id ?? idx} className="px-3 py-2.5 bg-white">
               {/* Row 1: Header - ID + Category + Name + Actions */}
               <div className="flex items-center justify-between gap-3 pb-2 border-b border-slate-50">
                 <div className="flex flex-col gap-1 flex-1 min-w-0">
@@ -162,11 +162,11 @@ function ProductTable({ loading, error, displayed, products, costDir, reorderDir
               </div>
 
               {/* Row 3: Metrics - Reorder level + Created at */}
-              <div className="flex items-center justify-between px-1.5 mt-2">
+              <div className="flex items-center justify-between px-1.5 mt-2 pt-2 border-t border-slate-50">
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0" />
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Reorder at</span>
-                  <span className="text-[11px] font-black text-gray-900 tabular-nums ml-0.5">{p.reorder_level}</span>
+                  <span className="text-[10px] font-black text-gray-900 tabular-nums ml-0.5">{p.reorder_level}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-slate-200 text-[12px]">•</span>
@@ -503,8 +503,41 @@ export default function ProductsClient({
         </button>
       </div>
 
-      {/* Category stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {/* Category Overview - Mobile (Combined Box) */}
+      <div className="sm:hidden border border-black bg-white rounded-xl overflow-hidden">
+        <div className="flex divide-x divide-black/10">
+          <div className="flex-1 flex flex-col items-center gap-1.5 px-2 py-3">
+            <div className="w-5 h-5 bg-black rounded-md flex items-center justify-center shrink-0">
+              <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
+              </svg>
+            </div>
+            <p className="text-[8px] font-black text-gray-400 uppercase tracking-wider text-center">Accessories</p>
+            <span className="text-xs font-black text-black tabular-nums">{categoryStats.accessories.count}</span>
+          </div>
+          <div className="flex-1 flex flex-col items-center gap-1.5 px-2 py-3">
+            <div className="w-5 h-5 bg-black rounded-md flex items-center justify-center shrink-0">
+              <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 11-3.586-3.586l8.684-7.152c.833-.736.995-1.874.904-2.95a4.5 4.5 0 016.336-4.486l-3.276 3.276a3.004 3.004 0 002.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852z" />
+              </svg>
+            </div>
+            <p className="text-[8px] font-black text-gray-400 uppercase tracking-wider text-center">Fasteners</p>
+            <span className="text-xs font-black text-black tabular-nums">{categoryStats.fasteners.count}</span>
+          </div>
+          <div className="flex-1 flex flex-col items-center gap-1.5 px-2 py-3">
+            <div className="w-5 h-5 bg-black rounded-md flex items-center justify-center shrink-0">
+              <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-[8px] font-black text-gray-400 uppercase tracking-wider text-center">Combined Cost</p>
+            <span className="text-xs font-black text-black tabular-nums">${categoryStats.totalValue.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Category stat cards - Desktop */}
+      <div className="hidden sm:grid sm:grid-cols-3 gap-3">
 
         {/* Accessories */}
         <div className="px-5 py-4 border border-black bg-white rounded-xl">
@@ -830,11 +863,11 @@ export default function ProductsClient({
 
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setModalOpen(false)}
-                  className="flex-1 py-2 rounded-md text-[13px] text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
+                  className="flex-1 py-1.5 rounded-md text-[13px] text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition">
                   Cancel
                 </button>
                 <button type="submit" disabled={saving}
-                  className="flex-1 py-2 rounded-md text-[13px] text-white bg-orange-500 hover:opacity-90 active:scale-[0.97] transition disabled:opacity-60"
+                  className="flex-1 py-1.5 rounded-md text-[13px] text-white bg-orange-500 hover:opacity-90 active:scale-[0.97] transition disabled:opacity-60"
                 >
                   {saveLabel}
                 </button>
