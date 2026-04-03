@@ -71,42 +71,82 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
         {displayed.map((t) => {
           const cfg = TYPE_CONFIG[t.transaction_type as keyof typeof TYPE_CONFIG];
           const sign = t.transaction_type === "Receive" ? "+" : "−";
-          const valCol = t.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
+          const valCol = t.transaction_type === "Receive" ? "text-green-700 bg-green-50 border-green-100" : "text-red-700 bg-red-50 border-red-100";
           const first = t.items[0];
           const more = t.items.length - 1;
+          
           return (
-            <div key={t.id} className="px-4 py-4 flex items-start gap-3 active:bg-gray-50 transition-colors">
-              <div className="flex-1 min-w-0 space-y-1.5">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-gray-800 text-sm">
-                    {first?.product_name ?? "—"}
-                    {more > 0 && <span className="text-gray-400 font-normal"> & {more} more</span>}
-                  </span>
-                  <span className={`inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${cfg.text}`}>
-                    {cfg.label}
-                  </span>
+            <div key={t.id} className="px-3 py-2 bg-white">
+              
+              {/* Card Header (Row 1) */}
+              <div className="flex items-center justify-between gap-3 pb-2 border-b border-slate-50">
+                <div className="flex flex-col gap-1 flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono font-black text-white bg-black px-1.5 py-0.5 rounded-sm shrink-0">#{t.id}</span>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest bg-gray-100 px-2 py-0.5 rounded-md truncate">{cfg.label}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest shrink-0">Product:</span>
+                    <p className="font-black text-gray-900 text-[11px] leading-snug truncate uppercase tracking-tighter">
+                      {first?.product_name ?? "—"}
+                      {more > 0 && <span className="text-gray-400 font-normal"> & {more} MORE</span>}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-400">
-                  {t.items.length} item{t.items.length === 1 ? "" : "s"}
-                </p>
-                <div className="flex items-center gap-3 text-xs flex-wrap">
-                  <span className={`text-sm font-black tabular-nums ${valCol}`}>
-                    {fmtValue(t.total_transaction_value, sign)}
-                  </span>
-                  <span className="text-gray-400">by <span className="font-semibold text-gray-600">{t.performed_by_username}</span></span>
+                <div className="flex flex-col items-end gap-2 shrink-0">
+                  <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full border shadow-sm ${valCol}`}>
+                    <span className="text-[12px] font-black tabular-nums leading-none">
+                      {fmtValue(t.total_transaction_value, sign)}
+                    </span>
+                  </div>
+                  <div className="flex items-center -mr-1">
+                    <button 
+                      onClick={(e) => onActionClick(e, t)} 
+                      className="p-1 px-1.5 rounded-lg text-gray-300 hover:text-gray-900 transition-colors active:scale-95" 
+                      title="Actions"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 6a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
-                <p className="text-[11px] text-gray-400" suppressHydrationWarning>{formatDateTime(t.transaction_date)}</p>
               </div>
-              <button
-                type="button"
-                onClick={(e) => onActionClick(e, t)}
-                className="p-2.5 rounded-sm text-gray-400 hover:text-gray-700 hover:bg-gray-100 active:scale-95 transition shrink-0 mt-0.5"
-                title="Actions"
-              >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 6a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" />
-                </svg>
-              </button>
+
+              {/* Card Meta (Row 2) */}
+              <div className="flex items-center gap-3 mb-2 px-1 py-1 bg-slate-50/70 border border-slate-100/50 rounded-lg text-[10px] shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                  </svg>
+                  <span className="font-bold text-gray-700 truncate">{t.performed_by_username}</span>
+                </div>
+                <span className="text-slate-300 select-none">•</span>
+                <div className="flex items-center gap-1.5 min-w-0 text-slate-500">
+                  <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l1.29 1.29m-12.18 5.625h16.5m-16.5 0a2.25 2.25 0 002.25 2.25h12.008a2.25 2.25 0 002.25-2.25m-16.5 0V6.375m16.5 0v.112c0 2.232-1.808 4.04-4.04 4.04h-1.508a4.486 4.486 0 00-4.486 4.486v1.508c0 2.232-1.808 4.04-4.04 4.04h-1.112z" />
+                  </svg>
+                  <span className="truncate font-medium">{t.items.length} ITEMS</span>
+                </div>
+              </div>
+
+              {/* Card Footer (Row 3) */}
+              <div className="flex items-center justify-between px-1.5 py-1">
+                <div className="flex items-center gap-2">
+                  <div className={`w-1.5 h-1.5 rounded-full shrink-0 animate-pulse ${t.transaction_type === "Receive" ? "bg-green-500" : "bg-red-500"}`} />
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Transaction Log</span>
+                  <p className="text-[11px] font-black text-gray-900 font-mono tabular-nums leading-none ml-1 uppercase tracking-tighter">
+                    {t.transaction_type}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-slate-200 text-[12px]">•</span>
+                  <p className="text-[9px] font-black text-slate-500 font-mono tracking-tighter uppercase tabular-nums" suppressHydrationWarning>
+                    {formatDateTime(t.transaction_date)}
+                  </p>
+                </div>
+              </div>
+
             </div>
           );
         })}
