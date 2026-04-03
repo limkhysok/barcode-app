@@ -84,7 +84,7 @@ const TransactionTemplate = ({ transaction }: {
         </thead>
         <tbody>
           {transaction.items.map((item, index) => (
-            <tr key={`${item.barcode}-${item.product_name}`}> 
+            <tr key={`${index}-${item.barcode}`}>
               <td style={CELL_CENTER}>{index + 1}</td>
               <td style={{ ...CELL_BODY, paddingLeft: "8px" }}>{item.barcode}</td>
               <td style={{ ...CELL_BODY, paddingLeft: "8px" }}>{item.product_name}</td>
