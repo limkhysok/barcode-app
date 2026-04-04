@@ -44,9 +44,9 @@ const TransactionTemplate = ({ transaction }: {
     <div
       id="invoice-receipt"
       style={{
-        width: "148mm",
-        minHeight: "210mm",
-        padding: "20mm 12mm",
+        width: "210mm",
+        minHeight: "297mm",
+        padding: "24mm 18mm",
         backgroundColor: "#ffffff",
         color: "#000000",
         fontFamily: "var(--font-kantumruy, 'KantumruyPro', sans-serif)",

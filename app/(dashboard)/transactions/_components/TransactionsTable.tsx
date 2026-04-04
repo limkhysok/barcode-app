@@ -72,39 +72,37 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
       <div className="sm:hidden divide-y divide-black">
         {displayed.map((t) => {
           const cfg = TYPE_CONFIG[t.transaction_type as keyof typeof TYPE_CONFIG];
-          const sign = t.transaction_type === "Receive" ? "+" : "−";
-          const valCol = t.transaction_type === "Receive" ? "text-green-700 bg-green-50 border-green-100" : "text-red-700 bg-red-50 border-red-100";
           const first = t.items[0];
           const more = t.items.length - 1;
 
           return (
-            <div key={t.id} className="px-3 py-2 bg-white border border-black rounded-sm mb-3">
+            <div key={t.id} className="px-3 py-3 bg-white border border-gray-700 rounded-lg mb-4 shadow-sm hover:shadow-md transition-shadow duration-150">
 
               {/* Card Header (Row 1) */}
-              <div className="flex items-center justify-between gap-3 pb-2 border-b border-slate-50">
-                <div className="flex flex-col gap-1 flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono font-black text-white bg-black px-1.5 py-0.5 rounded-sm shrink-0">#{t.id}</span>
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest bg-gray-100 px-2 py-0.5 rounded-md truncate">{cfg.label}</span>
+              <div className="flex items-center justify-between gap-2 pb-2 border-b border-gray-100">
+                <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-mono font-bold text-white bg-black px-1.5 py-0.5 rounded shadow-sm shrink-0">#{t.id}</span>
+                    <span className="text-[9px] font-semibold text-black uppercase tracking-wider bg-gray-100 px-2 py-0.5 rounded truncate shadow-sm">{cfg.label}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest shrink-0">Product:</span>
-                    <p className="font-black text-gray-900 text-[11px] leading-snug truncate uppercase tracking-tighter">
+                  <div className="flex items-center gap-1 mt-1">
+                    <span className="text-[9px] font-medium text-gray-400 uppercase tracking-wider shrink-0">Product:</span>
+                    <p className="font-bold text-gray-900 text-[10px] leading-tight truncate uppercase tracking-tight">
                       {first?.product_name ?? "—"}
                       {more > 0 && <span className="text-gray-400 font-normal"> & {more} MORE</span>}
                     </p>
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-2 shrink-0">
-                  <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full border shadow-sm ${valCol}`}>
-                    <span className="text-[12px] font-black tabular-nums leading-none">
-                      {fmtValue(t.total_transaction_value, sign)}
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <div className="flex items-center gap-1 px-2 py-0.5 ">
+                    <span className="text-[11px] font-bold tabular-nums leading-none text-black">
+                      Qty: {t.items.reduce((sum, item) => sum + Math.abs(item.quantity), 0)}
                     </span>
                   </div>
-                  <div className="flex items-center -mr-1">
+                  <div className="flex items-center -mr-0.5">
                     <button
                       onClick={(e) => onActionClick(e, t)}
-                      className="p-1 px-1.5 rounded-lg text-gray-300 hover:text-gray-900 transition-colors active:scale-95"
+                      className="p-1 px-1.5 rounded text-gray-300 hover:text-black hover:bg-gray-100 transition-colors active:scale-95 "
                       title="Actions"
                     >
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -115,43 +113,17 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                 </div>
               </div>
 
-              {/* Card Meta (Row 2) */}
-              <div className="flex items-center gap-3 mb-2 px-1 py-1 bg-slate-50/70 border border-slate-100/50 rounded-lg text-[10px] shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                  </svg>
-                  <span className="font-bold text-gray-700 truncate">{t.performed_by_username}</span>
-                </div>
-                <span className="text-slate-300 select-none">•</span>
-                <div className="flex items-center gap-1.5 min-w-0 text-slate-500">
-                  <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              {/* Card Meta (Row 2) - items left, date right */}
+              <div className="flex items-center justify-between mb-2 px-2 py-1 bg-gray-50 border border-gray-100 rounded text-[10px] shadow-sm">
+                <div className="flex items-center gap-1 min-w-0 text-gray-700 font-semibold">
+                  <svg className="w-3 h-3 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l1.29 1.29m-12.18 5.625h16.5m-16.5 0a2.25 2.25 0 002.25 2.25h12.008a2.25 2.25 0 002.25-2.25m-16.5 0V6.375m16.5 0v.112c0 2.232-1.808 4.04-4.04 4.04h-1.508a4.486 4.486 0 00-4.486 4.486v1.508c0 2.232-1.808 4.04-4.04 4.04h-1.112z" />
                   </svg>
-                  <span className="truncate font-medium">{t.items.length} ITEMS</span>
+                  <span className="truncate font-semibold">{t.items.length} ITEMS</span>
                 </div>
-                <span className="text-slate-300 select-none">•</span>
-                <div className="flex items-center gap-1.5 min-w-0 text-slate-500">
-                  <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
-                  </svg>
-                  <span className="truncate font-medium tabular-nums text-gray-800">{t.items.reduce((sum, item) => sum + Math.abs(item.quantity), 0)} QTY</span>
-                </div>
-              </div>
-
-              {/* Card Footer (Row 3) */}
-              <div className="flex items-center justify-between px-1.5 py-1">
-                <div className="flex items-center gap-2">
-                  <div className={`w-1.5 h-1.5 rounded-full shrink-0 animate-pulse ${t.transaction_type === "Receive" ? "bg-green-500" : "bg-red-500"}`} />
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Transaction Log</span>
-
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-slate-200 text-[12px]">•</span>
-                  <p className="text-[9px] font-black text-slate-500 font-mono tracking-tighter uppercase tabular-nums" suppressHydrationWarning>
-                    {formatDateTime(t.transaction_date)}
-                  </p>
-                </div>
+                <p className="text-[9px] font-semibold text-gray-400 font-mono tracking-tight" suppressHydrationWarning>
+                  {formatDateTime(t.transaction_date)}
+                </p>
               </div>
 
             </div>
@@ -161,22 +133,20 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
 
       {/* Desktop — grid view */}
       {viewMode === "grid" && (
-        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+        <div className="hidden sm:grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-2">
           {displayed.map((t) => {
             const totalQty = t.items.reduce((sum, item) => sum + Math.abs(item.quantity), 0);
             const first = t.items[0];
             const more = t.items.length - 1;
             return (
               <div key={t.id} className="bg-white border border-black flex flex-col overflow-hidden hover:bg-slate-50/40 transition-colors duration-150">
-
                 {/* body: left number column + right content */}
                 <div className="flex flex-1 min-h-0">
                   {/* left: big ID */}
                   <div className="w-14 shrink-0 border-r border-black/10 flex flex-col items-center justify-center py-4 bg-slate-50">
-                    <span className="text-[8px] font-black tracking-[0.2em] uppercase text-gray-400 mb-1">TXN</span>
+                    <span className="text-[8px] font-black tracking-[0.2em] uppercase text-gray-400 mb-1">N0.</span>
                     <span className="text-[18px] font-black tabular-nums text-gray-900 leading-none">{t.id}</span>
                   </div>
-
                   {/* right: type + product + more */}
                   <div className="flex-1 min-w-0 px-3 py-3 flex flex-col justify-between gap-1">
                     <span className="text-[8px] font-black tracking-[0.2em] uppercase text-gray-400">{t.transaction_type}</span>
@@ -187,7 +157,6 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                       )}
                     </div>
                   </div>
-
                   {/* action */}
                   <div className="flex items-start pt-2 pr-2 shrink-0">
                     <button
@@ -201,7 +170,6 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                     </button>
                   </div>
                 </div>
-
                 {/* stats row */}
                 <div className="grid grid-cols-2 divide-x divide-black/10 border-t border-black">
                   <div className="flex items-center justify-between px-3 py-1.5">
@@ -213,13 +181,11 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                     <span className="text-[13px] font-black tabular-nums text-gray-900">{totalQty}</span>
                   </div>
                 </div>
-
                 {/* footer */}
                 <div className="flex items-center justify-between px-3 py-1.5 border-t border-black/10 bg-slate-50">
                   <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest truncate">{t.performed_by_username ?? "—"}</span>
                   <span className="text-[8px] text-gray-400 tabular-nums shrink-0 ml-2" suppressHydrationWarning>{formatDateTime(t.transaction_date)}</span>
                 </div>
-
               </div>
             );
           })}
