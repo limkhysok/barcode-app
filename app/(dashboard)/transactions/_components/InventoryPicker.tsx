@@ -20,14 +20,14 @@ const InventoryPicker: React.FC<InventoryPickerProps> = ({ inventory, value, onC
   const selected = inventory.find((r) => r.id === value);
 
   useEffect(() => {
-    setSearch(selected ? `${selected.product_details.product_name} — ${selected.site}` : "");
+    setSearch(selected ? `${selected.product_details.product_name} (stock: ${selected.quantity_on_hand})` : "");
   }, [value, selected]);
 
   useEffect(() => {
     function handler(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
-        setSearch(selected ? `${selected.product_details.product_name} — ${selected.site}` : "");
+        setSearch(selected ? `${selected.product_details.product_name} (stock: ${selected.quantity_on_hand})` : "");
       }
     }
     document.addEventListener("mousedown", handler);
@@ -53,7 +53,7 @@ const InventoryPicker: React.FC<InventoryPickerProps> = ({ inventory, value, onC
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const selectedLabel = selected
-      ? `${selected.product_details.product_name} — ${selected.site}`.toLowerCase()
+      ? selected.product_details.product_name.toLowerCase()
       : "";
     const available = inventory.filter((r) => !excludeIds.includes(r.id) || r.id === value);
     if (!q || q === selectedLabel) return available;
@@ -71,11 +71,11 @@ const InventoryPicker: React.FC<InventoryPickerProps> = ({ inventory, value, onC
         ref={inputRef}
         type="text"
         autoComplete="off"
-        placeholder="Search By Name/Barcode"
+        placeholder="Search Name/Barcode"
         value={search}
         onFocus={handleFocus}
         onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
-        className="w-full text-[12px] pr-3 py-1.5 outline-none transition placeholder:text-gray-500 text-gray-900 text-left"
+        className="w-full text-[10px] pr-3 py-1.5 outline-none transition placeholder:text-gray-500 text-gray-900 text-left"
       />
 
       {open && (
@@ -93,7 +93,7 @@ const InventoryPicker: React.FC<InventoryPickerProps> = ({ inventory, value, onC
                   type="button"
                   onClick={() => {
                     onChange(r.id);
-                    setSearch(`${r.product_details.product_name} — ${r.site}`);
+                    setSearch(`${r.product_details.product_name} (stock: ${r.quantity_on_hand})`);
                     setOpen(false);
                   }}
                   className={`w-full text-left px-3 py-2.5 text-[11px] font-semibold tracking-wide flex items-start gap-3 transition ${value === r.id ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"

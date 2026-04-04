@@ -1,6 +1,7 @@
 import api from "./api";
 import type { InventoryRecord, InventoryPayload, ScanResult } from "@/src/types/inventory.types";
 import type { PaginatedInventory } from "@/src/types/api.types";
+import { isRedirectError } from "@/src/lib/is-redirect-error";
 
 
 export async function getInventory(params?: {
@@ -35,6 +36,7 @@ export async function getInventoryStats(fetcher?: <T>(path: string) => Promise<T
     const { data } = await api.get<any>(path);
     return data;
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     console.error("Failed to fetch inventory stats:", error);
     return null;
   }

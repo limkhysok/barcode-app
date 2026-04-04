@@ -24,9 +24,18 @@ function clearSessionCookie() {
   document.cookie = "access_token=; path=/; max-age=0; SameSite=Lax";
 }
 
+/** Decode JWT expiry (ms). Returns null if unreadable. */
+function getTokenExpiry(token: string): number | null {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return typeof payload.exp === "number" ? payload.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: Readonly<{ children: React.ReactNode }>) {
   const [user, setUser] = useState<User | null>(() => {
-    // Restore cached user immediately — no loading flash
     if (globalThis.window === undefined) return null;
     try {
       const cached = localStorage.getItem("user_data");
@@ -37,7 +46,29 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  // On mount: validate the stored token in the background
+  const clearAuth = useCallback(() => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user_data");
+    clearSessionCookie();
+    setUser(null);
+  }, []);
+
+  const validateToken = useCallback(() => {
+    const access = localStorage.getItem("access_token");
+    if (!access) { clearAuth(); return; }
+    getMe()
+      .then((me) => {
+        setUser(me);
+        localStorage.setItem("user_data", JSON.stringify(me));
+      })
+      .catch((err: unknown) => {
+        const status = (err as { response?: { status?: number } })?.response?.status;
+        if (status === 401) clearAuth();
+      });
+  }, [clearAuth]);
+
+  // On mount: validate token
   useEffect(() => {
     const access = localStorage.getItem("access_token");
     if (!access) {
@@ -52,17 +83,42 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
       })
       .catch((err: unknown) => {
         const status = (err as { response?: { status?: number } })?.response?.status;
-        if (status === 401) {
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("refresh_token");
-          localStorage.removeItem("user_data");
-          clearSessionCookie();
-          setUser(null);
-        }
-        // For network/server errors: keep the cached user visible
+        if (status === 401) clearAuth();
       })
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [clearAuth]);
+
+  // Precise expiry timer: fires exactly when the access token expires
+  useEffect(() => {
+    const access = localStorage.getItem("access_token");
+    if (!access) return;
+
+    const exp = getTokenExpiry(access);
+    if (!exp) return;
+
+    const delay = exp - Date.now();
+    if (delay <= 0) {
+      validateToken();
+      return;
+    }
+
+    const timer = setTimeout(validateToken, delay);
+    return () => clearTimeout(timer);
+  }, [user, validateToken]); // re-arms after login / token refresh
+
+  // Re-validate when user returns to the tab after being away
+  useEffect(() => {
+    function onVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        const access = localStorage.getItem("access_token");
+        if (!access) return;
+        const exp = getTokenExpiry(access);
+        if (exp && exp < Date.now()) validateToken();
+      }
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [validateToken]);
 
   const login = useCallback(async (payload: LoginPayload) => {
     const tokens = await apiLogin(payload);
@@ -79,12 +135,8 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user_data");
-    clearSessionCookie();
-    setUser(null);
-  }, []);
+    clearAuth();
+  }, [clearAuth]);
 
   const value = useMemo(
     () => ({ user, isLoading, login, register, logout }),

@@ -1,6 +1,7 @@
 import api from "./api";
 import type { Transaction, TransactionPayload } from "@/src/types/transaction.types";
 import type { PaginatedTransactions } from "@/src/types/api.types";
+import { isRedirectError } from "@/src/lib/is-redirect-error";
 
 export async function getTransactions(params?: {
   type?: string;
@@ -46,6 +47,7 @@ export async function getTransactionStats(fetcher?: <T>(path: string) => Promise
     const { data } = await api.get<TransactionStats>(path);
     return data;
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     console.error("Failed to fetch transaction stats:", error);
     return null;
   }

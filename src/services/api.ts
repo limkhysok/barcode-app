@@ -37,6 +37,7 @@ api.interceptors.response.use(
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
         globalThis.window.location.href = "/login";
+        return new Promise(() => {});
       }
     }
     throw error;

@@ -424,6 +424,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
               <div className="flex items-center gap-1 sm:gap-3 px-2 py-2 bg-slate-50 border-b border-black">
                 <span className="hidden sm:inline-block w-5 shrink-0 text-[12px] font-black text-gray-700 text-center">N0</span>
                 <span className="flex-1 sm:w-64 sm:shrink-0 text-[12px] font-black text-gray-700">Product</span>
+                <span className="w-28 shrink-0 text-[12px] font-black text-gray-700">Barcode</span>
                 <span className="w-16 sm:w-24 shrink-0 text-[12px] font-black text-gray-700 text-left sm:pr-2">Quantity</span>
                 <span className="w-5 shrink-0" />
               </div>
@@ -441,12 +442,9 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                           onChange={(id) => updateItem(idx, { inventory: id, quantity: item.quantity || 1 })}
                           excludeIds={selectedInvIds}
                         />
-                        {rec && (
-                          <div className="flex items-center gap-1 mt-0.5 ml-1 select-none">
-                            <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">Stock</span>
-                            <span className="text-[10px] font-black text-[#FA4900] tabular-nums">{rec.quantity_on_hand}</span>
-                          </div>
-                        )}
+                      </div>
+                      <div className="w-24 shrink-0 min-w-0">
+                        <span className="text-[11px] font-mono text-gray-800 truncate block">{rec?.product_details.barcode ?? "—"}</span>
                       </div>
                       <div className="w-13 sm:w-24 shrink-0">
                         <div className="flex items-center justify-between gap-1 px-2 py-1 rounded-sm border-2 border-transparent hover:border-black/10 focus-within:border-black bg-slate-50 focus-within:bg-white transition-all group/qty">
@@ -487,16 +485,10 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
             {(() => {
               const filled = items.filter((i) => i.inventory > 0 && i.quantity > 0);
               if (filled.length === 0) return null;
-              const sign = txType === "Receive" ? "+" : "−";
-              const valCol = txType === "Receive" ? "text-green-600" : "text-red-600";
-              const grandTotal = filled.reduce((sum, i) => {
-                const rec = allInventory.find((r) => r.id === i.inventory);
-                return sum + (rec ? i.quantity * Number.parseFloat(rec.product_details.cost_per_unit) : 0);
-              }, 0);
               const totalQuantity = filled.reduce((sum, i) => sum + i.quantity, 0);
               return (
                 <div className="border border-black border-t-0 bg-slate-50">
-                  <div className="grid grid-cols-3 divide-x divide-black/10 border-b border-black/10">
+                  <div className="grid grid-cols-2 divide-x divide-black/10 border-b border-black/10">
                     <div className="flex flex-col items-center justify-center py-2 gap-0.5">
                       <span className="text-[8px] font-black tracking-[0.2em] uppercase text-gray-400">Items</span>
                       <span className="text-[15px] font-black tabular-nums text-gray-900 leading-none">{filled.length}</span>
@@ -504,12 +496,6 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                     <div className="flex flex-col items-center justify-center py-2 gap-0.5">
                       <span className="text-[8px] font-black tracking-[0.2em] uppercase text-gray-400">Quantities</span>
                       <span className="text-[15px] font-black tabular-nums text-gray-900 leading-none">{totalQuantity}</span>
-                    </div>
-                    <div className="flex flex-col items-center justify-center py-2 gap-0.5">
-                      <span className="text-[8px] font-black tracking-[0.2em] uppercase text-gray-400">Total</span>
-                      <span className={`text-[15px] font-black tabular-nums leading-none ${valCol}`}>
-                        {sign}${grandTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -782,6 +768,7 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
               <div className="flex items-center gap-1 sm:gap-2 px-3 py-2 bg-slate-50 border-b border-black">
                 <span className="hidden sm:inline-block w-5 shrink-0 text-[10px] font-black text-gray-700 tracking-widest text-center">N0</span>
                 <span className="flex-1 sm:w-64 sm:shrink-0 text-[10px] font-black text-gray-700 uppercase tracking-widest">Product</span>
+                <span className="w-28 shrink-0 text-[10px] font-black text-gray-700 uppercase tracking-widest">Barcode</span>
                 <span className="w-16 sm:w-24 shrink-0 text-[10px] font-black text-gray-700 uppercase tracking-widest text-right">Quantity</span>
                 <span className="w-5 shrink-0" />
               </div>
@@ -798,12 +785,9 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
                           onChange={(id) => updateEditItem(idx, { inventory: id, quantity: item.quantity || 1 })}
                           excludeIds={editSelectedInvIds}
                         />
-                        {rec && (
-                          <div className="flex items-center gap-1 mt-0.5 ml-1 select-none">
-                            <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">Stock</span>
-                            <span className="text-[10px] font-black text-[#FA4900] tabular-nums">{rec.quantity_on_hand}</span>
-                          </div>
-                        )}
+                      </div>
+                      <div className="w-24 shrink-0 min-w-0">
+                        <span className="text-[11px] font-mono text-gray-800 truncate block">{rec?.product_details.barcode ?? "—"}</span>
                       </div>
                       <div className="w-16 sm:w-24 shrink-0">
                         <div className="flex items-center justify-between gap-1 px-2 py-1.5 rounded-sm border-2 border-transparent hover:border-black/10 focus-within:border-[#FA4900] bg-slate-50 focus-within:bg-white transition-all group/qty">
