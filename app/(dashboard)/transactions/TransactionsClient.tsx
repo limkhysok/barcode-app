@@ -249,9 +249,11 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   return (
     <div className="px-4 py-5 sm:px-5 sm:py-5 space-y-4">
       <div className="flex items-center justify-between">
-        <div className="space-y-0.5">
-
+        <div className="flex items-baseline gap-3">
           <h1 className="text-xl font-light text-gray-900">Transactions</h1>
+          <p className="text-[11px] text-gray-700 font-medium" suppressHydrationWarning>
+            {new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Phnom_Penh" })}
+          </p>
         </div>
         <button
           onClick={() => { setFormError(""); setModalOpen(true); }}
@@ -360,7 +362,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
         formError={editFormError}
       />
 
-      <ViewTransactionModal viewTarget={viewTarget} onClose={() => setViewTarget(null)} />
+      <ViewTransactionModal viewTarget={viewTarget} onClose={() => setViewTarget(null)} inventory={inventory} />
 
       <DeleteConfirmModal
         deleteTarget={deleteTarget}

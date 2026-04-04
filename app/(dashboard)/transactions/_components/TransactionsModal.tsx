@@ -16,9 +16,6 @@ function formatDateTime(ts: string): string {
   return `${day}/${month}/${year} ${time}`;
 }
 
-function fmtValue(v: string, sign: string) {
-  return `${sign}$${Math.abs(Number.parseFloat(v)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
 
 const TYPE_CONFIG: Record<string, { label: string; bg: string; text: string; dot: string }> = {
   Receive: { label: "Receive", bg: "bg-green-50", text: "text-green-600", dot: "bg-green-500" },
@@ -38,19 +35,19 @@ import { scanBarcode } from "@/src/services/inventory.service";
 type ViewModalProps = {
   viewTarget: Transaction | null;
   onClose: () => void;
+  inventory: InventoryRecord[];
 };
 
-export const ViewTransactionModal: React.FC<ViewModalProps> = ({ viewTarget, onClose }) => {
+export const ViewTransactionModal: React.FC<ViewModalProps> = ({ viewTarget, onClose, inventory }) => {
   if (!viewTarget) return null;
 
-  const sign = viewTarget.transaction_type === "Receive" ? "+" : "−";
-  const valCol = viewTarget.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
-  const grandTotal = viewTarget.total_transaction_value;
+  const totalQuantity = viewTarget.items.reduce((sum, i) => sum + Math.abs(i.quantity), 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
-      <div className="bg-white rounded-t-sm sm:rounded-sm shadow-2xl w-full sm:max-w-xl flex flex-col max-h-[90vh] overflow-hidden">
-        <div className="h-1 w-full shrink-0" style={{ background: "#FA4900" }} />
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:px-4">
+      <button className="absolute inset-0 bg-black/20 backdrop-blur-sm cursor-default" onClick={onClose} aria-label="Close modal" />
+      <div className="relative bg-white rounded-t-xl sm:rounded-md shadow-2xl w-full sm:max-w-xl flex flex-col max-h-[90vh] overflow-hidden">
+       
         <div className="flex items-center justify-between px-5 py-4 border-b border-black shrink-0 bg-white">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-sm bg-black flex items-center justify-center shrink-0">
@@ -99,53 +96,50 @@ export const ViewTransactionModal: React.FC<ViewModalProps> = ({ viewTarget, onC
               </span>
             </div>
             <div className="border border-black overflow-hidden">
-              <div className="flex items-center gap-1 sm:gap-2 px-3 py-2 bg-slate-50 border-b border-black">
+              <div className="flex items-center gap-1 sm:gap-4 px-3 py-2 bg-slate-50 border-b border-black">
                 <span className="hidden sm:inline-block w-5 shrink-0 text-[10px] font-black text-gray-700 tracking-widest text-center">N0</span>
                 <span className="flex-1 sm:w-64 sm:shrink-0 text-[10px] font-black text-gray-700 uppercase tracking-widest text-left">Product</span>
-                <span className="flex-1 min-w-0 text-[10px] font-black text-gray-700 uppercase tracking-widest text-right">Total</span>
+                <span className="w-28 shrink-0 text-[10px] font-black text-gray-700 uppercase tracking-widest">Barcode</span>
                 <span className="w-16 sm:w-24 shrink-0 text-[10px] font-black text-gray-700 uppercase tracking-widest text-right">Quantity</span>
               </div>
               <div className="divide-y divide-black/10">
                 {viewTarget.items.map((item, idx) => {
-                  const lineTotal = Number.parseFloat(item.line_total);
+                  const rec = inventory.find((r) => r.id === item.inventory);
                   return (
-                    <div key={item.id} className="flex items-center gap-1 sm:gap-2 px-3 py-2.5 hover:bg-slate-50/60 transition-colors">
-                      <span className="hidden sm:inline-block w-5 shrink-0 text-[10px] font-black text-gray-300 text-center">{String(idx + 1).padStart(2, "0")}</span>
-                      <div className="flex-1 sm:w-64 sm:shrink-0 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{item.product_name}</p>
-                        <p className="text-[10px] text-gray-400 font-medium">${Number.parseFloat(item.cost_per_unit).toFixed(2)} ea</p>
-                      </div>
-                      <div className="flex-1 min-w-0 text-right">
-                        <p className={`text-[11px] font-black tabular-nums ${valCol}`}>
-                          {sign}${lineTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </p>
-                      </div>
-                      <div className="w-16 sm:w-24 shrink-0 text-right">
-                        <span className="text-sm font-black text-gray-900 tabular-nums">{Math.abs(item.quantity)}</span>
-                      </div>
+                  <div key={item.id} className="flex items-center gap-1 sm:gap-4 px-3 py-2.5 hover:bg-slate-50/60 transition-colors">
+                    <span className="hidden sm:inline-block w-5 shrink-0 text-[10px] font-black text-gray-300 text-center">{String(idx + 1).padStart(2, "0")}</span>
+                    <div className="flex-1 sm:w-64 sm:shrink-0 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{item.product_name}</p>
                     </div>
+                    <div className="w-28 shrink-0 min-w-0">
+                      <span className="text-[11px] font-mono text-gray-800 truncate block">{rec?.product_details.barcode ?? "—"}</span>
+                    </div>
+                    <div className="w-16 sm:w-24 shrink-0 text-right">
+                      <span className="text-sm font-black text-gray-900 tabular-nums">{Math.abs(item.quantity)}</span>
+                    </div>
+                  </div>
                   );
                 })}
               </div>
             </div>
-            <div className="border border-black border-t-0 px-4 py-4 bg-slate-50 flex items-center justify-between">
-              <div>
-                <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Grand Total</p>
-                <p className="text-[9px] font-bold text-gray-400 mt-0.5">{viewTarget.items.length} item{viewTarget.items.length === 1 ? "" : "s"}</p>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className={`text-sm font-black ${valCol}`}>{sign}</span>
-                <p className={`text-2xl font-black tabular-nums tracking-tighter ${valCol}`}>
-                  {fmtValue(grandTotal, "")}
-                </p>
+            <div className="border border-black border-t-0 bg-slate-50">
+              <div className="grid grid-cols-2 divide-x divide-black/10">
+                <div className="flex flex-col items-center justify-center py-2 gap-0.5">
+                  <span className="text-[8px] font-black tracking-[0.2em] uppercase text-gray-400">Items</span>
+                  <span className="text-[15px] font-black tabular-nums text-gray-900 leading-none">{viewTarget.items.length}</span>
+                </div>
+                <div className="flex flex-col items-center justify-center py-2 gap-0.5">
+                  <span className="text-[8px] font-black tracking-[0.2em] uppercase text-gray-400">Quantities</span>
+                  <span className="text-[15px] font-black tabular-nums text-gray-900 leading-none">{totalQuantity}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-black px-5 py-3 shrink-0 bg-gray-50/50">
+        <div className="border-t border-black px-5 py-3 shrink-0 bg-gray-50/50 flex justify-end">
           <button type="button" onClick={onClose}
-            className="w-full py-2.5 rounded-sm text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition shadow-sm">
+            className="w-30 py-1.5 rounded-sm text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition shadow-sm">
             Close
           </button>
         </div>
@@ -167,32 +161,24 @@ export const DeleteConfirmModal: React.FC<DeleteModalProps> = ({ deleteTarget, o
   if (!deleteTarget) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
-      <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-sm px-5 pt-4 pb-8 sm:p-7 space-y-5 text-center">
-        <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto">
-          <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round"
-              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-          </svg>
-        </div>
-        <div className="space-y-1">
-          <h2 className="text-base font-bold text-gray-900">Delete Transaction?</h2>
-          <p className="text-sm text-gray-500">
-            <span className="font-semibold">{deleteTarget.transaction_type}</span>
-            {" · "}
-            <span className="font-semibold">{deleteTarget.items.length} item{deleteTarget.items.length === 1 ? "" : "s"}</span>
-            {" · "}
-            <span className="font-semibold">{fmtValue(deleteTarget.total_transaction_value, "")}</span>
-            {" will be permanently removed."}
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:px-4">
+      <button className="absolute inset-0 bg-black/20 backdrop-blur-sm cursor-default" onClick={onClose} aria-label="Close modal" />
+      <div className="relative bg-white rounded-t-xl sm:rounded-xl shadow-2xl w-full sm:max-w-sm overflow-hidden">
+     
+        <div className="px-5 py-5">
+          <p className="text-[13px] font-bold text-gray-800">
+            Are you sure to delete Transaction{" "}
+            <span className="font-black text-black">#{deleteTarget.id}</span>?
           </p>
+          <p className="text-[11px] text-gray-500 mt-1">This action cannot be undone. All details of this transaction will be permanently removed.</p>
         </div>
-        <div className="flex gap-3">
+        <div className="border-t border-black px-5 py-3 bg-gray-50/50 flex justify-end gap-2">
           <button onClick={onClose} disabled={deleting}
-            className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-gray-500 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition disabled:opacity-60">
+            className="w-20 py-1.5 rounded-lg text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition disabled:opacity-60 shadow-sm">
             Cancel
           </button>
           <button onClick={onConfirm} disabled={deleting}
-            className="flex-1 py-3 rounded-sm text-sm font-bold tracking-widest uppercase text-white bg-red-500 hover:bg-red-600 active:scale-[0.97] transition disabled:opacity-60">
+            className="w-20 py-1.5 rounded-lg text-[11px] font-black tracking-widest uppercase text-white bg-red-500 hover:bg-red-600 active:scale-[0.98] transition disabled:opacity-60 shadow-md">
             {deleting ? "Deleting…" : "Delete"}
           </button>
         </div>
@@ -330,9 +316,10 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
   const selectedInvIds = items.map((i) => i.inventory).filter(Boolean);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
-      <div className="bg-white rounded-t-sm sm:rounded-sm shadow-2xl w-full sm:max-w-xl flex flex-col max-h-[90vh] overflow-hidden">
-        <div className="h-1 w-full shrink-0" />
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:px-4">
+      <button className="absolute inset-0 bg-black/20 backdrop-blur-sm cursor-default" onClick={onClose} aria-label="Close modal" />
+      <div className="relative bg-white rounded-t-xl sm:rounded-md shadow-2xl w-full sm:max-w-xl flex flex-col max-h-[90vh] overflow-hidden">
+     
         <div className="flex items-center justify-between px-5 py-4 border-b border-black shrink-0 bg-white">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-sm bg-black flex items-center justify-center shrink-0">
@@ -657,9 +644,10 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
   const editSelectedInvIds = editItems.map((i) => i.inventory).filter(Boolean);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
-      <div className="bg-white rounded-t-sm sm:rounded-sm shadow-2xl w-full sm:max-w-xl flex flex-col max-h-[90vh] overflow-hidden">
-        <div className="h-1 w-full shrink-0" style={{ background: "#FA4900" }} />
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:px-4">
+      <button className="absolute inset-0 bg-black/20 backdrop-blur-sm cursor-default" onClick={onClose} aria-label="Close modal" />
+      <div className="relative bg-white rounded-t-xl sm:rounded-md shadow-2xl w-full sm:max-w-xl flex flex-col max-h-[90vh] overflow-hidden">
+     
         <div className="flex items-center justify-between px-5 py-4 border-b border-black shrink-0 bg-white">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-sm bg-black flex items-center justify-center shrink-0">
@@ -725,7 +713,7 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
                     if (value !== "") handleScanBarcodeWithValue(value);
                   }
                 }}
-                className="w-full pl-9 pr-12 py-1 rounded-sm border-2 border-black text-sm bg-white text-black outline-none focus:border-[#FA4900] transition-all placeholder:text-gray-300 font-mono tracking-widest uppercase"
+                className="w-full pl-9 pr-12 py-1 rounded-sm border-2 border-black text-[13px] bg-white text-black outline-none focus:border-[#FA4900] transition-all placeholder:text-gray-300 font-mono "
               />
               <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
                 <svg className="w-5 h-5 text-gray-800" viewBox="0 0 24 24" fill="none">
@@ -820,23 +808,18 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
             {(() => {
               const filled = editItems.filter((i) => i.inventory > 0 && i.quantity > 0);
               if (filled.length === 0) return null;
-              const sign = editTxType === "Receive" ? "+" : "−";
-              const valCol = editTxType === "Receive" ? "text-green-600" : "text-red-600";
-              const grandTotal = filled.reduce((sum, i) => {
-                const rec = allEditInventory.find((r) => r.id === i.inventory);
-                return sum + (rec ? i.quantity * Number.parseFloat(rec.product_details.cost_per_unit) : 0);
-              }, 0);
+              const totalQty = filled.reduce((sum, i) => sum + i.quantity, 0);
               return (
-                <div className="border border-black border-t-0 px-4 py-4 bg-slate-50 flex items-center justify-between">
-                  <div>
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Grand Total</p>
-                    <p className="text-[9px] font-bold text-gray-400 mt-0.5">{filled.length} item{filled.length === 1 ? "" : "s"}</p>
-                  </div>
-                  <div className="flex items-baseline gap-1">
-                    <span className={`text-sm font-black ${valCol}`}>{sign}</span>
-                    <p className={`text-2xl font-black tabular-nums tracking-tighter ${valCol}`}>
-                      ${grandTotal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
+                <div className="border border-black border-t-0 bg-slate-50">
+                  <div className="grid grid-cols-2 divide-x divide-black/10">
+                    <div className="flex flex-col items-center justify-center py-2 gap-0.5">
+                      <span className="text-[8px] font-black tracking-[0.2em] uppercase text-gray-400">Items</span>
+                      <span className="text-[15px] font-black tabular-nums text-gray-900 leading-none">{filled.length}</span>
+                    </div>
+                    <div className="flex flex-col items-center justify-center py-2 gap-0.5">
+                      <span className="text-[8px] font-black tracking-[0.2em] uppercase text-gray-400">Quantities</span>
+                      <span className="text-[15px] font-black tabular-nums text-gray-900 leading-none">{totalQty}</span>
+                    </div>
                   </div>
                 </div>
               );
@@ -853,17 +836,16 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
               {formError}
             </p>
           )}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="flex justify-end gap-2">
             <button type="button" onClick={onClose}
-              className="py-2.5 rounded-sm text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition shadow-sm">
+              className="w-30 py-1.5 rounded-md text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition shadow-sm">
               Cancel
             </button>
             <button
               type="button"
               onClick={handleSubmit}
               disabled={saving}
-              className="py-2.5 rounded-sm text-[11px] font-black tracking-widest uppercase text-white active:scale-[0.98] transition disabled:opacity-60 shadow-md transform hover:-translate-y-0.5"
-              style={{ background: "#FA4900" }}
+              className="w-30 py-1.5 rounded-md text-[11px]  font-black tracking-widest uppercase text-white bg-orange-500 active:scale-[0.98] transition disabled:opacity-60 shadow-md transform hover:-translate-y-0.5"
             >
               {saving ? "Saving..." : "Save Changes"}
             </button>

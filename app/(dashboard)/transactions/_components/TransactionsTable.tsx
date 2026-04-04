@@ -161,55 +161,65 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
 
       {/* Desktop — grid view */}
       {viewMode === "grid" && (
-        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-3 p-0 bg-slate-50 ">
+        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
           {displayed.map((t) => {
-            const sign = t.transaction_type === "Receive" ? "+" : "−";
-            const valCol = t.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
             const totalQty = t.items.reduce((sum, item) => sum + Math.abs(item.quantity), 0);
             const first = t.items[0];
             const more = t.items.length - 1;
             return (
-              <div key={t.id} className="bg-white p-4 flex flex-col gap-3 hover:bg-slate-50 transition-colors border border-black rounded-sm">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex flex-col gap-1 min-w-0">
-                    <span className="text-[10px] font-mono font-black text-white bg-black px-1.5 py-0.5 rounded-sm w-fit">#{t.id}</span>
-                    <p className="text-[11px] font-black text-gray-900 uppercase tracking-tighter truncate">
-                      {first?.product_name ?? "—"}
-                      {more > 0 && <span className="text-gray-400 font-normal"> +{more} more</span>}
-                    </p>
+              <div key={t.id} className="bg-white border border-black flex flex-col overflow-hidden hover:bg-slate-50/40 transition-colors duration-150">
+
+                {/* body: left number column + right content */}
+                <div className="flex flex-1 min-h-0">
+                  {/* left: big ID */}
+                  <div className="w-14 shrink-0 border-r border-black/10 flex flex-col items-center justify-center py-4 bg-slate-50">
+                    <span className="text-[8px] font-black tracking-[0.2em] uppercase text-gray-400 mb-1">TXN</span>
+                    <span className="text-[18px] font-black tabular-nums text-gray-900 leading-none">{t.id}</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={(e) => onActionClick(e, t)}
-                    className="p-1.5 rounded-lg text-gray-300 hover:text-gray-700 hover:bg-gray-100 transition shrink-0"
-                  >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 6a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" />
-                    </svg>
-                  </button>
+
+                  {/* right: type + product + more */}
+                  <div className="flex-1 min-w-0 px-3 py-3 flex flex-col justify-between gap-1">
+                    <span className="text-[8px] font-black tracking-[0.2em] uppercase text-gray-400">{t.transaction_type}</span>
+                    <div>
+                      <p className="text-[12px] font-bold text-gray-900 truncate leading-snug">{first?.product_name ?? "—"}</p>
+                      {more > 0 && (
+                        <p className="text-[9px] text-gray-400 mt-0.5">+{more} more item{more > 1 ? "s" : ""}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* action */}
+                  <div className="flex items-start pt-2 pr-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={(e) => onActionClick(e, t)}
+                      className="w-6 h-6 flex items-center justify-center text-gray-300 hover:text-black hover:bg-gray-100 transition"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 6a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
-                <div className="grid grid-cols-3 divide-x divide-black/10 border border-black/10 rounded-sm overflow-hidden">
-                  <div className="flex flex-col items-center py-2 gap-0.5">
+
+                {/* stats row */}
+                <div className="grid grid-cols-2 divide-x divide-black/10 border-t border-black">
+                  <div className="flex items-center justify-between px-3 py-1.5">
                     <span className="text-[8px] font-black tracking-[0.15em] uppercase text-gray-400">Items</span>
-                    <span className="text-[13px] font-black tabular-nums text-gray-900 leading-none">{t.items.length}</span>
+                    <span className="text-[13px] font-black tabular-nums text-gray-900">{t.items.length}</span>
                   </div>
-                  <div className="flex flex-col items-center py-2 gap-0.5">
+                  <div className="flex items-center justify-between px-3 py-1.5">
                     <span className="text-[8px] font-black tracking-[0.15em] uppercase text-gray-400">Qty</span>
-                    <span className="text-[13px] font-black tabular-nums text-gray-900 leading-none">{totalQty}</span>
-                  </div>
-                  <div className="flex flex-col items-center py-2 gap-0.5">
-                    <span className="text-[8px] font-black tracking-[0.15em] uppercase text-gray-400">Total</span>
-                    <span className={`text-[13px] font-black tabular-nums leading-none ${valCol}`}>{sign}${Math.abs(Number.parseFloat(t.total_transaction_value)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <span className="text-[13px] font-black tabular-nums text-gray-900">{totalQty}</span>
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className={`text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${t.transaction_type === "Receive" ? "bg-green-50 text-green-600" : "bg-red-50 text-red-500"}`}>
-                    {t.transaction_type}
-                  </span>
-                  <span className="text-[9px] font-black text-gray-400 tabular-nums" suppressHydrationWarning>
-                    {formatDateTime(t.transaction_date)}
-                  </span>
+
+                {/* footer */}
+                <div className="flex items-center justify-between px-3 py-1.5 border-t border-black/10 bg-slate-50">
+                  <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest truncate">{t.performed_by_username ?? "—"}</span>
+                  <span className="text-[8px] text-gray-400 tabular-nums shrink-0 ml-2" suppressHydrationWarning>{formatDateTime(t.transaction_date)}</span>
                 </div>
+
               </div>
             );
           })}
@@ -222,7 +232,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
         <table className="w-full text-sm border border-black rounded-4xl">
           <thead className="bg-slate-50 border-b border-black">
             <tr>
-              {["#", "Type", "Items", "Total Value", "Total Quantity", "Date", "Actions"].map((h) => (
+              {["#", "Type", "Items", "Total Quantity", "Date", "Actions"].map((h) => (
                 <th key={h} className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">{h}</th>
               ))}
             </tr>
@@ -230,8 +240,6 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
           <tbody className="divide-y divide-black bg-white text-[12px]">
             {displayed.map((t) => {
               const cfg = TYPE_CONFIG[t.transaction_type as keyof typeof TYPE_CONFIG];
-              const sign = t.transaction_type === "Receive" ? "+" : "−";
-              const valCol = t.transaction_type === "Receive" ? "text-green-600" : "text-red-500";
               return (
                 <tr key={t.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-5 py-0 font-black text-gray-400">#{t.id}</td>
@@ -242,9 +250,6 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                   </td>
                   <td className="px-5 py-2 font-semibold text-gray-800">
                     {t.items.length} {t.items.length === 1 ? "Item" : "Items"}
-                  </td>
-                  <td className={`px-5 py-2 font-bold tabular-nums ${valCol}`}>
-                    {fmtValue(t.total_transaction_value, sign)}
                   </td>
                   <td className="px-5 py-2 font-semibold tabular-nums text-gray-800">
                     {t.items.reduce((sum, item) => sum + Math.abs(item.quantity), 0)}
