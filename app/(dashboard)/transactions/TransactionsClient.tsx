@@ -270,7 +270,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
       <div className="flex items-center gap-3">
         <TypeFilterSelect value={typeFilter} onChange={setTypeFilter} />
         <PageSizeSelect value={pageSize} onChange={setPageSize} />
-        <div className="ml-auto flex items-center gap-1 bg-slate-100 border border-black/10 rounded-sm p-1">
+        <div className="ml-auto hidden sm:flex items-center gap-1 bg-slate-100 border border-black/10 rounded-sm p-1">
           {(["list", "grid"] as const).map((mode) => (
             <button
               key={mode}

@@ -421,7 +421,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
 
             <div className="border border-black overflow-hidden">
               {/* Header */}
-              <div className="flex items-center gap-1 sm:gap-3 px-2 py-2 bg-slate-50 border-b border-black">
+              <div className="flex items-center gap-1 sm:gap-4 px-2 py-2 bg-slate-50 border-b border-black">
                 <span className="hidden sm:inline-block w-5 shrink-0 text-[12px] font-black text-gray-700 text-center">N0</span>
                 <span className="flex-1 sm:w-64 sm:shrink-0 text-[12px] font-black text-gray-700">Product</span>
                 <span className="w-28 shrink-0 text-[12px] font-black text-gray-700">Barcode</span>
@@ -433,7 +433,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                 {items.map((item, idx) => {
                   const rec = allInventory.find((r) => r.id === item.inventory);
                   return (
-                    <div key={item.id} className="flex items-center gap-2 sm:gap-3 px-2 py-1.5 hover:bg-slate-50/60 transition-colors group/item">
+                    <div key={item.id} className="flex items-center gap-4 sm:gap-4 px-2 py-1.5 hover:bg-slate-50/60 transition-colors group/item">
                       <span className="hidden sm:inline-block w-5 shrink-0 text-[10px] font-black text-gray-700 text-center">{String(idx + 1).padStart(2, "0")}</span>
                       <div className="flex-1 sm:w-64 sm:shrink-0 min-w-0">
                         <InventoryPicker
@@ -513,28 +513,20 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
               {formError}
             </p>
           )}
-          <div className="grid grid-cols-3 gap-2">
+          <div className="flex justify-end gap-2">
             <button type="button" onClick={onClose}
-              className="py-1.5 rounded-md text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition shadow-sm">
+              className="w-30 py-1.5 rounded-md text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition shadow-sm">
               Cancel
             </button>
             <button
               type="button"
               onClick={(e) => handleSubmit(e, false)}
               disabled={saving}
-              className="py-1.5 rounded-md text-[11px] bg-orange-600 font-black tracking-widest uppercase text-white active:scale-[0.98] transition disabled:opacity-60 shadow-md transform hover:-translate-y-0.5"
-
+              className="w-30 py-1.5 rounded-md text-[11px]  font-black tracking-widest uppercase text-white bg-orange-500 active:scale-[0.98] transition disabled:opacity-60 shadow-md transform hover:-translate-y-0.5"
             >
               {saving ? "Saving..." : "Save"}
             </button>
-            <button
-              type="button"
-              disabled={saving}
-              onClick={(e) => handleSubmit(e, true)}
-              className="py-1.5 rounded-md text-[11px] font-black tracking-widest uppercase text-white bg-orange-500 active:scale-[0.98] transition disabled:opacity-60 whitespace-nowrap shadow-md transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
-            >
-              <span>{saving ? "Processing..." : "Save & Print"}</span>
-            </button>
+            
           </div>
         </div>
       </div>

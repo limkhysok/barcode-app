@@ -75,7 +75,7 @@ const InventoryPicker: React.FC<InventoryPickerProps> = ({ inventory, value, onC
         value={search}
         onFocus={handleFocus}
         onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
-        className="w-full text-[10px] pr-3 py-1.5 outline-none transition placeholder:text-gray-500 text-gray-900 text-left"
+        className="w-full text-[11px] pr-1 py-1.5 outline-none transition placeholder:text-gray-500 text-gray-900 text-left"
       />
 
       {open && (
