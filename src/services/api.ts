@@ -36,6 +36,8 @@ api.interceptors.response.use(
       } catch {
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user_data");
+        document.cookie = "access_token=; path=/; max-age=0; SameSite=Lax";
         globalThis.window.location.href = "/login";
         return new Promise(() => {});
       }

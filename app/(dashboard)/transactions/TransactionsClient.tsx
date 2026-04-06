@@ -249,22 +249,35 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   return (
     <div className="px-4 py-5 sm:px-5 sm:py-5 space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-baseline gap-3">
+        <div className="flex items-baseline gap-1">
           <h1 className="text-xl font-light text-gray-900">Transactions</h1>
           <p className="text-[11px] text-gray-700 font-medium" suppressHydrationWarning>
             {new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Phnom_Penh" })}
           </p>
         </div>
-        <button
-          onClick={() => { setFormError(""); setModalOpen(true); }}
-          className="flex items-center gap-2 px-2 py-1.5 sm:px-4 rounded-lg text-xs font-light tracking-widest bg-orange-500 text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
-        >
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          <span className="hidden sm:inline">New Transaction</span>
-          <span className="sm:hidden">New</span>
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className="flex items-center gap-2 px-2 py-1.5 sm:px-4 rounded-md text-xs font-light tracking-widest bg-black text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
+            // TODO: Add export action handler here
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-8m0 8l-4-4m4 4l4-4M4 20h16" />
+            </svg>
+            <span className="hidden sm:inline">Export</span>
+            <span className="sm:hidden">Export</span>
+          </button>
+          <button
+            onClick={() => { setFormError(""); setModalOpen(true); }}
+            className="flex items-center gap-2 px-2 py-1.5 sm:px-4 rounded-md text-xs font-light tracking-widest bg-orange-500 text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
+          >
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            <span className="hidden sm:inline">New Transaction</span>
+            <span className="sm:hidden">New</span>
+          </button>
+        </div>
       </div>
 
       <StatsOverview stats={stats} />

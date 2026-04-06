@@ -14,10 +14,10 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
-
 function setSessionCookie(token: string) {
-  document.cookie = `access_token=${token}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax`;
+  const exp = getTokenExpiry(token);
+  const maxAge = exp ? Math.max(0, Math.floor((exp - Date.now()) / 1000)) : 3600;
+  document.cookie = `access_token=${token}; path=/; max-age=${maxAge}; SameSite=Lax`;
 }
 
 function clearSessionCookie() {
@@ -72,7 +72,7 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
   useEffect(() => {
     const access = localStorage.getItem("access_token");
     if (!access) {
-      setUser(null);
+      clearAuth();
       setIsLoading(false);
       return;
     }

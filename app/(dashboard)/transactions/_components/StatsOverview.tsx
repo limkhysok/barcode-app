@@ -65,12 +65,12 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
           </div>
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-[12px] font-light text-gray-600 ">Total Count</span>
+              <span className="text-[12px] font-light text-gray-600 ">Total</span>
               <span className="text-sm font-black text-black tabular-nums">{receiveCount.toLocaleString()}</span>
             </div>
             <div className="border-t border-dashed border-gray-200" />
             <div className="flex items-center justify-between">
-              <span className="text-[12px] font-light text-gray-600 ">Total Money</span>
+              <span className="text-[12px] font-light text-gray-600 ">Receive Today</span>
               <span className="text-sm font-bold text-black tabular-nums">+${fmt(receiveVal)}</span>
             </div>
           </div>
@@ -88,12 +88,12 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
           </div>
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-[12px] font-light text-gray-600 ">Total Count</span>
+              <span className="text-[12px] font-light text-gray-600 ">Total</span>
               <span className="text-sm font-black text-black tabular-nums">{saleCount.toLocaleString()}</span>
             </div>
             <div className="border-t border-dashed border-gray-200" />
             <div className="flex items-center justify-between">
-              <span className="text-[12px] font-light text-gray-600 ">Total Money</span>
+              <span className="text-[12px] font-light text-gray-600 ">Sale Today</span>
               <span className="text-sm font-bold text-black tabular-nums">-${fmt(saleVal)}</span>
             </div>
           </div>
@@ -111,7 +111,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
           </div>
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-[12px] font-light text-gray-600 ">Total Count</span>
+              <span className="text-[12px] font-light text-gray-600 ">Total</span>
               <span className="text-sm font-black text-black tabular-nums">{totalMovements.toLocaleString()}</span>
             </div>
             <div className="border-t border-dashed border-gray-200" />
