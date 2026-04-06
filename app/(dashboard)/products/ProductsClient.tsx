@@ -112,7 +112,6 @@ function ProductTable({ loading, error, displayed, products, costDir, reorderDir
       {/* Mobile cards */}
       <div className="sm:hidden divide-y divide-black border-y border-black bg-white">
         {displayed.map((p, idx) => {
-          const cost = Number.parseFloat(p.cost_per_unit) || 0;
           return (
             <div key={p.id ?? idx} className="px-3 py-2.5 bg-white">
               {/* Row 1: Header - ID + Category + Name + Actions */}
@@ -314,25 +313,29 @@ export default function ProductsClient({
 
   const categoryStats = useMemo(() => {
     if (stats?.by_category) {
-      const accCost = stats.by_category.Accessories?.total_value ?? 0;
-      const fasCost = stats.by_category.Fasteners?.total_value ?? 0;
+      const accCount = stats.by_category.Accessories?.count ?? 0;
+      const fasCount = stats.by_category.Fasteners?.count ?? 0;
+      const total = stats.total_products ?? (accCount + fasCount);
+      const accShare = total > 0 ? Math.round((accCount / total) * 100) : 0;
+      const fasShare = total > 0 ? 100 - accShare : 0;
+
       return {
-        accessories: { count: stats.by_category.Accessories?.count ?? 0, cost: accCost },
-        fasteners: { count: stats.by_category.Fasteners?.count ?? 0, cost: fasCost },
-        total: stats.total_products ?? 0,
-        totalValue: stats.total_value ?? (accCost + fasCost),
+        accessories: { count: accCount, share: accShare },
+        fasteners: { count: fasCount, share: fasShare },
+        total,
       };
     }
     // Fallback if stats not fully loaded
-    const acc = products.filter((p) => p.category === "Accessories");
-    const fas = products.filter((p) => p.category === "Fasteners");
-    const accCost = totalCost(acc);
-    const fasCost = totalCost(fas);
+    const accLen = products.filter((p) => p.category === "Accessories").length;
+    const fasLen = products.filter((p) => p.category === "Fasteners").length;
+    const total = accLen + fasLen;
+    const accShare = total > 0 ? Math.round((accLen / total) * 100) : 0;
+    const fasShare = total > 0 ? 100 - accShare : 0;
+
     return {
-      accessories: { count: acc.length, cost: accCost },
-      fasteners: { count: fas.length, cost: fasCost },
-      total: products.length,
-      totalValue: accCost + fasCost,
+      accessories: { count: accLen, share: accShare },
+      fasteners: { count: fasLen, share: fasShare },
+      total,
     };
   }, [stats, products]);
 
@@ -485,113 +488,90 @@ export default function ProductsClient({
           <span className="hidden sm:inline">Add Product</span>
           <span className="sm:hidden">Add</span>
         </button>
-      </div>
-
-      {/* Category Overview - Mobile (Combined Box) */}
-      <div className="sm:hidden border border-black bg-white rounded-xl overflow-hidden">
-        <div className="flex divide-x divide-black/10">
-          <div className="flex-1 flex flex-col items-center gap-1.5 px-2 py-3">
-            <div className="w-8 h-8 bg-black rounded-md flex items-center justify-center shrink-0">
-              <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
-              </svg>
+      </div>      {/* Category Overview - Mobile (Combined Box) */}
+      <div className="sm:hidden bg-white border border-black rounded-xl overflow-hidden shadow-sm">
+        <div className="flex h-1.5 w-full bg-gray-100">
+          <div
+            className="h-full bg-black transition-all duration-700"
+            style={{ width: `${categoryStats.accessories.share}%` }}
+          />
+          <div
+            className="h-full bg-gray-300 transition-all duration-700"
+            style={{ width: `${categoryStats.fasteners.share}%` }}
+          />
+        </div>
+        <div className="grid grid-cols-3 divide-x divide-black/10">
+          {[
+            { label: "Accessories", count: categoryStats.accessories.count, icon: "↗", color: "text-black" },
+            { label: "Fasteners", count: categoryStats.fasteners.count, icon: "↘", color: "text-gray-400" },
+            { label: "Total", count: categoryStats.total, icon: "•", color: "text-black" },
+          ].map(({ label, count, icon, color }) => (
+            <div key={label} className="flex flex-col gap-0.5 px-3 py-2.5">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter truncate">{label}</p>
+              <div className="flex items-center gap-1">
+                <span className={`text-[12px] font-black ${color}`}>{icon}</span>
+                <span className="text-[14px] font-black text-black tabular-nums tracking-tight">{count.toLocaleString()}</span>
+              </div>
             </div>
-            <p className="text-[8px] font-black text-gray-400 uppercase tracking-wider text-center">Accessories</p>
-            <span className="text-xs font-black text-black tabular-nums">{categoryStats.accessories.count}</span>
-          </div>
-          <div className="flex-1 flex flex-col items-center gap-1.5 px-2 py-3">
-            <div className="w-8 h-8 bg-black rounded-md flex items-center justify-center shrink-0">
-              <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 11-3.586-3.586l8.684-7.152c.833-.736.995-1.874.904-2.95a4.5 4.5 0 016.336-4.486l-3.276 3.276a3.004 3.004 0 002.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852z" />
-              </svg>
-            </div>
-            <p className="text-[8px] font-black text-gray-400 uppercase tracking-wider text-center">Fasteners</p>
-            <span className="text-xs font-black text-black tabular-nums">{categoryStats.fasteners.count}</span>
-          </div>
-          <div className="flex-1 flex flex-col items-center gap-1.5 px-2 py-3">
-            <div className="w-8 h-8 bg-black rounded-md flex items-center justify-center shrink-0">
-              <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <p className="text-[8px] font-black text-gray-400 uppercase tracking-wider text-center">Combined Cost</p>
-            <span className="text-xs font-black text-black tabular-nums">${categoryStats.totalValue.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
-          </div>
+          ))}
         </div>
       </div>
 
       {/* Category stat cards - Desktop */}
       <div className="hidden sm:grid sm:grid-cols-3 gap-3">
-
-        {/* Accessories */}
-        <div className="px-5 py-4 border border-black bg-white rounded-xl">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-[13px] font-black text-gray-700">Accessories</p>
-            <div className="w-10 h-10 bg-black flex items-center justify-center shrink-0 rounded-lg">
-              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" />
+        {[
+          {
+            label: "Accessories",
+            count: categoryStats.accessories.count,
+            share: categoryStats.accessories.share,
+            icon: (
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
               </svg>
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[12px] font-light text-gray-600">Total Count</span>
-              <span className="text-sm font-black text-black tabular-nums">{categoryStats.accessories.count}</span>
-            </div>
-            <div className="border-t border-dashed border-gray-200" />
-            <div className="flex items-center justify-between">
-              <span className="text-[12px] font-light text-gray-600">Total Cost</span>
-              <span className="text-sm font-bold text-black tabular-nums">${categoryStats.accessories.cost.toFixed(2)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Fasteners */}
-        <div className="px-5 py-4 border border-black bg-white rounded-xl">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-[13px] font-black text-gray-700">Fasteners</p>
-            <div className="w-10 h-10 bg-black flex items-center justify-center shrink-0 rounded-lg">
-              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75a4.5 4.5 0 01-4.884 4.484c-1.076-.091-2.264.071-2.95.904l-7.152 8.684a2.548 2.548 0 11-3.586-3.586l8.684-7.152c.833-.736.995-1.874.904-2.95a4.5 4.5 0 016.336-4.486l-3.276 3.276a3.004 3.004 0 002.25 2.25l3.276-3.276c.256.565.398 1.192.398 1.852z" />
+            ),
+          },
+          {
+            label: "Fasteners",
+            count: categoryStats.fasteners.count,
+            share: categoryStats.fasteners.share,
+            icon: (
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 4.5l15 15m0 0V8.25m0 11.25H8.25" />
               </svg>
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[12px] font-light text-gray-600">Total Count</span>
-              <span className="text-sm font-black text-black tabular-nums">{categoryStats.fasteners.count}</span>
-            </div>
-            <div className="border-t border-dashed border-gray-200" />
-            <div className="flex items-center justify-between">
-              <span className="text-[12px] font-light text-gray-600">Total Cost</span>
-              <span className="text-sm font-bold text-black tabular-nums">${categoryStats.fasteners.cost.toFixed(2)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Total Value */}
-        <div className="px-5 py-4 border border-black bg-white rounded-xl">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-[13px] font-black text-gray-700">Total Value</p>
-            <div className="w-10 h-10 bg-black flex items-center justify-center shrink-0 rounded-lg">
-              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            ),
+          },
+          {
+            label: "Total Products",
+            count: categoryStats.total,
+            share: 100,
+            icon: (
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
               </svg>
+            ),
+          },
+        ].map(({ label, count, share, icon }) => (
+          <div key={label} className="px-5 py-4 border border-black bg-white rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-md hover:bg-slate-50/50 transition-all duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <div className="space-y-0.5">
+                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest leading-none">{label}</p>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-2xl font-black text-black tabular-nums tracking-tighter leading-none">{count}</span>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">items</span>
+                </div>
+              </div>
+              <div className="w-10 h-10 bg-black flex items-center justify-center shrink-0 rounded-lg shadow-sm">
+                {icon}
+              </div>
+            </div>
+            <div className="space-y-1.5 pt-1 border-t border-gray-50">
+              <div className="flex h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-black transition-all duration-1000 ease-out" style={{ width: `${share}%` }} />
+              </div>
+              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{share}% of catalog composition</p>
             </div>
           </div>
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[12px] font-light text-gray-600">Total Count</span>
-              <span className="text-sm font-black text-black tabular-nums">{categoryStats.total}</span>
-            </div>
-            <div className="border-t border-dashed border-gray-200" />
-            <div className="flex items-center justify-between">
-              <span className="text-[12px] font-light text-gray-600">Combined Cost</span>
-              <span className="text-sm font-bold text-black tabular-nums">${categoryStats.totalValue.toFixed(2)}</span>
-            </div>
-          </div>
-        </div>
-
+        ))}
       </div>
 
       {/* Toolbar */}
