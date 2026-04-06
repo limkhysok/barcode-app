@@ -1,17 +1,14 @@
 import api from "./api";
 import type { Transaction, TransactionPayload } from "@/src/types/transaction.types";
-import type { PaginatedTransactions } from "@/src/types/api.types";
 import { isRedirectError } from "@/src/lib/is-redirect-error";
 
 export async function getTransactions(params?: {
   type?: string;
   barcode?: string;
   search?: string;
-  page_size?: number | string;
   ordering?: string;
-}, fetcher?: <T>(path: string) => Promise<T>): Promise<PaginatedTransactions> {
+}, fetcher?: <T>(path: string) => Promise<T>): Promise<Transaction[]> {
   const query = new URLSearchParams();
-  if (params?.page_size) query.set("page_size", String(params.page_size));
   if (params?.type) query.set("type", params.type);
   if (params?.barcode) query.set("barcode", params.barcode);
   if (params?.search) query.set("search", params.search);
@@ -20,17 +17,18 @@ export async function getTransactions(params?: {
   const path = `/api/v1/transactions/?${query.toString()}`;
   if (fetcher) return await fetcher(path);
 
-  const { data } = await api.get<PaginatedTransactions>(path);
+  const { data } = await api.get<Transaction[]>(path);
   return data;
 }
 
 export interface TransactionTypeStats {
-  count: number;
-  total_value: string | number;
+  total_count: number;
+  today_count: number;
 }
 
 export interface TransactionStats {
   total_transactions: number;
+  today_transactions: number;
   by_type: {
     Receive: TransactionTypeStats;
     Sale: TransactionTypeStats;

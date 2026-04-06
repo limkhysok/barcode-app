@@ -5,7 +5,7 @@ import type { Transaction, TransactionPayload } from "@/src/types/transaction.ty
 import type { InventoryRecord } from "@/src/types/inventory.types";
 import { getTransactions, createTransaction, updateTransaction, deleteTransaction, getTransactionStats, type TransactionStats } from "@/src/services/transaction.service";
 import { getInventory } from "@/src/services/inventory.service";
-import type { PaginatedTransactions, PaginatedInventory } from "@/src/types/api.types";
+import type { PaginatedInventory } from "@/src/types/api.types";
 import TransactionTemplate from "@/src/components/features/export/TransactionTemplate";
 type TxTypeFilter = "" | "Receive" | "Sale";
 type TemplateItem = { barcode: string; product_name: string; unit: string; quantity: number };
@@ -18,25 +18,23 @@ import {
   ViewTransactionModal,
   DeleteConfirmModal,
 } from "./_components/TransactionsModal";
-import PageSizeSelect from "./_components/PageSizeSelect";
 
 function waitTwoFrames(): Promise<void> {
   return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 }
 
 type TransactionsClientProps = Readonly<{
-  initialPaginatedTransactions: PaginatedTransactions;
+  initialTransactions: Transaction[];
   initialPaginatedInventory: PaginatedInventory;
   initialStats: TransactionStats | null;
 }>;
 
 const TransactionsClient: React.FC<TransactionsClientProps> = ({
-  initialPaginatedTransactions,
+  initialTransactions,
   initialPaginatedInventory,
   initialStats,
 }) => {
-  const [paginated, setPaginated] = useState<PaginatedTransactions>(initialPaginatedTransactions);
-  const transactions = paginated.results;
+  const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
 
   const [paginatedInventory, setPaginatedInventory] = useState<PaginatedInventory>(initialPaginatedInventory);
   const inventory = paginatedInventory.results;
@@ -68,7 +66,6 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   const [editSaving, setEditSaving] = useState(false);
   const [editFormError, setEditFormError] = useState("");
 
-  const [pageSize, setPageSize] = useState<string | number>(20);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
   useEffect(() => {
@@ -80,7 +77,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
   useEffect(() => {
     fetchAll();
-  }, [typeFilter, pageSize]);
+  }, [typeFilter]);
 
   function fetchAll() {
     setLoading(true);
@@ -88,13 +85,12 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
     Promise.all([
       getTransactions({
         type: typeFilter || undefined,
-        page_size: pageSize === "all" ? 1000 : pageSize,
         ordering: "-transaction_date",
       }),
       getTransactionStats(),
     ])
-      .then(([newPaginated, newStats]) => {
-        setPaginated(newPaginated);
+      .then(([newTransactions, newStats]) => {
+        setTransactions(newTransactions);
         setStats(newStats);
       })
       .catch(() => setError("Failed to load data."))
@@ -284,7 +280,6 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
       <div className="flex items-center gap-3">
         <TypeFilterSelect value={typeFilter} onChange={setTypeFilter} />
-        <PageSizeSelect value={pageSize} onChange={setPageSize} />
         <div className="ml-auto hidden sm:flex items-center gap-1 bg-slate-100 border border-black/10 rounded-sm p-1">
           {(["list", "grid"] as const).map((mode) => (
             <button
@@ -327,8 +322,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
       {!loading && !error && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1">
           <p className="text-xs text-gray-400">
-            Showing <span className="font-bold text-gray-600">{transactions.length}</span> of{" "}
-            <span className="font-bold text-gray-600">{paginated.count}</span> records
+            <span className="font-bold text-gray-600">{transactions.length}</span> records
           </p>
         </div>
       )}

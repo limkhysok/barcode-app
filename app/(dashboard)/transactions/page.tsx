@@ -2,17 +2,18 @@ export const dynamic = "force-dynamic";
 
 import { serverFetch } from "@/src/lib/server-fetch";
 import { isRedirectError } from "@/src/lib/is-redirect-error";
+import type { Transaction } from "@/src/types/transaction.types";
 import { getTransactions, getTransactionStats } from "@/src/services/transaction.service";
 import { getInventory } from "@/src/services/inventory.service";
-import type { PaginatedTransactions, PaginatedInventory } from "@/src/types/api.types";
+import type { PaginatedInventory } from "@/src/types/api.types";
 import TransactionsClient from "./TransactionsClient";
 
 export default async function TransactionsPage() {
-  const [paginatedTransactions, paginatedInventory, initialStats] = await Promise.all([
+  const [initialTransactions, paginatedInventory, initialStats] = await Promise.all([
     getTransactions({ ordering: "-transaction_date" }, serverFetch).catch(
-      (e: unknown): PaginatedTransactions => {
+      (e: unknown): Transaction[] => {
         if (isRedirectError(e)) throw e;
-        return { count: 0, page_size: 20, results: [] };
+        return [];
       }
     ),
     getInventory({ page: 1 }, serverFetch).catch(
@@ -29,7 +30,7 @@ export default async function TransactionsPage() {
 
   return (
     <TransactionsClient
-      initialPaginatedTransactions={paginatedTransactions}
+      initialTransactions={initialTransactions}
       initialPaginatedInventory={paginatedInventory}
       initialStats={initialStats}
     />

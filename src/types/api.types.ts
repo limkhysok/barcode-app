@@ -1,6 +1,5 @@
 import type { Product } from "./product.types";
 import type { InventoryRecord } from "./inventory.types";
-import type { Transaction } from "./transaction.types";
 
 export interface PaginatedResponse<T> {
   count: number;
@@ -11,7 +10,6 @@ export interface PaginatedResponse<T> {
 export type PaginatedInventory = PaginatedResponse<InventoryRecord>;
 
 export type PaginatedProducts = PaginatedResponse<Product>;
-export type PaginatedTransactions = PaginatedResponse<Transaction>;
 
 export interface ProductStats {
   total_products: number;

@@ -8,13 +8,12 @@ type StatsOverviewProps = {
 };
 
 const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
-  const receiveVal = Number(stats?.by_type?.Receive?.total_value || 0);
-  const saleVal = Number(stats?.by_type?.Sale?.total_value || 0);
-  const receiveCount = stats?.by_type?.Receive?.count || 0;
-  const saleCount = stats?.by_type?.Sale?.count || 0;
+  const receiveCount = stats?.by_type?.Receive?.total_count || 0;
+  const receiveTodayCount = stats?.by_type?.Receive?.today_count || 0;
+  const saleCount = stats?.by_type?.Sale?.total_count || 0;
+  const saleTodayCount = stats?.by_type?.Sale?.today_count || 0;
   const totalMovements = stats?.total_transactions || 0;
-
-  const fmt = (v: number) => v.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  const todayMovements = stats?.today_transactions || 0;
 
   return (
     <div className="space-y-3">
@@ -71,7 +70,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
             <div className="border-t border-dashed border-gray-200" />
             <div className="flex items-center justify-between">
               <span className="text-[12px] font-light text-gray-600 ">Receive Today</span>
-              <span className="text-sm font-bold text-black tabular-nums">+${fmt(receiveVal)}</span>
+              <span className="text-sm font-bold text-black tabular-nums">+{receiveTodayCount.toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -94,7 +93,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
             <div className="border-t border-dashed border-gray-200" />
             <div className="flex items-center justify-between">
               <span className="text-[12px] font-light text-gray-600 ">Sale Today</span>
-              <span className="text-sm font-bold text-black tabular-nums">-${fmt(saleVal)}</span>
+              <span className="text-sm font-bold text-black tabular-nums">-{saleTodayCount.toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -116,10 +115,8 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
             </div>
             <div className="border-t border-dashed border-gray-200" />
             <div className="flex items-center justify-between">
-              <span className="text-[12px] font-light text-gray-600 ">All Types</span>
-              <span className="text-sm font-bold text-black tabular-nums">
-                +{receiveCount.toLocaleString()} / -{saleCount.toLocaleString()}
-              </span>
+              <span className="text-[12px] font-light text-gray-600 ">Today</span>
+              <span className="text-sm font-bold text-black tabular-nums">{todayMovements.toLocaleString()}</span>
             </div>
           </div>
         </div>
