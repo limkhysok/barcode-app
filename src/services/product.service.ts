@@ -12,11 +12,9 @@ export interface ProductFilters {
  * Universal product getter.
  * @param fetcher Server-side fetcher
  * @param filters Optional filter params
- * @param page_size Optional page size limit
  */
-export async function getProducts(fetcher?: <T>(path: string) => Promise<T>, filters?: ProductFilters, page_size?: number | string): Promise<PaginatedProducts> {
+export async function getProducts(fetcher?: <T>(path: string) => Promise<T>, filters?: ProductFilters): Promise<PaginatedProducts> {
   const params = new URLSearchParams();
-  if (page_size) params.set("page_size", String(page_size));
   if (filters?.search) params.set("search", filters.search);
   if (filters?.category) params.set("category", filters.category);
   if (filters?.ordering) params.set("ordering", filters.ordering);
@@ -30,7 +28,7 @@ export async function getProducts(fetcher?: <T>(path: string) => Promise<T>, fil
     return data;
   } catch (error) {
     console.error("Failed to fetch products:", error);
-    return { count: 0, page_size: 0, results: [] };
+    return { count: 0, results: [] } as any;
   }
 }
 

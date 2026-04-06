@@ -16,7 +16,7 @@ export default async function InventoryPage({
 
   const [paginatedRecords, paginatedProducts] = await Promise.all([
     getInventory({ page_size: pageSize, search, site }, serverFetch),
-    getProducts(serverFetch, {}, 1000),
+    getProducts(serverFetch, {}),
   ]);
 
   return (

@@ -10,16 +10,13 @@ export default async function ProductsPage({
   searchParams: Promise<{
     search?: string;
     category?: string;
-    page_size?: string;
   }>;
 }>) {
-  const { page_size: pageSizeStr, search, category } = await searchParams;
-
-  const page_size = pageSizeStr || "20";
+  const { search, category } = await searchParams;
   const filters = { search, category };
 
   const [paginated, stats] = await Promise.all([
-    getProducts(serverFetch, filters, page_size),
+    getProducts(serverFetch, filters),
     getProductStats(serverFetch),
   ]);
 

@@ -7,7 +7,6 @@ import type { Product, ProductPayload } from "@/src/types/product.types";
 import { getProducts, createProduct, updateProduct, deleteProduct } from "@/src/services/product.service";
 import type { ProductFilters } from "@/src/services/product.service";
 import type { PaginatedProducts, ProductStats } from "@/src/types/api.types";
-import { useRouter, useSearchParams } from "next/navigation";
 import { CustomSelect } from "@/src/components/ui/CustomSelect";
 
 const REORDER_PRESETS = new Set([5, 10, 15, 20]);
@@ -146,15 +145,8 @@ function ProductTable({ loading, error, displayed, products, costDir, reorderDir
                 </div>
               </div>
 
-              {/* Row 2: Metadata - Supplier + Barcode + Unit Price */}
+              {/* Row 2: Metadata - Supplier + Barcode */}
               <div className="flex items-center gap-3 mt-2 px-1 py-1 bg-slate-50/70 border border-slate-100/50 rounded-lg text-[10px] shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205l3 1" />
-                  </svg>
-                  <span className="font-bold text-gray-700 truncate">{p.supplier}</span>
-                </div>
-                <span className="text-slate-300 select-none">•</span>
                 <div className="flex items-center gap-1.5 min-w-0 text-slate-500">
                   <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
@@ -163,8 +155,8 @@ function ProductTable({ loading, error, displayed, products, costDir, reorderDir
                   <span className="truncate font-mono">{p.barcode}</span>
                 </div>
                 <div className="ml-auto flex items-center gap-1.5 shrink-0">
-                  <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest">Unit</span>
-                  <span className="font-black text-slate-900 tabular-nums bg-white px-1.5 py-0.5 rounded border border-slate-100 shadow-sm">${cost.toFixed(2)}</span>
+                  <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest">Supplier</span>
+                  <span className="font-black text-slate-900 tabular-nums bg-white px-1.5 py-0.5 rounded border border-slate-100 shadow-sm">{p.supplier}</span>
                 </div>
               </div>
 
@@ -198,15 +190,6 @@ function ProductTable({ loading, error, displayed, products, costDir, reorderDir
               <th className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">Category</th>
               <th className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">
                 <span className="inline-flex items-center gap-1">
-                  {"Cost / Unit"}{" "}
-                  <span className="flex flex-col leading-none">
-                    <svg className={`w-2.5 h-2.5 ${costDir === "asc" ? "text-orange-500" : "text-gray-300"}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l8 8H4z" /></svg>
-                    <svg className={`w-2.5 h-2.5 ${costDir === "desc" ? "text-orange-500" : "text-gray-300"}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 20l-8-8h16z" /></svg>
-                  </span>
-                </span>
-              </th>
-              <th className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">
-                <span className="inline-flex items-center gap-1">
                   {"Reorder"}{" "}
                   <span className="flex flex-col leading-none">
                     <svg className={`w-2.5 h-2.5 ${reorderDir === "asc" ? "text-orange-500" : "text-gray-300"}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l8 8H4z" /></svg>
@@ -227,7 +210,6 @@ function ProductTable({ loading, error, displayed, products, costDir, reorderDir
                 <td className="px-5 py-2">
                   <span className="text-[10px] font-bold tracking-widest uppercase text-black">{p.category}</span>
                 </td>
-                <td className="px-5 py-2 font-bold text-gray-800 tabular-nums">${Number.parseFloat(p.cost_per_unit).toFixed(2)}</td>
                 <td className="px-5 py-2 text-gray-500">{p.reorder_level}</td>
                 <td className="px-5 py-2 text-gray-500">{p.supplier}</td>
                 <td className="px-5 py-2">
@@ -275,17 +257,12 @@ export default function ProductsClient({
   const canEdit   = role === "boss" || role === "superadmin";
   const canDelete = role === "superadmin";
 
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const initialPageSize = searchParams.get("page_size") ?? "20";
-
   const [paginated, setPaginated] = useState<PaginatedProducts>(initialPaginated);
   const products = paginated.results;
 
   const [stats] = useState<ProductStats | null>(initialStats);
 
   const [loading, setLoading] = useState(false);
-  const [pageSize, setPageSize] = useState<number | string>(initialPageSize === "all" ? "all" : (Number.parseInt(initialPageSize) || 20));
   const [error, setError] = useState("");
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -319,13 +296,13 @@ export default function ProductsClient({
       };
       setLoading(true);
       setError("");
-      getProducts(undefined, filters, pageSize)
+      getProducts(undefined, filters)
         .then(setPaginated)
         .catch(() => setError("Failed to load products."))
         .finally(() => setLoading(false));
     }, 300);
     return () => clearTimeout(t);
-  }, [search, categoryFilter, pageSize, costDir, reorderDir]);
+  }, [search, categoryFilter, costDir, reorderDir]);
 
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -377,21 +354,13 @@ export default function ProductsClient({
   function fetchProducts() {
     setLoading(true);
     setError("");
-    getProducts(undefined, buildFilters(), pageSize)
+    getProducts(undefined, buildFilters())
       .then((data) => setPaginated(data))
       .catch(() => setError("Failed to load products."))
       .finally(() => setLoading(false));
 
   }
 
-  function handlePageSizeChange(newSize: string) {
-    const size = newSize === "all" || newSize === "ALL" ? "all" : Number.parseInt(newSize);
-    setPageSize(size);
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("page_size", String(size));
-    router.push(`?${params.toString()}`);
-    // fetchProducts will be triggered by useEffect
-  }
 
   function openCreate() {
     setEditing(null);
@@ -637,37 +606,12 @@ export default function ProductsClient({
               ]} />
           </div>
           <div className="bg-white rounded-sm">
-            <CustomSelect id="sort-cost" value={costDir} onChange={(v) => setCostDir(v as SortDir)}
-              options={[
-                { value: "", label: "Cost / Unit (sort)" },
-                { value: "asc", label: "Low → High" },
-                { value: "desc", label: "High → Low" },
-              ]} />
-          </div>
-          <div className="bg-white rounded-sm">
             <CustomSelect id="sort-reorder" value={reorderDir} onChange={(v) => setReorderDir(v as SortDir)}
               options={[
                 { value: "", label: "Reorder (sort)" },
                 { value: "asc", label: "Low → High" },
                 { value: "desc", label: "High → Low" },
               ]} />
-          </div>
-          <div className="bg-white rounded-sm">
-            <CustomSelect
-              id="page-size-selector-desktop"
-              value={pageSize === "all" ? "all" : String(pageSize)}
-              onChange={handlePageSizeChange}
-              triggerLabel={`${products.length} of ${pageSize === "all" ? "ALL" : pageSize}`}
-              options={[
-                { value: "20", label: "Show 20" },
-                { value: "50", label: "Show 50" },
-                { value: "100", label: "Show 100" },
-                { value: "200", label: "Show 200" },
-                { value: "500", label: "Show 500" },
-                { value: "1000", label: "Show 1000" },
-                { value: "all", label: "Show ALL" },
-              ]}
-            />
           </div>
           <div className="flex items-center gap-2 bg-white rounded-md border border-black px-3 py-1 shadow-sm transition-all focus-within:ring-2 focus-within:ring-orange-500/20">
             <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -751,21 +695,6 @@ export default function ProductsClient({
           )}
         </div>
 
-        {/* Show XX page size */}
-        <div className="bg-white rounded-md shrink-0 w-24">
-          <CustomSelect
-            id="page-size-selector-mobile"
-            value={pageSize === "all" ? "all" : String(pageSize)}
-            onChange={handlePageSizeChange}
-            triggerLabel={pageSize === "all" ? "ALL" : String(pageSize)}
-            options={[
-              { value: "20", label: "20" },
-              { value: "50", label: "50" },
-              { value: "100", label: "100" },
-              { value: "all", label: "ALL" },
-            ]}
-          />
-        </div>
 
         {/* Search */}
         <div className="flex-1 flex items-center gap-2 bg-white rounded-md border border-black px-2.5 py-1 shadow-sm min-w-0">

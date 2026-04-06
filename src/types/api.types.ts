@@ -3,7 +3,7 @@ import type { InventoryRecord } from "./inventory.types";
 
 export interface PaginatedResponse<T> {
   count: number;
-  page_size: number;
+  page_size?: number;
   results: T[];
 }
 
