@@ -15,10 +15,14 @@ export async function getTransactions(params?: {
   if (params?.ordering) query.set("ordering", params.ordering);
 
   const path = `/api/v1/transactions/?${query.toString()}`;
-  if (fetcher) return await fetcher(path);
+  const raw: unknown = fetcher
+    ? await fetcher(path)
+    : (await api.get<unknown>(path)).data;
 
-  const { data } = await api.get<Transaction[]>(path);
-  return data;
+  // Normalize: handle both plain array (new) and paginated wrapper (old)
+  if (Array.isArray(raw)) return raw as Transaction[];
+  const wrapped = raw as { results?: Transaction[] };
+  return wrapped.results ?? [];
 }
 
 export interface TransactionTypeStats {

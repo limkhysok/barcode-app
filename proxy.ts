@@ -40,7 +40,7 @@ export async function proxy(request: NextRequest) {
     console.log(`[UNIFIED-PROXY] ${request.method} ${pathname} -> ${target}`);
 
     const headers = new Headers(request.headers);
-    headers.delete("host");
+    headers.set("host", "localhost");
 
     const hasBody = request.method !== "GET" && request.method !== "HEAD";
 
