@@ -11,6 +11,8 @@ type TxTypeFilter = "" | "Receive" | "Sale";
 type TemplateItem = { barcode: string; product_name: string; unit: string; quantity: number };
 import { useAuth } from "@/src/context/AuthContext";
 import TypeFilterSelect from "./_components/TypeFilterSelect";
+import DateFilter, { type DateFilterValue } from "./_components/DateFilter";
+import SortToggleButton from "./_components/SortToggleButton";
 import StatsOverview from "./_components/StatsOverview";
 import TransactionsTable from "./_components/TransactionsTable";
 import {
@@ -36,7 +38,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   initialStats,
 }) => {
   const { role } = useAuth();
-  const canEdit   = role === "boss" || role === "superadmin";
+  const canEdit = role === "boss" || role === "superadmin";
   const canDelete = role === "superadmin";
 
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
@@ -50,6 +52,8 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   const [error, setError] = useState("");
 
   const [typeFilter, setTypeFilter] = useState<TxTypeFilter>("");
+  const [dateFilter, setDateFilter] = useState<DateFilterValue>("");
+  const [sortBy, setSortBy] = useState<string>("-transaction_date");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -75,6 +79,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   const [pdfPanelOpen, setPdfPanelOpen] = useState(false);
   const [pdfDate, setPdfDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [pdfType, setPdfType] = useState<"Receive" | "Sale">("Receive");
+  const [pdfTypeMenuOpen, setPdfTypeMenuOpen] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
   const pdfPanelRef = useRef<HTMLDivElement>(null);
@@ -305,9 +310,70 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   }
 
   const displayed = useMemo(() => {
-    if (!typeFilter) return transactions;
-    return transactions.filter((t) => t.transaction_type === typeFilter);
-  }, [transactions, typeFilter]);
+    let list = [...transactions];
+
+    // Filter by Type
+    if (typeFilter) {
+      list = list.filter((t) => t.transaction_type === typeFilter);
+    }
+
+    // Filter by Date
+    if (dateFilter) {
+      if (dateFilter === "today") {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        list = list.filter((t) => t.transaction_date.startsWith(todayStr));
+      } else if (dateFilter === "7d" || dateFilter === "30d") {
+        const days = dateFilter === "7d" ? 7 : 30;
+        const limit = new Date();
+        limit.setDate(limit.getDate() - days);
+        // Ensure we compare the start of that day
+        limit.setHours(0, 0, 0, 0);
+
+        list = list.filter((t) => {
+          const txDate = new Date(t.transaction_date);
+          return txDate >= limit;
+        });
+      } else {
+        // Custom date (YYYY-MM-DD)
+        list = list.filter((t) => t.transaction_date.startsWith(dateFilter));
+      }
+    }
+
+    // Sort
+    list.sort((a, b) => {
+      if (sortBy === "transaction_date") {
+        return a.transaction_date.localeCompare(b.transaction_date);
+      }
+      if (sortBy === "-transaction_date") {
+        return b.transaction_date.localeCompare(a.transaction_date);
+      }
+      if (sortBy === "id") {
+        return a.id - b.id;
+      }
+      if (sortBy === "-id") {
+        return b.id - a.id;
+      }
+      if (sortBy === "items_count") {
+        return a.items.length - b.items.length;
+      }
+      if (sortBy === "-items_count") {
+        return b.items.length - a.items.length;
+      }
+      if (sortBy === "total_qty") {
+        const qtyA = a.items.reduce((sum, i) => sum + Math.abs(i.quantity), 0);
+        const qtyB = b.items.reduce((sum, i) => sum + Math.abs(i.quantity), 0);
+        return qtyA - qtyB;
+      }
+      if (sortBy === "-total_qty") {
+        const qtyA = a.items.reduce((sum, i) => sum + Math.abs(i.quantity), 0);
+        const qtyB = b.items.reduce((sum, i) => sum + Math.abs(i.quantity), 0);
+        return qtyB - qtyA;
+      }
+      return 0;
+    });
+
+    return list;
+  }, [transactions, typeFilter, dateFilter, sortBy]);
 
   return (
     <div className="px-4 py-5 sm:px-5 sm:py-5 space-y-4">
@@ -329,7 +395,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
               </svg>
-              <span>PDF</span>
+              <span>Export</span>
             </button>
             {pdfPanelOpen && (
               <div className="absolute right-0 z-50 mt-1 w-56 bg-white border border-black rounded-sm shadow-lg p-3 space-y-2.5">
@@ -345,15 +411,52 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
                 </div>
                 <div className="space-y-1">
                   <label htmlFor="pdf-type" className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Type</label>
-                  <select
-                    id="pdf-type"
-                    value={pdfType}
-                    onChange={(e) => setPdfType(e.target.value as "Receive" | "Sale")}
-                    className="w-full border border-gray-300 rounded-sm px-2 py-1 text-xs text-gray-800 focus:outline-none focus:border-black"
-                  >
-                    <option value="Receive">Receive</option>
-                    <option value="Sale">Sale</option>
-                  </select>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      id="pdf-type"
+                      onClick={() => setPdfTypeMenuOpen(!pdfTypeMenuOpen)}
+                      className="w-full flex items-center justify-between border border-gray-300 rounded-sm px-2 py-1 text-xs text-gray-800 bg-white hover:border-black transition-colors focus:outline-none"
+                    >
+                      <span className="font-bold">{pdfType}</span>
+                      <svg
+                        className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${pdfTypeMenuOpen ? "rotate-180" : ""}`}
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2.5}
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </button>
+
+                    {pdfTypeMenuOpen && (
+                      <ul className="absolute z-[60] left-0 right-0 mt-1 bg-white border border-black rounded-sm shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                        {(["Receive", "Sale"] as const).map((type) => (
+                          <li key={type}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPdfType(type);
+                                setPdfTypeMenuOpen(false);
+                              }}
+                              className={`w-full flex items-center justify-between px-2.5 py-1.5 text-[11px] font-black transition-colors ${pdfType === type
+                                ? "bg-slate-100 text-black"
+                                : "text-gray-500 hover:bg-gray-50 hover:text-black"
+                                }`}
+                            >
+                              {type}
+                              {pdfType === type && (
+                                <svg className="w-3 h-3 text-black" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                </svg>
+                              )}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
                 {pdfError && <p className="text-[10px] text-red-500 font-medium">{pdfError}</p>}
                 <button
@@ -383,8 +486,21 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
       <StatsOverview stats={stats} />
 
-      <div className="flex items-center gap-3">
-        <TypeFilterSelect value={typeFilter} onChange={setTypeFilter} />
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2">
+          <TypeFilterSelect value={typeFilter} onChange={setTypeFilter} />
+          <DateFilter value={dateFilter} onChange={setDateFilter} />
+        </div>
+
+        {/* Sorting Group - stay together on mobile, wrap on wrap if needed or stay flex */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none no-scrollbar">
+          <div className="flex items-center gap-1.5 shrink-0 px-2 py-1.5 bg-slate-50">
+            <SortToggleButton label="Date" field="transaction_date" currentSort={sortBy} onSort={setSortBy} />
+            <SortToggleButton label="Items" field="items_count" currentSort={sortBy} onSort={setSortBy} />
+            <SortToggleButton label="Qty" field="total_qty" currentSort={sortBy} onSort={setSortBy} />
+          </div>
+        </div>
+
         <div className="ml-auto hidden sm:flex items-center gap-1 bg-slate-100 border border-black/10 rounded-sm p-1">
           {(["list", "grid"] as const).map((mode) => (
             <button
@@ -392,11 +508,10 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
               type="button"
               onClick={() => setViewMode(mode)}
               title={mode === "list" ? "List view" : "Grid view"}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[10px] font-black tracking-widest uppercase transition-all duration-150 ${
-                viewMode === mode
-                  ? "bg-black text-white shadow-sm"
-                  : "text-gray-400 hover:text-gray-700 hover:bg-white/60"
-              }`}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[10px] font-black tracking-widest uppercase transition-all duration-150 ${viewMode === mode
+                ? "bg-black text-white shadow-sm"
+                : "text-gray-400 hover:text-gray-700 hover:bg-white/60"
+                }`}
             >
               {mode === "list" ? (
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
