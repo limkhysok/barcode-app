@@ -67,6 +67,22 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   const [editFormError, setEditFormError] = useState("");
 
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [pdfPanelOpen, setPdfPanelOpen] = useState(false);
+  const [pdfDate, setPdfDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [pdfType, setPdfType] = useState<"Receive" | "Sale">("Receive");
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState("");
+  const pdfPanelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (pdfPanelRef.current && !pdfPanelRef.current.contains(e.target as Node)) {
+        setPdfPanelOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   useEffect(() => {
     if (menuOpenId === null) return;
@@ -237,6 +253,52 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   };
 
 
+  async function handlePdfExport() {
+    setPdfLoading(true);
+    setPdfError("");
+    try {
+      const flat = transactions
+        .filter((t) => {
+          const matchType = t.transaction_type === pdfType;
+          const matchDate = pdfDate ? t.transaction_date.startsWith(pdfDate) : true;
+          return matchType && matchDate;
+        })
+        .flatMap((t) => t.items.map(txItemToTemplateItem));
+
+      const merged = new Map<string, TemplateItem>();
+      for (const item of flat) {
+        const key = item.barcode || item.product_name;
+        const existing = merged.get(key);
+        if (existing) {
+          existing.quantity += item.quantity;
+        } else {
+          merged.set(key, { ...item });
+        }
+      }
+      const items = Array.from(merged.values());
+      if (items.length === 0) {
+        setPdfError("No transactions found for the selected date and type.");
+        return;
+      }
+      setPdfPanelOpen(false);
+      await exportTemplateAsPdf(items, pdfType);
+    } catch {
+      setPdfError("Export failed. Please try again.");
+    } finally {
+      setPdfLoading(false);
+    }
+  }
+
+  function txItemToTemplateItem(item: Transaction["items"][number]): TemplateItem {
+    const rec = inventory.find((r) => r.id === item.inventory);
+    return {
+      barcode: rec?.product_details.barcode ?? "",
+      product_name: item.product_name,
+      unit: "Pcs",
+      quantity: Math.abs(item.quantity),
+    };
+  }
+
   const displayed = useMemo(() => {
     if (!typeFilter) return transactions;
     return transactions.filter((t) => t.transaction_type === typeFilter);
@@ -252,17 +314,55 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
           </p>
         </div>
         <div className="flex gap-2">
-          <button
-            type="button"
-            className="flex items-center gap-2 px-2 py-1.5 sm:px-4 rounded-md text-xs font-light tracking-widest bg-black text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
-            // TODO: Add export action handler here
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-8m0 8l-4-4m4 4l4-4M4 20h16" />
-            </svg>
-            <span className="hidden sm:inline">Export</span>
-            <span className="sm:hidden">Export</span>
-          </button>
+          {/* Export PDF */}
+          <div className="relative" ref={pdfPanelRef}>
+            <button
+              type="button"
+              onClick={() => { setPdfPanelOpen((v) => !v); setPdfError(""); }}
+              className="flex items-center gap-2 px-2 py-1.5 sm:px-4 rounded-md text-xs font-light tracking-widest border border-black bg-white text-black hover:bg-gray-50 active:scale-[0.97] transition shadow-sm"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+              </svg>
+              <span>PDF</span>
+            </button>
+            {pdfPanelOpen && (
+              <div className="absolute right-0 z-50 mt-1 w-56 bg-white border border-black rounded-sm shadow-lg p-3 space-y-2.5">
+                <div className="space-y-1">
+                  <label htmlFor="pdf-date" className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Date</label>
+                  <input
+                    id="pdf-date"
+                    type="date"
+                    value={pdfDate}
+                    onChange={(e) => setPdfDate(e.target.value)}
+                    className="w-full border border-gray-300 rounded-sm px-2 py-1 text-xs text-gray-800 focus:outline-none focus:border-black"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label htmlFor="pdf-type" className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Type</label>
+                  <select
+                    id="pdf-type"
+                    value={pdfType}
+                    onChange={(e) => setPdfType(e.target.value as "Receive" | "Sale")}
+                    className="w-full border border-gray-300 rounded-sm px-2 py-1 text-xs text-gray-800 focus:outline-none focus:border-black"
+                  >
+                    <option value="Receive">Receive</option>
+                    <option value="Sale">Sale</option>
+                  </select>
+                </div>
+                {pdfError && <p className="text-[10px] text-red-500 font-medium">{pdfError}</p>}
+                <button
+                  type="button"
+                  onClick={handlePdfExport}
+                  disabled={pdfLoading}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-sm text-[11px] font-black tracking-widest bg-black text-white hover:opacity-90 disabled:opacity-50 transition"
+                >
+                  {pdfLoading ? "Exporting…" : "Export PDF"}
+                </button>
+              </div>
+            )}
+          </div>
+
           <button
             onClick={() => { setFormError(""); setModalOpen(true); }}
             className="flex items-center gap-2 px-2 py-1.5 sm:px-4 rounded-md text-xs font-light tracking-widest bg-orange-500 text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
