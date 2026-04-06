@@ -16,10 +16,10 @@ export default async function TransactionsPage() {
         return [];
       }
     ),
-    getInventory({ page: 1 }, serverFetch).catch(
+    getInventory({}, serverFetch).catch(
       (e: unknown): PaginatedInventory => {
         if (isRedirectError(e)) throw e;
-        return { count: 0, page_size: 20, results: [] };
+        return { count: 0, results: [] };
       }
     ),
     getTransactionStats(serverFetch).catch((e: unknown) => {
