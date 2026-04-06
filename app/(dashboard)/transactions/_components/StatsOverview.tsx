@@ -54,46 +54,48 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
   return (
     <div className="space-y-3">
 
-      {/* ── Mobile ── */}
-      <div className="sm:hidden bg-white border border-gray-800 rounded-xl overflow-hidden">
-        <div className="flex h-1 w-full">
+      {/* ── Mobile Overview (Unified Style) ── */}
+      <div className="sm:hidden bg-white border border-gray-800 rounded-xl overflow-hidden shadow-sm">
+        <div className="flex h-1.5 w-full bg-gray-100">
           <div
-            className="h-full transition-all duration-700"
-            style={{ width: `${receiveShare}%`, backgroundColor: barConfig.receive.color as string }}
+            className="h-full bg-black transition-all duration-700"
+            style={{ width: `${receiveShare}%` }}
           />
           <div
-            className="h-full transition-all duration-700"
-            style={{ width: `${saleShare}%`, backgroundColor: barConfig.sale.color as string }}
+            className="h-full bg-gray-300 transition-all duration-700"
+            style={{ width: `${saleShare}%` }}
           />
         </div>
-        <div className="grid grid-cols-3 divide-x divide-gray-100">
+        <div className="grid grid-cols-3 divide-x divide-black/10">
           {[
-            { label: "Receive", count: receiveCount, today: `+${receiveTodayCount}` },
-            { label: "Sale", count: saleCount, today: `-${saleTodayCount}` },
-            { label: "Total", count: totalMovements, today: `${todayMovements}` },
-          ].map(({ label, count, today }) => (
-            <div key={label} className="flex flex-col gap-1 px-3 py-2.5">
-              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-tighter">{label}</p>
-              <span className="text-sm font-black text-black tabular-nums">{count.toLocaleString()}</span>
-              <span className="text-[10px] text-gray-500 tabular-nums">{today} today</span>
+            { label: "Receive", count: receiveCount, icon: "↗", color: "text-black" },
+            { label: "Sale", count: saleCount, icon: "↘", color: "text-gray-400" },
+            { label: "Total", count: totalMovements, icon: "●", color: "text-black" },
+          ].map(({ label, count, icon, color }) => (
+            <div key={label} className="flex flex-col gap-0.5 px-3 py-3">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter truncate">{label}</p>
+              <div className="flex items-center gap-1.5">
+                <span className={`text-[12px] font-black ${color}`}>{icon}</span>
+                <span className="text-[16px] font-black text-black tabular-nums tracking-tight">{count.toLocaleString()}</span>
+              </div>
             </div>
           ))}
         </div>
-        <div className="px-3 pb-3 pt-2 space-y-1.5 border-t border-gray-100">
-          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-tighter">Qty today</p>
-          <div className="flex h-2 w-full rounded-full overflow-hidden bg-gray-100">
+        <div className="px-3 pb-3 pt-2.5 space-y-1.5 border-t border-black/10 bg-slate-50/50">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Qty activity today</p>
+          <div className="flex h-1.5 w-full rounded-full overflow-hidden bg-gray-100">
             <div
-              className="h-full transition-all duration-700"
-              style={{ width: `${receiveQtyShare}%`, backgroundColor: barConfig.receive.color as string }}
+              className="h-full bg-black transition-all duration-700"
+              style={{ width: `${receiveQtyShare}%` }}
             />
             <div
-              className="h-full transition-all duration-700"
-              style={{ width: `${100 - receiveQtyShare}%`, backgroundColor: barConfig.sale.color as string }}
+              className="h-full bg-gray-300 transition-all duration-700"
+              style={{ width: `${100 - receiveQtyShare}%` }}
             />
           </div>
-          <div className="flex justify-between text-[11px] text-gray-600 tabular-nums font-medium">
-            <span>+{receiveTodayQty.toLocaleString()} in</span>
-            <span>{saleTodayQty.toLocaleString()} out</span>
+          <div className="flex justify-between text-[11px] text-gray-600 tabular-nums font-bold tracking-tight">
+            <span>+{receiveTodayQty.toLocaleString()} IN</span>
+            <span>{saleTodayQty.toLocaleString()} OUT</span>
           </div>
         </div>
       </div>
@@ -131,19 +133,19 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-[11px] font-bold text-gray-400 leading-none">Receive</p>
-                      <p className="text-[22px] font-black text-black tabular-nums leading-tight">{receiveCount.toLocaleString()}</p>
+                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest leading-none">Receive</p>
+                      <p className="text-3xl font-black text-black tabular-nums tracking-tighter leading-tight">{receiveCount.toLocaleString()}</p>
                     </div>
                   </div>
-                  <span className="flex items-center gap-0.5 text-[10px] font-semibold text-gray-500 border border-gray-200 rounded-full px-1.5 py-0.5 shrink-0">
+                  <span className="flex items-center gap-0.5 text-[10px] font-bold text-gray-500 border border-gray-200 rounded-full px-2 py-0.5 shrink-0 uppercase tracking-tighter bg-gray-50">
                     <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
                     </svg>
                     <span>In</span>
                   </span>
                 </div>
-                <div className="h-0.75 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-black rounded-full transition-all duration-700" style={{ width: `${receiveShare}%` }} />
+                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-black rounded-full transition-all duration-1000 ease-out" style={{ width: `${receiveShare}%` }} />
                 </div>
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="text-[11px] font-semibold text-gray-400 shrink-0">Today</span>
@@ -170,19 +172,19 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-[11px] font-bold text-gray-400 leading-none">Sale</p>
-                      <p className="text-[22px] font-black text-black tabular-nums leading-tight">{saleCount.toLocaleString()}</p>
+                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest leading-none">Sale</p>
+                      <p className="text-3xl font-black text-black tabular-nums tracking-tighter leading-tight">{saleCount.toLocaleString()}</p>
                     </div>
                   </div>
-                  <span className="flex items-center gap-0.5 text-[10px] font-semibold text-gray-500 border border-gray-200 rounded-full px-1.5 py-0.5 shrink-0">
+                  <span className="flex items-center gap-0.5 text-[10px] font-bold text-gray-500 border border-gray-200 rounded-full px-2 py-0.5 shrink-0 uppercase tracking-tighter bg-gray-50">
                     <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
                     </svg>
                     <span>Out</span>
                   </span>
                 </div>
-                <div className="h-0.75 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-gray-400 rounded-full transition-all duration-700" style={{ width: `${saleShare}%` }} />
+                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-gray-400 rounded-full transition-all duration-1000 ease-out" style={{ width: `${saleShare}%` }} />
                 </div>
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="text-[11px] font-semibold text-gray-400 shrink-0">Today</span>
@@ -264,12 +266,12 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-[11px] font-bold text-gray-400 leading-none">All time</p>
-                    <p className="text-[22px] font-black text-black tabular-nums leading-tight">{totalMovements.toLocaleString()}</p>
+                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest leading-none">All time</p>
+                    <p className="text-3xl font-black text-black tabular-nums tracking-tighter leading-tight">{totalMovements.toLocaleString()}</p>
                   </div>
                 </div>
-                <div className="h-0.75 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-black rounded-full transition-all duration-700" style={{ width: `${receiveShare}%` }} />
+                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-black rounded-full transition-all duration-1000 ease-out" style={{ width: `${receiveShare}%` }} />
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[11px] font-semibold text-gray-400 shrink-0">Split</span>
@@ -291,12 +293,12 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-[11px] font-bold text-gray-400 leading-none">Today</p>
-                    <p className="text-[22px] font-black text-black tabular-nums leading-tight">{todayMovements.toLocaleString()}</p>
+                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest leading-none">Today</p>
+                    <p className="text-3xl font-black text-black tabular-nums tracking-tighter leading-tight">{todayMovements.toLocaleString()}</p>
                   </div>
                 </div>
-                <div className="h-0.75 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-black rounded-full transition-all duration-700" style={{ width: `${receiveQtyShare}%` }} />
+                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-black rounded-full transition-all duration-1000 ease-out" style={{ width: `${receiveQtyShare}%` }} />
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[11px] font-semibold text-gray-400 shrink-0">Balance</span>
