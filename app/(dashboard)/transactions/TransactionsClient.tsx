@@ -84,10 +84,16 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   const [pdfError, setPdfError] = useState("");
   const pdfPanelRef = useRef<HTMLDivElement>(null);
 
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const filterPanelRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     function handler(e: MouseEvent) {
       if (pdfPanelRef.current && !pdfPanelRef.current.contains(e.target as Node)) {
         setPdfPanelOpen(false);
+      }
+      if (filterPanelRef.current && !filterPanelRef.current.contains(e.target as Node)) {
+        setFilterPanelOpen(false);
       }
     }
     document.addEventListener("mousedown", handler);
@@ -487,18 +493,62 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
       <StatsOverview stats={stats} />
 
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2">
-          <TypeFilterSelect value={typeFilter} onChange={setTypeFilter} />
-          <DateFilter value={dateFilter} onChange={setDateFilter} />
+        {/* Desktop Toolbar */}
+        <div className="hidden sm:flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <TypeFilterSelect value={typeFilter} onChange={setTypeFilter} />
+            <DateFilter value={dateFilter} onChange={setDateFilter} />
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none no-scrollbar">
+            <div className="flex items-center gap-1.5 shrink-0 px-2 py-1.5 bg-slate-50">
+              <SortToggleButton label="Date" field="transaction_date" currentSort={sortBy} onSort={setSortBy} />
+              <SortToggleButton label="Items" field="items_count" currentSort={sortBy} onSort={setSortBy} />
+              <SortToggleButton label="Qty" field="total_qty" currentSort={sortBy} onSort={setSortBy} />
+            </div>
+          </div>
         </div>
 
-        {/* Sorting Group - stay together on mobile, wrap on wrap if needed or stay flex */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none no-scrollbar">
-          <div className="flex items-center gap-1.5 shrink-0 px-2 py-1.5 bg-slate-50">
-            <SortToggleButton label="Date" field="transaction_date" currentSort={sortBy} onSort={setSortBy} />
-            <SortToggleButton label="Items" field="items_count" currentSort={sortBy} onSort={setSortBy} />
-            <SortToggleButton label="Qty" field="total_qty" currentSort={sortBy} onSort={setSortBy} />
-          </div>
+        {/* Mobile Bundle Button */}
+        <div className="sm:hidden relative" ref={filterPanelRef}>
+          <button
+            onClick={() => setFilterPanelOpen(!filterPanelOpen)}
+            className={`flex items-center gap-2 px-3 py-1 rounded-md border text-[11px] font-light tracking-widest transition-all ${filterPanelOpen ? "bg-black text-white border-black" : "bg-white text-black border-black/70"
+              }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+            </svg>
+            <span>Filter</span>
+          </button>
+
+          {filterPanelOpen && (
+            <div className="absolute left-0 mt-3 z-50 w-[280px] bg-white border border-black rounded-lg shadow-2xl p-4 flex flex-col gap-5 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="space-y-2">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Filter By</span>
+                <div className="flex flex-col gap-2">
+                  <TypeFilterSelect value={typeFilter} onChange={setTypeFilter} />
+                  <DateFilter value={dateFilter} onChange={setDateFilter} />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Sort By</span>
+                <div className="flex flex-wrap gap-2">
+                  <SortToggleButton label="Date" field="transaction_date" currentSort={sortBy} onSort={setSortBy} />
+                  <SortToggleButton label="Items" field="items_count" currentSort={sortBy} onSort={setSortBy} />
+                  <SortToggleButton label="Qty" field="total_qty" currentSort={sortBy} onSort={setSortBy} />
+                </div>
+              </div>
+
+              <button
+                onClick={() => setFilterPanelOpen(false)}
+                className="mt-2 w-full py-2 bg-black text-white text-[11px] font-black uppercase rounded shadow-md"
+              >
+                Close
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="ml-auto hidden sm:flex items-center gap-1 bg-slate-100 border border-black/10 rounded-sm p-1">
