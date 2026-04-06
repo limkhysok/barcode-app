@@ -9,6 +9,7 @@ import type { PaginatedInventory } from "@/src/types/api.types";
 import TransactionTemplate from "@/src/components/features/export/TransactionTemplate";
 type TxTypeFilter = "" | "Receive" | "Sale";
 type TemplateItem = { barcode: string; product_name: string; unit: string; quantity: number };
+import { useAuth } from "@/src/context/AuthContext";
 import TypeFilterSelect from "./_components/TypeFilterSelect";
 import StatsOverview from "./_components/StatsOverview";
 import TransactionsTable from "./_components/TransactionsTable";
@@ -34,6 +35,10 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   initialPaginatedInventory,
   initialStats,
 }) => {
+  const { role } = useAuth();
+  const canEdit   = role === "boss" || role === "superadmin";
+  const canDelete = role === "superadmin";
+
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
 
   const [paginatedInventory, setPaginatedInventory] = useState<PaginatedInventory>(initialPaginatedInventory);
@@ -440,12 +445,16 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
             >
               <button type="button" onClick={() => { setViewTarget(t); setMenuOpenId(null); }}
                 className="w-full text-left px-4 py-2 text-[12px] font-black text-gray-700 hover:bg-slate-50 transition">View</button>
-              <button type="button" onClick={() => { setEditTarget(t); setMenuOpenId(null); }}
-                className="w-full text-left px-4 py-2 text-[12px] font-black text-gray-700 hover:bg-slate-50 transition">Edit</button>
+              {canEdit && (
+                <button type="button" onClick={() => { setEditTarget(t); setMenuOpenId(null); }}
+                  className="w-full text-left px-4 py-2 text-[12px] font-black text-gray-700 hover:bg-slate-50 transition">Edit</button>
+              )}
               <button type="button" onClick={() => { handlePrint(t); setMenuOpenId(null); }}
                 className="w-full text-left px-4 py-2 text-[12px] font-black text-gray-700 hover:bg-slate-50 transition">Print</button>
-              <button type="button" onClick={() => { setDeleteTarget(t); setMenuOpenId(null); }}
-                className="w-full text-left px-4 py-2 text-[12px] font-black text-red-500 hover:bg-red-50 transition">Delete</button>
+              {canDelete && (
+                <button type="button" onClick={() => { setDeleteTarget(t); setMenuOpenId(null); }}
+                  className="w-full text-left px-4 py-2 text-[12px] font-black text-red-500 hover:bg-red-50 transition">Delete</button>
+              )}
             </div>
           </>
         );

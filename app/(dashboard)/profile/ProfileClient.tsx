@@ -3,8 +3,16 @@
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { User } from "@/src/types/auth.types";
+import { useAuth } from "@/src/context/AuthContext";
+
+const ROLE_LABEL: Record<string, string> = {
+  superadmin: "Super Admin",
+  boss: "Boss",
+  staff: "Staff",
+};
 
 export default function ProfileClient({ initialUser }: Readonly<{ initialUser: User | null }>) {
+  const { role } = useAuth();
   const router = useRouter();
 
   if (!initialUser) return null;
@@ -19,11 +27,7 @@ export default function ProfileClient({ initialUser }: Readonly<{ initialUser: U
     }, 800);
   }
 
-  // Role calculation
-  let roleLabel = "General User";
-  if (initialUser.is_superuser) roleLabel = "System Admin";
-  else if (initialUser.is_boss) roleLabel = "Main Manager";
-  else if (initialUser.is_staff) roleLabel = "Staff Member";
+  const roleLabel = ROLE_LABEL[role] ?? "Staff";
 
   const initials = (initialUser?.name || initialUser?.username || "U")
     .split(" ")

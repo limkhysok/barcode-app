@@ -4,8 +4,17 @@ import { createContext, useContext, useEffect, useMemo, useState, useCallback } 
 import type { User, LoginPayload, RegisterPayload } from "@/src/types/auth.types";
 import { login as apiLogin, register as apiRegister, getMe } from "@/src/services/auth.service";
 
+export type Role = "staff" | "boss" | "superadmin";
+
+function getRole(user: User | null): Role {
+  if (user?.is_superuser) return "superadmin";
+  if (user?.is_boss) return "boss";
+  return "staff";
+}
+
 interface AuthContextValue {
   user: User | null;
+  role: Role;
   isLoading: boolean;
   login: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
@@ -138,9 +147,11 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
     clearAuth();
   }, [clearAuth]);
 
+  const role = useMemo(() => getRole(user), [user]);
+
   const value = useMemo(
-    () => ({ user, isLoading, login, register, logout }),
-    [user, isLoading, login, register, logout],
+    () => ({ user, role, isLoading, login, register, logout }),
+    [user, role, isLoading, login, register, logout],
   );
 
   return (

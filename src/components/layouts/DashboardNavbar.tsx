@@ -11,7 +11,13 @@ interface Props {
 }
 
 export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
-  const { user, logout } = useAuth();
+  const { user, role, logout } = useAuth();
+
+  const ROLE_LABEL: Record<string, string> = {
+    superadmin: "Super Admin",
+    boss: "Boss",
+    staff: "Staff",
+  };
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -93,15 +99,17 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
 
             {/* Dropdown */}
             {open && (
-              <div className="absolute right-0 mt-3 w-42 bg-white border-1 border-gray-400 overflow-hidden z-50 rounded-md">
+              <div className="absolute right-0 mt-3 w-42 bg-white border border-gray-400 overflow-hidden z-50 rounded-md">
                 {/* User Info Header */}
-                <div className="px-3 py-2 bg-slate-50 border-b-1 border-gray-400 flex items-center gap-3">
+                <div className="px-3 py-2 bg-slate-50 border-b border-gray-400 flex items-center gap-3">
                   <div className="w-6 h-6 rounded-full overflow-hidden border-2 border-black shrink-0">
                     <Image src="/albert-einstein.png" alt="Avatar" width={32} height={32} className="w-full h-full object-cover" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[12px] font-black text-gray-900 truncate">@{displayName}</p>
-
+                    <span className="text-[9px] font-bold tracking-widest uppercase text-orange-500">
+                      {ROLE_LABEL[role] ?? "Staff"}
+                    </span>
                   </div>
                 </div>
 
@@ -123,7 +131,7 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
                 </div>
 
                 {/* Logout Button */}
-                <div className="border-t-1 border-gray-200">
+                <div className="border-t border-gray-200">
                   <button
                     onClick={handleLogout}
                     className="w-full flex items-center gap-2 px-2 py-1 rounded-sm text-red-500 hover:bg-red-50 transition-all group"
