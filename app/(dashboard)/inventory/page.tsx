@@ -8,14 +8,12 @@ import InventoryClient from "./InventoryClient";
 export default async function InventoryPage({
   searchParams,
 }: Readonly<{
-  searchParams: Promise<{page_size?: string; search?: string; site?: string }>;
+  searchParams: Promise<{search?: string; site?: string }>;
 }>) {
-  const { page_size: pageSizeStr, search, site } = await searchParams;
-
-  const pageSize = pageSizeStr || "20";
+  const { search, site } = await searchParams;
 
   const [paginatedRecords, paginatedProducts] = await Promise.all([
-    getInventory({ page_size: pageSize, search, site }, serverFetch),
+    getInventory({ search, site }, serverFetch),
     getProducts(serverFetch, {}),
   ]);
 

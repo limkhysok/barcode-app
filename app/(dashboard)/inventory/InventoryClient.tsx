@@ -6,7 +6,6 @@ import type { InventoryRecord, InventoryPayload } from "@/src/types/inventory.ty
 import { getInventory, getInventoryStats, createInventory, updateInventory, deleteInventory } from "@/src/services/inventory.service";
 import { getProducts } from "@/src/services/product.service";
 import type { PaginatedInventory, PaginatedProducts } from "@/src/types/api.types";
-import { useRouter, useSearchParams } from "next/navigation";
 import { InventoryModal, DeleteModal } from "./InventoryModal";
 import { CustomSelect } from "@/src/components/ui/CustomSelect";
 
@@ -53,18 +52,12 @@ export default function InventoryClient({
   const canEdit   = role === "boss" || role === "superadmin";
   const canDelete = role === "superadmin";
 
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const initialPageSize = searchParams.get("page_size") ?? "20";
-
-  // ── Data state ──────────────────────────────────────────────────────────────
   const [paginated, setPaginated] = useState<PaginatedInventory>(initialPaginatedRecords);
   const records = paginated.results;
 
   const [paginatedProducts, setPaginatedProducts] = useState<PaginatedProducts>(initialPaginatedProducts);
   const products = paginatedProducts.results;
   const [loading, setLoading] = useState(false);
-  const [pageSize, setPageSize] = useState<number | string>(Number.parseInt(initialPageSize) || 20);
   const [error, setError] = useState("");
   const [statsData, setStatsData] = useState<any>(initialStats);
   useEffect(() => {
@@ -73,11 +66,9 @@ export default function InventoryClient({
 
   // ── Filter / sort state ──────────────────────────────────────────────────────
   const [siteFilter, setSiteFilter] = useState("");
-  // Remove local-only sort states, use ordering for backend
   const [quantitySort, setQuantitySort] = useState<QuantitySort>("");
   const [stockValueMode, setStockValueMode] = useState<StockValueMode>("");
   const [dateSort, setDateSort] = useState<DateSort>("");
-  // New: ordering state for backend sort
   const [ordering, setOrdering] = useState<string>("-updated_at");
 
   const [search, setSearch] = useState("");
@@ -105,7 +96,7 @@ export default function InventoryClient({
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
-  function fetchInventory(overridePageSize?: number | string, overrideOrdering?: string, overrideReorderStatus?: string) {
+  function fetchInventory(overrideOrdering?: string, overrideReorderStatus?: string) {
     setLoading(true);
     setError("");
 
@@ -116,7 +107,6 @@ export default function InventoryClient({
     }
 
     getInventory({
-      page_size: overridePageSize ?? pageSize,
       search: search || undefined,
       site: siteFilter || undefined,
       ordering: overrideOrdering ?? ordering,
@@ -125,15 +115,6 @@ export default function InventoryClient({
       .then(setPaginated)
       .catch(() => setError("Failed to load inventory."))
       .finally(() => setLoading(false));
-  }
-
-  function handlePageSizeChange(newSize: string) {
-    const size = Number.parseInt(newSize) || 20;
-    setPageSize(size);
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("page_size", String(size));
-    router.push(`?${params.toString()}`);
-    fetchInventory(size);
   }
 
   function openCreate() {
@@ -196,16 +177,14 @@ export default function InventoryClient({
     if (statsData) {
       return {
         total: statsData.total_records,
-        totalValue: Number(statsData.total_stock_value),
         totalQty: statsData.total_quantity_on_hand,
         needsReorder: statsData.needs_reorder,
         bySite: statsData.by_site as Record<string, { records: number; total_quantity_on_hand: number; total_stock_value: string }> | undefined,
       };
     }
-    const totalValue = records.reduce((s, r) => s + r.quantity_on_hand * Number.parseFloat(r.product_details.cost_per_unit), 0);
     const totalQty = records.reduce((s, r) => s + r.quantity_on_hand, 0);
     const needsReorder = records.filter((r) => r.reorder_status === "Yes").length;
-    return { total: paginated.count, totalValue, totalQty, needsReorder, bySite: undefined };
+    return { total: paginated.count, totalQty, needsReorder, bySite: undefined };
   }, [records, statsData, paginated.count]);
 
   const siteOptions = useMemo(
@@ -213,7 +192,6 @@ export default function InventoryClient({
     [records]
   );
 
-  // Only filter by search and site, not sort (handled by backend)
   const displayed = useMemo(() => {
     let list = [...records];
     if (search.trim()) {
@@ -232,7 +210,6 @@ export default function InventoryClient({
   }, [records, search, siteFilter]);
 
   // ── Table header sort logic ────────────────────────────────────────────────
-  // Map table columns to API ordering fields
   const orderingFields: Record<string, string> = {
     '#': 'id',
     'Product': 'product_name',
@@ -247,12 +224,11 @@ export default function InventoryClient({
   function handleSort(col: string) {
     const field = orderingFields[col];
     if (!field) return;
-    // Toggle asc/desc
     let newOrdering = field;
     if (ordering === field) newOrdering = '-' + field;
     else if (ordering === '-' + field) newOrdering = field;
     setOrdering(newOrdering);
-    fetchInventory(undefined, newOrdering);
+    fetchInventory(newOrdering);
   }
 
   let tableContent: React.ReactNode;
@@ -284,8 +260,6 @@ export default function InventoryClient({
         {/* Mobile cards */}
         <div className="sm:hidden divide-y divide-black">
           {displayed.map((r) => {
-            const cost = Number.parseFloat(r.product_details.cost_per_unit);
-            const totalValue = r.quantity_on_hand * cost;
             return (
               <div key={r.id} className="px-3 py-2 bg-white">
 
@@ -319,7 +293,7 @@ export default function InventoryClient({
                 </div>
 
                 {/* Card Meta (Row 2) */}
-                <div className="flex items-center gap-3 mb-2 px-1 py-1 bg-slate-50/70 border border-slate-100/50 rounded-lg text-[10px] shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
+                <div className="flex items-center gap-3 mb-2 px-1 py-1 bg-slate-50/70 border border-slate-100/50 rounded-lg text-[10px] shadow-[inset_0_1px_2_rgba(0,0,0,0.02)]">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-3h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
@@ -334,23 +308,11 @@ export default function InventoryClient({
                     </svg>
                     <span className="truncate font-medium">{r.location}</span>
                   </div>
-                  <div className="ml-auto flex items-center gap-1.5 shrink-0">
-                    <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest">Unit</span>
-                    <span className="font-black text-slate-900 tabular-nums bg-white px-1.5 py-0.5 rounded border border-slate-100 shadow-sm">${cost.toFixed(2)}</span>
-                  </div>
                 </div>
 
                 {/* Card Footer (Row 3) */}
                 <div className="flex items-center justify-between px-1.5 py-1">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0 animate-pulse" />
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Stock Value</span>
-                    <p className="text-[12px] font-black text-gray-900 tabular-nums ml-1 tracking-tight">
-                      ${totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                  </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-slate-200 text-[12px]">•</span>
                     <p className="text-[9px] font-black text-slate-500 font-mono tracking-tighter uppercase tabular-nums">{formatDateTime(r.created_at)}</p>
                   </div>
                 </div>
@@ -365,7 +327,7 @@ export default function InventoryClient({
           <table className="w-full text-sm">
             <thead className="bg-slate-50 border-b border-black">
               <tr>
-                {["#", "Product", "Site", "Location", "Cost / Unit", "Quantity", "Stock Value", "Reorder", "Order Date", "Actions"].map((h) => {
+                {["#", "Product", "Site", "Location", "Quantity", "Reorder", "Order Date", "Actions"].map((h) => {
                   const canSort = orderingFields[h];
                   const isAsc = ordering === canSort;
                   const isDesc = ordering === '-' + canSort;
@@ -397,11 +359,7 @@ export default function InventoryClient({
                   <td className="px-5 py-2 font-semibold text-gray-800">{r.product_details.product_name}</td>
                   <td className="px-5 py-2 text-gray-500">{r.site}</td>
                   <td className="px-5 py-2 text-gray-500">{r.location}</td>
-                  <td className="px-5 py-2 font-bold text-gray-800 tabular-nums">${Number.parseFloat(r.product_details.cost_per_unit).toFixed(2)}</td>
                   <td className="px-5 py-2 font-bold text-gray-800 tabular-nums">{r.quantity_on_hand.toLocaleString()}</td>
-                  <td className="px-5 py-2 font-bold text-gray-800 tabular-nums">
-                    ${(r.quantity_on_hand * Number.parseFloat(r.product_details.cost_per_unit)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </td>
                   <td className="px-5 py-2">
                     {r.reorder_status === "Yes" ? (
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-red-50 text-red-500">
@@ -466,93 +424,74 @@ export default function InventoryClient({
 
       {/* Overview Dashboard */}
 
-      {/* Mobile: single combined box */}
-      <div className="sm:hidden border border-black bg-white rounded-xl overflow-hidden">
-        <div className="flex divide-x divide-black/10">
-          <div className="flex-1 flex flex-col items-center gap-1.5 px-3 py-3">
-            <div className="w-8 h-8 bg-black rounded-md flex items-center justify-center shrink-0">
-              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.235 15.235L15 18s.225-1.225-.765-2.235m-5.47 5.47L11.25 18H18" />
-              </svg>
+      {/* Overview - Mobile */}
+      <div className="sm:hidden bg-white border border-black rounded-xl overflow-hidden shadow-sm">
+        <div className="flex h-1.5 w-full bg-gray-100">
+          <div className="h-full bg-black transition-all duration-700" style={{ width: '40%' }} />
+          <div className="h-full bg-gray-300 transition-all duration-700" style={{ width: '60%' }} />
+        </div>
+        <div className="grid grid-cols-2 divide-x divide-black/10">
+          <div className="flex-1 flex flex-col gap-0.5 px-4 py-3">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Total Records</p>
+            <div className="flex items-center gap-2">
+              <span className="text-[14px] font-black text-black tabular-nums">●</span>
+              <span className="text-[16px] font-black text-black tabular-nums tracking-tight">{stats.total.toLocaleString()}</span>
             </div>
-            <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider text-center">Records</p>
-            <span className="text-sm font-black text-black tabular-nums">{stats.total.toLocaleString()}</span>
           </div>
-          <div className="flex-1 flex flex-col items-center gap-1.5 px-3 py-3">
-            <div className="w-8 h-8 bg-black rounded-md flex items-center justify-center shrink-0">
-              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+          <div className="flex-1 flex flex-col gap-0.5 px-4 py-3">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Unit Volume</p>
+            <div className="flex items-center gap-2">
+              <span className="text-[14px] font-black text-black tabular-nums">↗</span>
+              <span className="text-[16px] font-black text-black tabular-nums tracking-tight">{stats.totalQty.toLocaleString()}</span>
             </div>
-            <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider text-center">Portfolio</p>
-            <span className="text-sm font-black text-black tabular-nums">${stats.totalValue.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
-          </div>
-          <div className="flex-1 flex flex-col items-center gap-1.5 px-3 py-3">
-            <div className="w-8 h-8 bg-black rounded-md flex items-center justify-center shrink-0">
-              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25" />
-              </svg>
-            </div>
-            <p className="text-[9px] font-black text-gray-400 uppercase tracking-wider text-center">Units</p>
-            <span className="text-sm font-black text-black tabular-nums">{stats.totalQty.toLocaleString()}</span>
           </div>
         </div>
       </div>
 
-      {/* Desktop: 3 separate cards */}
-      <div className="hidden sm:grid sm:grid-cols-3 gap-4">
-
-        {/* Card: Total Records */}
-        <div className="px-5 py-4 border border-black bg-white rounded-xl flex flex-col gap-3 hover:bg-slate-50 transition-colors">
-          <div className="flex items-center justify-between">
-            <p className="text-[13px] font-black text-gray-700">Total Records</p>
-            <div className="w-10 h-10 bg-black flex items-center justify-center shrink-0 rounded-lg">
-              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+      {/* Overview - Desktop */}
+      <div className="hidden sm:grid sm:grid-cols-2 gap-4">
+        {[
+          {
+            label: "Total Records",
+            value: stats.total,
+            sub: "Unique Entries",
+            icon: (
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.235 15.235L15 18s.225-1.225-.765-2.235m-5.47 5.47L11.25 18H18" />
               </svg>
-            </div>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-[12px] font-light text-gray-600">Total Count</span>
-            <span className="text-sm font-black text-black tabular-nums">{stats.total.toLocaleString()}</span>
-          </div>
-        </div>
-
-        {/* Card: Portfolio Value */}
-        <div className="px-5 py-4 border border-black bg-white rounded-xl flex flex-col gap-3 hover:bg-slate-50 transition-colors">
-          <div className="flex items-center justify-between">
-            <p className="text-[13px] font-black text-gray-700">Portfolio Value</p>
-            <div className="w-10 h-10 bg-black flex items-center justify-center shrink-0 rounded-lg">
-              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-[12px] font-light text-gray-600">Total Value</span>
-            <span className="text-sm font-black text-black tabular-nums">${stats.totalValue.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
-          </div>
-        </div>
-
-        {/* Card: Unit Volume */}
-        <div className="px-5 py-4 border border-black bg-white rounded-xl flex flex-col gap-3 hover:bg-slate-50 transition-colors">
-          <div className="flex items-center justify-between">
-            <p className="text-[13px] font-black text-gray-700">Unit Volume</p>
-            <div className="w-10 h-10 bg-black flex items-center justify-center shrink-0 rounded-lg">
-              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+            ),
+          },
+          {
+            label: "Unit Volume",
+            value: stats.totalQty,
+            sub: "Quantity on Hand",
+            icon: (
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25" />
               </svg>
+            ),
+          },
+        ].map((item) => (
+          <div key={item.label} className="px-6 py-5 border border-black bg-white rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-md hover:bg-slate-50 transition-all duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <div className="space-y-1 text-left">
+                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest leading-none">{item.label}</p>
+                <div className="flex items-baseline gap-2 mt-0.5">
+                  <span className="text-3xl font-black text-black tabular-nums tracking-tighter leading-none">{item.value.toLocaleString()}</span>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{item.sub}</span>
+                </div>
+              </div>
+              <div className="w-12 h-12 bg-black flex items-center justify-center shrink-0 rounded-xl shadow-sm">
+                {item.icon}
+              </div>
+            </div>
+            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden pt-1 border-t border-gray-50 mt-1">
+              <div className="h-full bg-black rounded-full transition-all duration-1000 ease-out" style={{ width: '100%' }} />
             </div>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-[12px] font-light text-gray-600">Total Units</span>
-            <span className="text-sm font-black text-black tabular-nums">{stats.totalQty.toLocaleString()}</span>
-          </div>
-        </div>
-
+        ))}
       </div>
 
-      {/* Filters + Page Size */}
       {/* Desktop filters */}
       <div className="hidden lg:block">
         <div className="grid grid-cols-[1fr_1fr_1fr_1fr_minmax(0,140px)_2fr] gap-2.5">
@@ -578,39 +517,12 @@ export default function InventoryClient({
                 if (v === "asc") newOrdering = field;
                 else if (v === "desc") newOrdering = "-" + field;
                 setOrdering(newOrdering);
-                fetchInventory(undefined, newOrdering);
+                fetchInventory(newOrdering);
               }}
               options={[
                 { value: "", label: "Quantity (sort)" },
                 { value: "asc", label: "Low → High" },
                 { value: "desc", label: "High → Low" },
-              ]}
-            />
-          </div>
-          <div className="bg-white rounded-sm">
-            <CustomSelect
-              id="sort-stock-value"
-              value={stockValueMode}
-              onChange={(v) => {
-                setStockValueMode(v as StockValueMode);
-                if (v === "asc" || v === "desc") {
-                  const field = "stock_value";
-                  const newOrdering = v === "asc" ? field : "-" + field;
-                  setOrdering(newOrdering);
-                  fetchInventory(undefined, newOrdering);
-                } else if (v === "low_only" || v === "high_only" || v === "") {
-                  let reorderStatus = "";
-                  if (v === "low_only") reorderStatus = "Yes";
-                  else if (v === "high_only") reorderStatus = "No";
-                  fetchInventory(undefined, undefined, reorderStatus);
-                }
-              }}
-              options={[
-                { value: "", label: "Stock Value (sort)" },
-                { value: "asc", label: "Low → High" },
-                { value: "desc", label: "High → Low" },
-                { value: "low_only", label: "Low Stock Only" },
-                { value: "high_only", label: "High Stock Only" },
               ]}
             />
           </div>
@@ -622,24 +534,11 @@ export default function InventoryClient({
                 setDateSort(v as DateSort);
                 const newOrdering = v === "asc" ? "updated_at" : "-updated_at";
                 setOrdering(newOrdering);
-                fetchInventory(undefined, newOrdering);
+                fetchInventory(newOrdering);
               }}
               options={[
                 { value: "", label: "Date (newest)" },
                 { value: "asc", label: "Oldest → Newest" },
-              ]}
-            />
-          </div>
-          <div className="bg-white rounded-sm">
-            <CustomSelect
-              id="page-size-selector-desktop"
-              value={pageSize === "all" ? "all" : String(pageSize)}
-              onChange={handlePageSizeChange}
-              options={[
-                { value: "20", label: "Show 20" },
-                { value: "40", label: "Show 40" },
-                { value: "100", label: "Show 100" },
-                { value: "all", label: "Show ALL" },
               ]}
             />
           </div>
@@ -699,34 +598,9 @@ export default function InventoryClient({
                     if (v === "asc") newOrdering = field;
                     else if (v === "desc") newOrdering = "-" + field;
                     setOrdering(newOrdering);
-                    fetchInventory(undefined, newOrdering);
+                    fetchInventory(newOrdering);
                   }}
                   options={[{ value: "", label: "Default" }, { value: "asc", label: "Low → High" }, { value: "desc", label: "High → Low" }]} />
-              </div>
-              <div className="space-y-1.5">
-                <p className="text-[10px] font-semibold text-slate-500">Stock Value (sort)</p>
-                <CustomSelect id="mob-sort-stock-value" value={stockValueMode}
-                  onChange={(v) => {
-                    setStockValueMode(v as StockValueMode);
-                    if (v === "asc" || v === "desc") {
-                      const field = "stock_value";
-                      const newOrdering = v === "asc" ? field : "-" + field;
-                      setOrdering(newOrdering);
-                      fetchInventory(undefined, newOrdering);
-                    } else if (v === "low_only" || v === "high_only" || v === "") {
-                      let reorderStatus = "";
-                      if (v === "low_only") reorderStatus = "Yes";
-                      else if (v === "high_only") reorderStatus = "No";
-                      fetchInventory(undefined, undefined, reorderStatus);
-                    }
-                  }}
-                  options={[
-                    { value: "", label: "Default" },
-                    { value: "asc", label: "Low → High" },
-                    { value: "desc", label: "High → Low" },
-                    { value: "low_only", label: "Low Stock Only" },
-                    { value: "high_only", label: "High Stock Only" },
-                  ]} />
               </div>
               <div className="space-y-1.5">
                 <p className="text-[10px] font-semibold text-slate-500">Date (sort)</p>
@@ -735,13 +609,13 @@ export default function InventoryClient({
                     setDateSort(v as DateSort);
                     const newOrdering = v === "asc" ? "updated_at" : "-updated_at";
                     setOrdering(newOrdering);
-                    fetchInventory(undefined, newOrdering);
+                    fetchInventory(newOrdering);
                   }}
                   options={[{ value: "", label: "Newest → Oldest" }, { value: "asc", label: "Oldest → Newest" }]} />
               </div>
               {[siteFilter, quantitySort, stockValueMode, dateSort].some(Boolean) && (
                 <button type="button"
-                  onClick={() => { setSiteFilter(""); setQuantitySort(""); setStockValueMode(""); setDateSort(""); setOrdering("-updated_at"); fetchInventory(undefined, "-updated_at"); }}
+                  onClick={() => { setSiteFilter(""); setQuantitySort(""); setStockValueMode(""); setDateSort(""); setOrdering("-updated_at"); fetchInventory("-updated_at"); }}
                   className="w-full py-1.5 text-[10px] font-bold tracking-widest uppercase text-red-500 border border-red-200 rounded-sm hover:bg-red-50 transition">
                   Clear All
                 </button>
@@ -750,19 +624,6 @@ export default function InventoryClient({
           )}
         </div>
 
-        <div className="bg-white rounded-sm shrink-0">
-          <CustomSelect
-            id="page-size-selector-mobile"
-            value={pageSize === "all" ? "all" : String(pageSize)}
-            onChange={handlePageSizeChange}
-            options={[
-              { value: "20", label: "Show 20" },
-              { value: "40", label: "Show 40" },
-              { value: "100", label: "Show 100" },
-              { value: "all", label: "Show ALL" },
-            ]}
-          />
-        </div>
 
         <div className="flex-1 min-w-0 flex items-center gap-2 bg-white rounded-md border border-black px-3 py-1">
           <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
