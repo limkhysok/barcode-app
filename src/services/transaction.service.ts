@@ -28,6 +28,7 @@ export async function getTransactions(params?: {
 export interface TransactionTypeStats {
   total_count: number;
   today_count: number;
+  today_total_quantity: number;
 }
 
 export interface TransactionStats {

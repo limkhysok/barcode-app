@@ -437,7 +437,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
                     </button>
 
                     {pdfTypeMenuOpen && (
-                      <ul className="absolute z-[60] left-0 right-0 mt-1 bg-white border border-black rounded-sm shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                      <ul className="absolute z-60 left-0 right-0 mt-1 bg-white border border-black rounded-sm shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
                         {(["Receive", "Sale"] as const).map((type) => (
                           <li key={type}>
                             <button
@@ -523,7 +523,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
           </button>
 
           {filterPanelOpen && (
-            <div className="absolute left-0 mt-3 z-50 w-[280px] bg-white border border-black rounded-lg shadow-2xl p-4 flex flex-col gap-5 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute left-0 mt-3 z-50 w-70 bg-white border border-black rounded-lg shadow-2xl p-4 flex flex-col gap-5 animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="space-y-2">
                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Filter By</span>
                 <div className="flex flex-col gap-2">
