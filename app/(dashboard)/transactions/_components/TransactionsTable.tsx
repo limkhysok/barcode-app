@@ -86,56 +86,77 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
           const more = t.items.length - 1;
 
           return (
-            <div key={t.id} className="px-3 py-3 bg-white border border-gray-700 rounded-lg mb-4 shadow-sm hover:shadow-md transition-shadow duration-150">
+            <div 
+              key={t.id} 
+              className="relative px-3 py-3 bg-white border border-gray-100 rounded-xl mb-3 shadow-sm hover:border-orange-500/50 hover:shadow-md transition-all duration-200 group/card overflow-hidden"
+            >
+              {/* Native Button Overlay (Accessibility Best Practice) */}
+              <button 
+                type="button"
+                onClick={() => onView(t)}
+                className="absolute inset-0 w-full h-full cursor-pointer z-0 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                aria-label={`View transaction ${t.id}`}
+              />
 
-              {/* Card Header (Row 1) */}
-              <div className="flex items-center justify-between gap-2 pb-2 border-b border-gray-100">
-                <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-mono font-bold text-white bg-black px-1.5 py-0.5 rounded shadow-sm shrink-0">#{t.id}</span>
-                    <span className="text-[9px] font-semibold text-black uppercase tracking-wider bg-gray-100 px-2 py-0.5 rounded truncate shadow-sm">{cfg.label}</span>
-                  </div>
-                  <div className="flex items-center gap-1 mt-1">
-                    <span className="text-[9px] font-medium text-gray-400 uppercase tracking-wider shrink-0">Product:</span>
-                    <p className="font-bold text-gray-900 text-[10px] leading-tight truncate uppercase tracking-tight">
-                      {first?.product_name ?? "—"}
-                      {more > 0 && <span className="text-gray-400 font-normal"> & {more} MORE</span>}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end gap-1 shrink-0">
-                  <div className="flex items-center gap-1 px-2 py-0.5 ">
-                    <span className="text-[11px] font-bold tabular-nums leading-none text-black">
-                      Qty: {t.items.reduce((sum, item) => sum + Math.abs(item.quantity), 0)}
-                    </span>
-                  </div>
-                  <div className="flex items-center -mr-0.5">
-                    <button
-                      onClick={(e) => onActionClick(e, t)}
-                      className="p-1 px-1.5 rounded text-gray-300 hover:text-black hover:bg-gray-100 transition-colors active:scale-95 "
-                      title="Actions"
-                    >
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 6a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" />
+              {/* Card Content (Layered above button base but below actions) */}
+              <div className="relative z-[1] pointer-events-none">
+                {/* Card Header (Row 1) */}
+                <div className="flex items-center justify-between gap-2 pb-2 border-b border-gray-50">
+                  <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black text-white bg-slate-900 px-2 py-0.5 rounded shadow-sm shrink-0 group-hover/card:bg-orange-500 transition-colors">#{t.id}</span>
+                      <span className="text-[9px] font-black text-black uppercase tracking-[0.15em] bg-slate-50 px-2 py-0.5 rounded truncate border border-gray-100">
+                        {cfg.label}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-1.5 grayscale opacity-70 group-hover/card:grayscale-0 group-hover/card:opacity-100 transition-all">
+                      <svg className="w-3 h-3 text-gray-400 group-hover/card:text-orange-500" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
                       </svg>
-                    </button>
+                      <p className="font-black text-gray-900 text-[10px] leading-none truncate uppercase tracking-tight">
+                        {first?.product_name ?? "—"}
+                        {more > 0 && <span className="text-gray-400 font-bold ml-1 text-[9px]">+{more} MORE</span>}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <div className="flex items-center gap-1">
+                      <span className="text-[12px] font-black tabular-nums leading-none text-black group-hover/card:text-orange-600 transition-colors">
+                        {t.items.reduce((sum, item) => sum + Math.abs(item.quantity), 0)}
+                      </span>
+                      <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">PCS</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card Meta (Row 2) - items left, date right */}
+                <div className="flex items-center justify-between mt-2.5 px-2.5 py-1.5 bg-slate-50 border border-gray-50 rounded-lg text-[10px] shadow-inner group-hover/card:bg-white transition-colors">
+                  <div className="flex items-center gap-2 min-w-0 text-slate-600 font-bold tracking-tight">
+                    <svg className="w-3 h-3 text-slate-400 group-hover/card:text-orange-500 transition-colors" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5V18M15 7.5V18M9 7.5V18M3 7.5V18M3 21h18M3 3h18" />
+                    </svg>
+                    <span className="truncate uppercase font-black tracking-widest text-[9px]">{t.items.length} LINE ITEMS</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 grayscale opacity-60 group-hover/card:grayscale-0 group-hover/card:opacity-100 transition-all font-mono text-[9px] font-black text-slate-500">
+                     <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="10"/></svg>
+                     <span suppressHydrationWarning>{formatDateTime(t.transaction_date)}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Card Meta (Row 2) - items left, date right */}
-              <div className="flex items-center justify-between mb-2 px-2 py-1 bg-gray-50 border border-gray-100 rounded text-[10px] shadow-sm">
-                <div className="flex items-center gap-1 min-w-0 text-gray-700 font-semibold">
-                  <svg className="w-3 h-3 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l1.29 1.29m-12.18 5.625h16.5m-16.5 0a2.25 2.25 0 002.25 2.25h12.008a2.25 2.25 0 002.25-2.25m-16.5 0V6.375m16.5 0v.112c0 2.232-1.808 4.04-4.04 4.04h-1.508a4.486 4.486 0 00-4.486 4.486v1.508c0 2.232-1.808 4.04-4.04 4.04h-1.112z" />
+              {/* Top-Layer Interactive Actions (z-20) */}
+              <div className="absolute top-2 right-2 z-20">
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onActionClick(e, t); }}
+                  className="p-1 px-2 rounded-lg text-gray-300 hover:text-white hover:bg-slate-900 transition-all active:scale-95 shadow-sm border border-transparent hover:border-slate-800"
+                  title="Actions"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 6a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" />
                   </svg>
-                  <span className="truncate font-semibold">{t.items.length} ITEMS</span>
-                </div>
-                <p className="text-[9px] font-semibold text-gray-400 font-mono tracking-tight" suppressHydrationWarning>
-                  {formatDateTime(t.transaction_date)}
-                </p>
+                </button>
               </div>
-
             </div>
           );
         })}

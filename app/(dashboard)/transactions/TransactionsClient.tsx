@@ -388,53 +388,66 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
   return (
     <div className="px-4 py-5 sm:px-5 sm:py-5 space-y-4">
-      <div className="flex items-center justify-between border border-gray-100 bg-white rounded-xl p-3 shadow-sm">
-        <div className="flex items-baseline gap-2">
-          <h1 className="text-[18px] font-black text-black uppercase tracking-tight">Transactions</h1>
-          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest" suppressHydrationWarning>
-            {new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Phnom_Penh" })}
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border border-gray-100 bg-white rounded-xl p-3 shadow-sm gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-slate-950 flex items-center justify-center shrink-0 shadow-lg border border-white/10">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.128 16.556 17.975 12 17.975s-8.25-1.847-8.25-4.125v-3.75m16.5 0v3.75" />
+            </svg>
+          </div>
+          <div className="flex flex-col">
+            <h1 className="text-[17px] font-black text-black uppercase tracking-tight leading-none">Transactions</h1>
+            <div className="mt-1 flex items-center gap-2">
+              <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest" suppressHydrationWarning>
+                {new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Phnom_Penh" })} • ONLINE
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="flex gap-2">
+
+        <div className="flex items-center gap-2.5">
           {/* Export PDF */}
           <div className="relative" ref={pdfPanelRef}>
             <button
               type="button"
               onClick={() => { setPdfPanelOpen(!pdfPanelOpen); setPdfError(""); }}
-              className="flex items-center gap-2 px-3 py-1.5 sm:px-4 rounded-lg text-[11px] font-black uppercase tracking-wider border border-gray-200 bg-white text-gray-700 hover:bg-slate-50 active:scale-[0.97] transition shadow-sm"
+              className={`flex items-center gap-2.5 px-3.5 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider border-2 transition-all shadow-sm ${
+                pdfPanelOpen ? "border-slate-900 bg-slate-900 text-white" : "border-gray-100 bg-white text-slate-700 hover:border-slate-900 hover:bg-slate-50"
+              }`}
             >
-              <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <svg className={`w-3.5 h-3.5 ${pdfPanelOpen ? "text-white" : "text-slate-400"}`} fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
               </svg>
-              <span>Print</span>
+              <span>Print Reports</span>
             </button>
             {pdfPanelOpen && (
-              <div className="absolute right-0 z-50 mt-1 w-60 bg-white border border-gray-100 rounded-xl shadow-2xl p-3.5 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
-                <div className="space-y-1.5">
-                  <label htmlFor="pdf-date" className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Date Selection</label>
+              <div className="absolute right-0 z-[100] mt-2 w-64 bg-white border border-gray-100 rounded-xl shadow-2xl p-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="space-y-2">
+                  <label htmlFor="pdf-date" className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Target Date</label>
                   <input
                     id="pdf-date"
                     type="date"
                     value={pdfDate}
                     onChange={(e) => setPdfDate(e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-800 bg-slate-50 focus:outline-none focus:border-orange-500 focus:bg-white transition-all cursor-pointer shadow-inner"
+                    className="w-full border-2 border-gray-50 rounded-lg px-2.5 py-2 text-xs font-bold text-gray-800 bg-slate-50 focus:outline-none focus:border-orange-500 focus:bg-white transition-all cursor-pointer shadow-inner"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <label htmlFor="pdf-type" className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Type Selection</label>
+                <div className="space-y-2">
+                  <label htmlFor="pdf-type" className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Filter By Flow</label>
                   <div className="relative">
                     <button
                       type="button"
                       id="pdf-type"
                       onClick={() => setPdfTypeMenuOpen(!pdfTypeMenuOpen)}
-                      className="w-full flex items-center justify-between border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-800 bg-white hover:border-gray-300 transition-colors focus:outline-none shadow-sm"
+                      className="w-full flex items-center justify-between border-2 border-gray-50 rounded-lg px-2.5 py-2 text-xs font-bold text-gray-800 bg-white hover:border-gray-200 transition-colors focus:outline-none shadow-sm"
                     >
-                      <span className="font-bold">{pdfType}</span>
+                      <span className="uppercase">{pdfType}</span>
                       <svg
-                        className={`w-3 h-3 text-gray-300 transition-transform duration-200 ${pdfTypeMenuOpen ? "rotate-180" : ""}`}
+                        className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${pdfTypeMenuOpen ? "rotate-180" : ""}`}
                         fill="none"
                         stroke="currentColor"
-                        strokeWidth={2.5}
+                        strokeWidth={3}
                         viewBox="0 0 24 24"
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
@@ -442,7 +455,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
                     </button>
 
                     {pdfTypeMenuOpen && (
-                      <ul className="absolute z-60 left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                      <ul className="absolute z-[110] left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
                         {(["Receive", "Sale"] as const).map((type) => (
                           <li key={type}>
                             <button
@@ -451,14 +464,14 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
                                 setPdfType(type);
                                 setPdfTypeMenuOpen(false);
                               }}
-                              className={`w-full flex items-center justify-between px-3 py-2 text-[10px] font-black uppercase tracking-wider transition-colors ${pdfType === type
+                              className={`w-full flex items-center justify-between px-4 py-2.5 text-[11px] font-black uppercase tracking-wider transition-colors ${pdfType === type
                                 ? "bg-slate-50 text-orange-500"
-                                : "text-gray-400 hover:bg-orange-500 hover:text-white"
+                                : "text-gray-500 hover:bg-orange-500 hover:text-white"
                                 }`}
                             >
                               {type}
                               {pdfType === type && (
-                                <svg className="w-3 h-3 text-orange-500" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                                <svg className="w-3.5 h-3.5 text-orange-500" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                                 </svg>
                               )}
@@ -469,14 +482,17 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
                     )}
                   </div>
                 </div>
-                {pdfError && <p className="text-[9px] text-red-500 font-bold uppercase tracking-tighter">{pdfError}</p>}
+                {pdfError && <p className="text-[10px] text-red-500 font-black uppercase tracking-tight bg-red-50 px-2 py-1 rounded">{pdfError}</p>}
                 <button
                   type="button"
                   onClick={handlePdfExport}
                   disabled={pdfLoading}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-[10px] font-black tracking-[0.1em] uppercase bg-slate-900 text-white hover:bg-black disabled:opacity-50 transition shadow-lg shadow-black/20"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-[11px] font-black tracking-[0.1em] uppercase bg-slate-900 text-white hover:bg-black disabled:opacity-50 transition-all shadow-xl shadow-black/20 active:scale-[0.98]"
                 >
-                  {pdfLoading ? "Generating..." : "Export PDF"}
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9.75v6.75m0 0l-3-3m3 3l3-3m-8.25 6a4.5 4.5 0 01-4.5-4.5V15a2.25 2.25 0 002.25 2.25h16.5A2.25 2.25 0 0021 15v1.5a4.5 4.5 0 01-4.5 4.5H6.75z" />
+                  </svg>
+                  {pdfLoading ? "Processing..." : "Generate PDF"}
                 </button>
               </div>
             )}
@@ -484,9 +500,9 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
           <button
             onClick={() => { setFormError(""); setModalOpen(true); }}
-            className="flex items-center gap-2 px-3 py-1.5 sm:px-4 rounded-lg text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.97] transition shadow-lg shadow-orange-500/20"
+            className="flex items-center gap-2.5 px-3.5 py-2 sm:px-5 rounded-lg text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all shadow-lg shadow-orange-500/30 ring-2 ring-orange-500/20"
           >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
             <span className="hidden sm:inline">New Transaction</span>
@@ -500,16 +516,34 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
       <div className="flex flex-wrap items-center gap-3 border border-gray-100 bg-white rounded-xl p-2 shadow-sm transition-all hover:border-gray-200">
         {/* Desktop Toolbar */}
         <div className="hidden sm:flex items-center gap-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 pr-3 border-r border-gray-50">
             <TypeFilterSelect value={typeFilter} onChange={setTypeFilter} />
             <DateFilter value={dateFilter} onChange={setDateFilter} />
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none no-scrollbar">
-            <div className="flex items-center gap-1.5 shrink-0 px-2 py-1.5 bg-slate-50">
-              <SortToggleButton label="Date" field="transaction_date" currentSort={sortBy} onSort={setSortBy} />
-              <SortToggleButton label="Items" field="items_count" currentSort={sortBy} onSort={setSortBy} />
-              <SortToggleButton label="Qty" field="total_qty" currentSort={sortBy} onSort={setSortBy} />
+            <div className="flex items-center gap-1.5 shrink-0 px-2 py-1.5 bg-slate-50 rounded-lg">
+              <SortToggleButton 
+                label="Date" 
+                field="transaction_date" 
+                currentSort={sortBy} 
+                onSort={setSortBy} 
+                icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zM14.25 15h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-2.25h.008v.008H16.5V15z"/></svg>}
+              />
+              <SortToggleButton 
+                label="Items" 
+                field="items_count" 
+                currentSort={sortBy} 
+                onSort={setSortBy} 
+                icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-3.75zM2.25 16.875c0-.621.504-1.125 1.125-1.125h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75z"/></svg>}
+              />
+              <SortToggleButton 
+                label="Qty" 
+                field="total_qty" 
+                currentSort={sortBy} 
+                onSort={setSortBy} 
+                icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>}
+              />
             </div>
           </div>
         </div>

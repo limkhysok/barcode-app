@@ -9,13 +9,15 @@ interface SortToggleButtonProps {
   field: SortField;
   currentSort: string;
   onSort: (newSort: string) => void;
+  icon?: React.ReactNode;
 }
 
 const SortToggleButton: React.FC<SortToggleButtonProps> = ({
   label,
   field,
   currentSort,
-  onSort
+  onSort,
+  icon
 }) => {
   const isSelected = currentSort === field || currentSort === `-${field}`;
   const isDesc = currentSort === `-${field}`;
@@ -34,15 +36,20 @@ const SortToggleButton: React.FC<SortToggleButtonProps> = ({
     <button
       type="button"
       onClick={handleClick}
-      className={`px-3 py-1 rounded-md border text-[13px] transition-all flex items-center gap-2 focus:outline-none ${isSelected
+      className={`px-3 py-1.5 rounded-lg border text-[12px] transition-all flex items-center gap-2.5 focus:outline-none group shrink-0 ${isSelected
         ? "border-orange-500 bg-orange-500 text-white shadow-sm font-black"
-        : "border-gray-100 bg-gray-50/50 text-gray-400 hover:bg-orange-500 hover:border-orange-200 hover:text-white font-light transition-colors"
+        : "border-gray-100 bg-gray-50/50 text-gray-400 hover:bg-orange-600 hover:border-orange-600 hover:text-white font-bold"
         }`}
     >
-      <span className="truncate">{label}</span>
-      <div className={`transition-transform duration-200 ${isDesc && isSelected ? "rotate-180" : "rotate-0"}`}>
-        <svg className={`w-3 h-3 ${isSelected ? "text-white" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
+      {icon && (
+        <div className={`transition-colors duration-200 shrink-0 ${isSelected ? "text-white" : "text-gray-400 group-hover:text-white/80"}`}>
+          {icon}
+        </div>
+      )}
+      <span className="truncate flex-1 tracking-wider uppercase font-black text-[11px]">{label}</span>
+      <div className={`transition-transform duration-300 shrink-0 ${isDesc && isSelected ? "rotate-180" : "rotate-0 opacity-40 group-hover:opacity-100"}`}>
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3.5} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
         </svg>
       </div>
     </button>

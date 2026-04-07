@@ -42,7 +42,7 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
   const displayName = user?.name || user?.username || "User";
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-black-80">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200">
 
 
 

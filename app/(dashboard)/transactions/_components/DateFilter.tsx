@@ -54,11 +54,17 @@ const DateFilter: React.FC<DateFilterProps> = ({ value, onChange }) => {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`px-3 py-1 rounded-md border text-[13px] transition-all duration-150 focus:outline-none flex items-center gap-2 group ${buttonStyles}`}
+        className={`px-2.5 py-1.5 rounded-lg border text-[12px] font-bold transition-all duration-150 focus:outline-none flex items-center gap-2.5 group ${buttonStyles} min-w-[130px]`}
       >
-        <span className={isActive ? "text-white" : ""}>{getActiveLabel()}</span>
+        <div className={`transition-colors duration-200 ${isActive ? "text-white" : "text-gray-400 group-hover:text-white"}`}>
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+            <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+            <path d="M16 2v4M8 2v4M3 10h18" />
+          </svg>
+        </div>
+        <span className={`truncate ${isActive ? "text-white" : ""}`}>{getActiveLabel()}</span>
         <svg
-          className={`w-3 h-3 transition-transform duration-200 group-hover:text-white ${
+          className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:text-white ${
             open ? "rotate-180" : ""
           } ${iconColorClass}`}
           fill="none"

@@ -42,9 +42,16 @@ const TypeFilterSelect: React.FC<TypeFilterSelectProps> = ({ value, onChange }) 
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`w-full px-3 py-1 rounded-md border text-[13px] text-left flex items-center justify-between gap-2 transition focus:outline-none group ${buttonStyles}`}
+        className={`w-full px-2.5 py-1.5 rounded-lg border text-[12px] font-bold text-left flex items-center justify-between gap-2.5 transition-all focus:outline-none group ${buttonStyles} min-w-[120px]`}
       >
-        <span className="truncate">{current.label}</span>
+        <div className="flex items-center gap-2 truncate">
+          <div className={`transition-colors duration-200 ${isActive ? "text-white" : "text-gray-400 group-hover:text-white"}`}>
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0m-9.75 0h9.75" />
+            </svg>
+          </div>
+          <span className="truncate">{current.label}</span>
+        </div>
         <svg
           className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:text-white ${iconColorClass}`}
           style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
