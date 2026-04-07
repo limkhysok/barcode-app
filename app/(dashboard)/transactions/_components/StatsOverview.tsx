@@ -1,28 +1,15 @@
 "use client";
 
 import React from "react";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, PieChart, Pie, LabelList } from "recharts";
 import type { TransactionStats } from "@/src/services/transaction.service";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@/src/components/ui/chart";
 
 type StatsOverviewProps = {
   stats: TransactionStats | null;
 };
 
-const barConfig: ChartConfig = {
-  receive: { label: "Receive", color: "var(--color-receive, #000000)" },
-  sale: { label: "Sale", color: "var(--color-sale, #9ca3af)" },
-};
 
-const pieConfig: ChartConfig = {
-  receive: { label: "Receive", color: "var(--color-receive, #000000)" },
-  sale: { label: "Sale", color: "var(--color-sale, #e5e7eb)" },
-};
+
+
 
 const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
   const receiveCount = stats?.by_type?.Receive?.total_count || 0;
@@ -37,19 +24,10 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
   const totalTyped = receiveCount + saleCount || 1;
   const receiveShare = Math.round((receiveCount / totalTyped) * 100);
   const saleShare = 100 - receiveShare;
-  const netQtyToday = receiveTodayQty - saleTodayQty;
-  const qtyTotal = receiveTodayQty + saleTodayQty || 1;
+  const qtyTotal = (receiveTodayQty + saleTodayQty) || 1;
   const receiveQtyShare = Math.round((receiveTodayQty / qtyTotal) * 100);
 
-  const barData = [
-    { period: "All Time", receive: receiveCount, sale: saleCount },
-    { period: "Today", receive: receiveTodayCount, sale: saleTodayCount },
-  ];
 
-  const pieData = [
-    { name: "receive", value: receiveCount, fill: "var(--color-receive)" },
-    { name: "sale", value: saleCount, fill: "var(--color-sale)" },
-  ];
 
   return (
     <div className="space-y-3">
@@ -74,9 +52,11 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
           ].map(({ label, count, icon, color }) => (
             <div key={label} className="flex flex-col gap-0.5 px-3 py-3">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter truncate">{label}</p>
-              <div className="flex items-center gap-1.5">
-                <span className={`text-[12px] font-black ${color}`}>{icon}</span>
-                <span className="text-[16px] font-black text-black tabular-nums tracking-tight">{count.toLocaleString()}</span>
+              <div className="flex items-center gap-2">
+                <div className={`w-8 h-8 rounded-lg ${color === 'text-black' ? 'bg-black' : 'bg-gray-200'} flex items-center justify-center shrink-0`}>
+                  <span className={`text-[14px] font-black ${color === 'text-black' ? 'text-white' : 'text-gray-600'}`}>{icon}</span>
+                </div>
+                <span className="text-[18px] font-black text-black tabular-nums tracking-tight">{count.toLocaleString()}</span>
               </div>
             </div>
           ))}
@@ -101,22 +81,26 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
       </div>
 
       {/* ── Desktop ── */}
-      <div className="hidden sm:grid grid-cols-2 gap-3 items-stretch">
+      <div className="hidden sm:grid grid-cols-10 gap-3 items-stretch">
 
         {/* ── Receive vs Sale ── */}
-        <div className="col-span-1 border border-gray-800 rounded-xl overflow-hidden flex flex-col">
+        <div className="group col-span-7 border border-gray-800 rounded-xl overflow-hidden flex flex-col transition-all duration-300 hover:border-orange-500/50 hover:shadow-2xl hover:shadow-orange-500/10">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-2 bg-black shrink-0">
-            <p className="text-[11px] font-semibold text-white/70">Receive vs Sale</p>
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
-              <span className="text-[11px] font-bold text-white tabular-nums">{receiveShare}%</span>
-              <div className="flex h-1.5 w-20 rounded-full overflow-hidden bg-white/20">
-                <div className="h-full bg-white transition-all duration-700" style={{ width: `${receiveShare}%` }} />
-                <div className="h-full bg-white/40 transition-all duration-700" style={{ width: `${saleShare}%` }} />
+          <div className="flex items-center justify-between px-4 py-2 bg-black shrink-0 transition-colors duration-500 group-hover:bg-orange-600">
+
+            <div className="flex-1 flex items-center gap-3">
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
+                <span className="text-[11px] font-bold text-white tabular-nums">{receiveShare}%</span>
               </div>
-              <span className="text-[11px] font-bold text-white/50 tabular-nums">{saleShare}%</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-white/40 shrink-0" />
+              <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-white/20 relative">
+                <div className="absolute inset-y-0 left-0 bg-white transition-all duration-700" style={{ width: `${receiveShare}%` }} />
+                <div className="absolute inset-y-0 right-0 bg-white/40 transition-all duration-700" style={{ width: `${saleShare}%` }} />
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-[11px] font-bold text-white/50 tabular-nums">{saleShare}%</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-white/40 shrink-0" />
+              </div>
             </div>
           </div>
 
@@ -124,239 +108,192 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
             {/* Two-column stats */}
             <div className="grid grid-cols-2 divide-x divide-gray-100 border-b border-gray-100">
               {/* Receive */}
-              <div className="px-4 py-2.5 space-y-2">
+              <div className="px-4 py-2.5 space-y-2 transition-colors duration-300 hover:bg-slate-50/50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-md bg-black flex items-center justify-center shrink-0">
-                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    <div className="group cursor-pointer w-10 h-10 rounded-xl bg-slate-950 flex items-center justify-center shrink-0 shadow-lg shadow-black/20 ring-1 ring-white/10 transition-all duration-300 hover:bg-orange-500 hover:scale-110 hover:-rotate-3 hover:shadow-orange-500/20 group-hover:bg-orange-500 group-hover:scale-105 group-hover:-rotate-3">
+                      <svg className="w-5 h-5 text-white transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
                       </svg>
                     </div>
                     <div>
-                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest leading-none">Receive</p>
-                      <p className="text-3xl font-black text-black tabular-nums tracking-tighter leading-tight">{receiveCount.toLocaleString()}</p>
+                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest leading-none transition-colors duration-300 group-hover:text-orange-400">All Receive</p>
+                      <p className="text-3xl font-black text-black tabular-nums tracking-tighter leading-tight transition-all duration-300 group-hover:text-orange-600 group-hover:scale-105 origin-left">{receiveCount.toLocaleString()}</p>
                     </div>
                   </div>
-                  <span className="flex items-center gap-0.5 text-[10px] font-bold text-gray-500 border border-gray-200 rounded-full px-2 py-0.5 shrink-0 uppercase tracking-tighter bg-gray-50">
-                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
-                    </svg>
-                    <span>In</span>
-                  </span>
+
                 </div>
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-black rounded-full transition-all duration-1000 ease-out" style={{ width: `${receiveShare}%` }} />
-                </div>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[11px] font-semibold text-gray-400 shrink-0">Today</span>
-                  <span className="text-gray-200 text-[10px]">|</span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-[12px] font-black text-black tabular-nums">+{receiveTodayCount.toLocaleString()}</span>
-                    <span className="text-[11px] text-gray-400 tracking-tight">transactions</span>
+
+                <div className="flex flex-col gap-2 pt-1 border-t border-gray-100 mt-2">
+                  {/* Today */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-md bg-gray-800 flex items-center justify-center shrink-0 border border-white/5 transition-all duration-300 hover:bg-orange-500 hover:scale-110 cursor-pointer group-hover:bg-orange-500 group-hover:scale-110">
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                        </svg>
+                      </div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none transition-colors duration-300 group-hover:text-orange-400">Today</p>
+                    </div>
                   </div>
-                  <span className="text-gray-200 text-[10px]">|</span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-[12px] font-black text-black tabular-nums">+{receiveTodayQty.toLocaleString()}</span>
-                    <span className="text-[11px] text-gray-400 tracking-tight">Quantity</span>
+                  {/* Transactions */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-md bg-gray-800 flex items-center justify-center shrink-0 border border-white/5 transition-all duration-300 hover:bg-orange-500 hover:scale-110 cursor-pointer group-hover:bg-orange-500 group-hover:scale-110">
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m9-6L12 15m0 0l-4.5-4.5M12 15V3.75" />
+                        </svg>
+                      </div>
+                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-none transition-colors duration-300 group-hover:text-orange-500">Transactions :</p>
+                    </div>
+                    <span className="text-[12px] font-black text-black tabular-nums tracking-tighter transition-all duration-300 group-hover:text-orange-600 group-hover:scale-105">{receiveTodayCount.toLocaleString()}</span>
+                  </div>
+                  {/* Quantity */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-md bg-gray-800 flex items-center justify-center shrink-0 border border-white/5 transition-all duration-300 hover:bg-orange-500 hover:scale-110 cursor-pointer group-hover:bg-orange-500 group-hover:scale-110">
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                        </svg>
+                      </div>
+                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-none transition-colors duration-300 group-hover:text-orange-500">Quantity :</p>
+                    </div>
+                    <span className="text-[12px] font-black text-black tabular-nums tracking-tighter transition-all duration-300 group-hover:text-orange-600 group-hover:scale-105">{receiveTodayQty.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
 
               {/* Sale */}
-              <div className="px-4 py-2.5 space-y-2">
+              <div className="px-4 py-2.5 space-y-2 transition-colors duration-300 hover:bg-slate-50/50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-md bg-black flex items-center justify-center shrink-0">
-                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 19.5v-16.5m0 0L7.5 7.5M12 3l4.5 4.5" />
+                    <div className="group cursor-pointer w-10 h-10 rounded-xl bg-slate-950 flex items-center justify-center shrink-0 shadow-lg shadow-black/20 ring-1 ring-white/10 transition-all duration-300 hover:bg-orange-500 hover:scale-110 hover:rotate-3 hover:shadow-orange-500/20 group-hover:bg-orange-500 group-hover:scale-105 group-hover:rotate-3">
+                      <svg className="w-5 h-5 text-white transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
                       </svg>
                     </div>
                     <div>
-                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest leading-none">Sale</p>
-                      <p className="text-3xl font-black text-black tabular-nums tracking-tighter leading-tight">{saleCount.toLocaleString()}</p>
+                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest leading-none transition-colors duration-300 group-hover:text-orange-400">All Sale</p>
+                      <p className="text-3xl font-black text-black tabular-nums tracking-tighter leading-tight transition-all duration-300 group-hover:text-orange-600 group-hover:scale-105 origin-left">{saleCount.toLocaleString()}</p>
                     </div>
                   </div>
-                  <span className="flex items-center gap-0.5 text-[10px] font-bold text-gray-500 border border-gray-200 rounded-full px-2 py-0.5 shrink-0 uppercase tracking-tighter bg-gray-50">
-                    <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
-                    </svg>
-                    <span>Out</span>
-                  </span>
                 </div>
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-gray-400 rounded-full transition-all duration-1000 ease-out" style={{ width: `${saleShare}%` }} />
-                </div>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[11px] font-semibold text-gray-400 shrink-0">Today</span>
-                  <span className="text-gray-200 text-[10px]">|</span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-[12px] font-black text-black tabular-nums">-{saleTodayCount.toLocaleString()}</span>
-                    <span className="text-[11px] text-gray-400 tracking-tight">transactions</span>
+
+                <div className="flex flex-col gap-2 pt-1 border-t border-gray-100 mt-2">
+                  {/* Today */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-md bg-gray-800 flex items-center justify-center shrink-0 border border-white/5 transition-all duration-300 hover:bg-orange-500 hover:scale-110 cursor-pointer group-hover:bg-orange-500 group-hover:scale-110">
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                        </svg>
+                      </div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none transition-colors duration-300 group-hover:text-orange-400">Today</p>
+                    </div>
                   </div>
-                  <span className="text-gray-200 text-[10px]">|</span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-[12px] font-black text-black tabular-nums">{saleTodayQty.toLocaleString()}</span>
-                    <span className="text-[11px] text-gray-400 tracking-tight">Quantity</span>
+                  {/* Transactions */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-md bg-gray-800 flex items-center justify-center shrink-0 border border-white/5 transition-all duration-300 hover:bg-orange-500 hover:scale-110 cursor-pointer group-hover:bg-orange-500 group-hover:scale-110">
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m9-6L12 15m0 0l-4.5-4.5M12 15V3.75" />
+                        </svg>
+                      </div>
+                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-none transition-colors duration-300 group-hover:text-orange-500">Transactions :</p>
+                    </div>
+                    <span className="text-[12px] font-black text-black tabular-nums tracking-tighter transition-all duration-300 group-hover:text-orange-600 group-hover:scale-105">-{saleTodayCount.toLocaleString()}</span>
+                  </div>
+                  {/* Quantity */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-md bg-gray-800 flex items-center justify-center shrink-0 border border-white/5 transition-all duration-300 hover:bg-orange-500 hover:scale-110 cursor-pointer group-hover:bg-orange-500 group-hover:scale-110">
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                        </svg>
+                      </div>
+                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-none transition-colors duration-300 group-hover:text-orange-500">Quantity :</p>
+                    </div>
+                    <span className="text-[12px] font-black text-black tabular-nums tracking-tighter transition-all duration-300 group-hover:text-orange-600 group-hover:scale-105">{saleTodayQty.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Bar chart */}
-            <div className="px-4 pt-2.5 pb-2 flex-1 flex flex-col">
-              <div className="flex items-center justify-between mb-1.5">
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-tighter">Transaction count</p>
-                <div className="flex items-center gap-3">
-                  <span className="flex items-center gap-1 text-[11px] text-gray-500 font-medium">
-                    <span className="inline-block w-2 h-2 rounded-sm" style={{ backgroundColor: barConfig.receive.color }} />
-                    <span>Receive</span>
-                  </span>
-                  <span className="flex items-center gap-1 text-[11px] text-gray-500 font-medium">
-                    <span className="inline-block w-2 h-2 rounded-sm" style={{ backgroundColor: barConfig.sale.color }} />
-                    <span>Sale</span>
-                  </span>
-                </div>
-              </div>
-              <div className="relative flex-1">
-                {totalMovements === 0 && (
-                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-[1px]">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1 border border-dashed border-gray-200 rounded">No activity data</p>
-                  </div>
-                )}
-                <ChartContainer config={barConfig} className="h-24 w-full">
-                  <BarChart data={barData} barCategoryGap="40%" barGap={5} margin={{ top: 18, right: 4, left: -28, bottom: 0 }}>
-                    <CartesianGrid vertical={false} stroke="#f3f4f6" strokeDasharray="3 3" />
-                    <XAxis dataKey="period" tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: "#9ca3af", fontWeight: 600 }} tickMargin={4} />
-                    <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 9, fill: "#d1d5db" }} width={36} />
-                    <ChartTooltip cursor={{ fill: "#f9fafb" }} content={<ChartTooltipContent indicator="dot" />} />
-                    <Bar dataKey="receive" fill="var(--color-receive)" radius={[2, 2, 0, 0]} maxBarSize={28} minPointSize={4}>
-                      <LabelList dataKey="receive" position="top" style={{ fontSize: 9, fill: "#6b7280", fontWeight: 800 }} formatter={(v: unknown) => Number(v) > 0 ? Number(v).toLocaleString() : ""} />
-                    </Bar>
-                    <Bar dataKey="sale" fill="var(--color-sale)" radius={[2, 2, 0, 0]} maxBarSize={28} minPointSize={4}>
-                      <LabelList dataKey="sale" position="top" style={{ fontSize: 9, fill: "#6b7280", fontWeight: 800 }} formatter={(v: unknown) => Number(v) > 0 ? Number(v).toLocaleString() : ""} />
-                    </Bar>
-                  </BarChart>
-                </ChartContainer>
-              </div>
-            </div>
+
           </div>
         </div>
 
         {/* ── Overview ── */}
-        <div className="col-span-1 border border-gray-800 rounded-xl overflow-hidden flex flex-col">
+        <div className="group col-span-3 border border-gray-800 rounded-xl overflow-hidden flex flex-col transition-all duration-300 hover:border-orange-500/50 hover:shadow-2xl hover:shadow-orange-500/10">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-2 bg-black shrink-0">
+          <div className="flex items-center justify-between px-4 py-2 bg-black shrink-0 transition-colors duration-500 group-hover:bg-orange-600">
             <p className="text-[11px] font-semibold text-white/70">Overview</p>
             <div className="flex items-center gap-1.5">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-white shrink-0" />
-              <span className="text-[11px] font-bold text-white tabular-nums">{totalMovements.toLocaleString()}</span>
-              <span className="text-[11px] text-white/40">transactions</span>
+
             </div>
           </div>
 
           <div className="bg-white flex-1 flex flex-col">
-            {/* Two-column stats */}
-            <div className="grid grid-cols-2 divide-x divide-gray-100 border-b border-gray-100">
+            <div className="grid grid-cols-1 border-b border-gray-100 transition-colors duration-300 hover:bg-slate-50/50">
               {/* All time */}
               <div className="px-4 py-2.5 space-y-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-md bg-black flex items-center justify-center shrink-0">
-                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                  <div className="group cursor-pointer w-10 h-10 rounded-xl bg-slate-950 flex items-center justify-center shrink-0 shadow-lg shadow-black/20 ring-1 ring-white/10 transition-all duration-300 hover:bg-orange-500 hover:scale-110 hover:-rotate-3 hover:shadow-orange-500/20 group-hover:bg-orange-500 group-hover:scale-105 group-hover:-rotate-3">
+                    <svg className="w-5 h-5 text-white transition-colors duration-300" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0v16.5m0 0h13.5m-13.5 0L6 16.5m12-9h3.75m-3.75 3h3.75m-3.75 3h3.75" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest leading-none">All time</p>
-                    <p className="text-3xl font-black text-black tabular-nums tracking-tighter leading-tight">{totalMovements.toLocaleString()}</p>
+                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest leading-none transition-colors duration-300 group-hover:text-orange-400">All time</p>
+                    <p className="text-3xl font-black text-black tabular-nums tracking-tighter leading-tight transition-all duration-300 group-hover:text-orange-600 group-hover:scale-105 origin-left">{totalMovements.toLocaleString()}</p>
                   </div>
                 </div>
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-black rounded-full transition-all duration-1000 ease-out" style={{ width: `${receiveShare}%` }} />
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] font-semibold text-gray-400 shrink-0">Split</span>
-                  <span className="text-gray-200 text-[10px]">|</span>
-                  <span className="text-[12px] font-black text-black tabular-nums">{receiveShare}%</span>
-                  <span className="text-[11px] text-gray-400">in</span>
-                  <span className="text-gray-200 text-[10px]">|</span>
-                  <span className="text-[12px] font-black text-black tabular-nums">{saleShare}%</span>
-                  <span className="text-[11px] text-gray-400">out</span>
-                </div>
-              </div>
 
-              {/* Today */}
-              <div className="px-4 py-2.5 space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-md bg-black flex items-center justify-center shrink-0">
-                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                    </svg>
+                <div className="flex flex-col gap-2 pt-1 border-t border-gray-100 mt-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-md bg-gray-800 flex items-center justify-center shrink-0 border border-white/5 transition-all duration-300 hover:bg-orange-500 hover:scale-110 cursor-pointer group-hover:bg-orange-500 group-hover:scale-110">
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                        </svg>
+                      </div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none transition-colors duration-300 group-hover:text-orange-400">Today</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest leading-none">Today</p>
-                    <p className="text-3xl font-black text-black tabular-nums tracking-tighter leading-tight">{todayMovements.toLocaleString()}</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-md bg-gray-800 flex items-center justify-center shrink-0 border border-white/5 transition-all duration-300 hover:bg-orange-500 hover:scale-110 cursor-pointer group-hover:bg-orange-500 group-hover:scale-110">
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m9-6L12 15m0 0l-4.5-4.5M12 15V3.75" />
+                        </svg>
+                      </div>
+                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-none transition-colors duration-300 group-hover:text-orange-500">Transactions :</p>
+                    </div>
+                    <span className="text-[12px] font-black text-black tabular-nums tracking-tighter transition-all duration-300 group-hover:text-orange-600 group-hover:scale-105">{todayMovements.toLocaleString()}</span>
                   </div>
-                </div>
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-black rounded-full transition-all duration-1000 ease-out" style={{ width: `${receiveQtyShare}%` }} />
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] font-semibold text-gray-400 shrink-0">Balance</span>
-                  <span className="text-gray-200 text-[10px]">|</span>
-                  <span className={`text-[12px] font-black tabular-nums ${netQtyToday >= 0 ? "text-emerald-600" : "text-amber-600"}`}>
-                    {netQtyToday >= 0 ? "+" : ""}{netQtyToday.toLocaleString()}
-                  </span>
-                  <span className="text-[11px] text-gray-400 tracking-tight">Quantity</span>
+                  {/* Quantity */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-md bg-gray-800 flex items-center justify-center shrink-0 border border-white/5 transition-all duration-300 hover:bg-orange-500 hover:scale-110 cursor-pointer group-hover:bg-orange-500 group-hover:scale-110">
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                        </svg>
+                      </div>
+                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-none transition-colors duration-300 group-hover:text-orange-500">QUANTITY :</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 transition-all duration-300 group-hover:text-orange-600 group-hover:scale-105">
+                      <span className="text-[12px] font-black tabular-nums tracking-tighter">+{receiveTodayQty.toLocaleString()}</span>
+                      <span className="text-[10px] font-bold text-gray-300 group-hover:text-orange-300">/</span>
+                      <span className="text-[12px] font-black tabular-nums tracking-tighter">-{saleTodayQty.toLocaleString()}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Donut chart */}
-            <div className="px-4 pt-2.5 pb-2 flex-1 flex flex-col">
-              <div className="flex items-center justify-between mb-1.5">
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-tighter">Type distribution</p>
-                <div className="flex items-center gap-3">
-                  <span className="flex items-center gap-1 text-[11px] text-gray-500 font-medium">
-                    <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: pieConfig.receive.color }} />
-                    <span>Receive</span>
-                  </span>
-                  <span className="flex items-center gap-1 text-[11px] text-gray-500 font-medium">
-                    <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: pieConfig.sale.color }} />
-                    <span>Sale</span>
-                  </span>
-                </div>
-              </div>
-              <div className="relative flex-1">
-                <ChartContainer config={pieConfig} className="h-24 w-full">
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={28}
-                      outerRadius={42}
-                      dataKey="value"
-                      startAngle={90}
-                      endAngle={-270}
-                      strokeWidth={0}
-                      paddingAngle={receiveCount > 0 && saleCount > 0 ? 2 : 0}
-                      animationBegin={0}
-                      animationDuration={1200}
-                    />
-                    <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
-                  </PieChart>
-                </ChartContainer>
-                {totalMovements === 0 && (
-                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 backdrop-blur-[1px]">
-                    <div className="w-16 h-16 rounded-full border border-dashed border-gray-200 bg-gray-50/50" />
-                  </div>
-                )}
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-[13px] font-black text-black tabular-nums leading-none">{totalMovements.toLocaleString()}</span>
-                  <span className="text-[8px] text-gray-400 mt-0.5 font-bold uppercase tracking-tighter">Total</span>
-                </div>
-              </div>
-            </div>
+
           </div>
         </div>
 
