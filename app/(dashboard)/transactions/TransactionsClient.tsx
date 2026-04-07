@@ -564,8 +564,8 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
               onClick={() => setViewMode(mode)}
               title={mode === "list" ? "List view" : "Grid view"}
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[10px] font-black tracking-widest uppercase transition-all duration-150 ${viewMode === mode
-                ? "bg-black text-white shadow-sm"
-                : "text-gray-400 hover:text-gray-700 hover:bg-white/60"
+                ? "bg-orange-500 text-white shadow-sm"
+                : "text-gray-400 hover:text-white hover:bg-orange-500"
                 }`}
             >
               {mode === "list" ? (
@@ -588,8 +588,13 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
           displayed={displayed}
           loading={loading}
           error={error}
+          onView={setViewTarget}
+          onEdit={setEditTarget}
+          onPrint={handlePrint}
+          onDelete={setDeleteTarget}
+          canEdit={canEdit}
+          canDelete={canDelete}
           onActionClick={handleActionClick}
-          menuOpenId={menuOpenId}
           viewMode={viewMode}
         />
       </div>
