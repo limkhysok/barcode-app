@@ -40,11 +40,11 @@ const DateFilter: React.FC<DateFilterProps> = ({ value, onChange }) => {
   };
 
   const isActive = value !== "";
-  let buttonStyles = "border-black/70 bg-slate-50 text-gray-400 hover:text-white hover:bg-orange-500";
+  let buttonStyles = "border-gray-100 bg-gray-50/50 text-gray-400 hover:text-white hover:bg-orange-500 hover:border-orange-300";
   if (isActive) {
-    buttonStyles = "border-orange-500 bg-orange-500 text-white font-black shadow-md";
+    buttonStyles = "border-orange-500 bg-orange-500 text-white font-black shadow-sm";
   } else if (open) {
-    buttonStyles = "border-black bg-white ring-1 ring-black text-gray-900";
+    buttonStyles = "border-orange-500 bg-white text-gray-900 shadow-sm";
   }
 
   const iconColorClass = isActive ? "text-white" : "text-gray-400";
@@ -71,8 +71,8 @@ const DateFilter: React.FC<DateFilterProps> = ({ value, onChange }) => {
       </button>
 
       {open && (
-        <div className="absolute z-[100] left-0 mt-1 min-w-[180px] bg-white border border-black rounded-sm shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden">
-          <ul className="divide-y divide-black/5">
+        <div className="absolute z-[100] left-0 mt-1 min-w-[190px] bg-white border border-gray-100 rounded-xl shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden">
+          <ul className="divide-y divide-gray-50">
             {options.map((o) => (
               <li key={o.key}>
                 <button
@@ -82,12 +82,12 @@ const DateFilter: React.FC<DateFilterProps> = ({ value, onChange }) => {
                     setOpen(false);
                     setCustomMode(false);
                   }}
-                  className={`w-full text-left px-4 py-2.5 text-[10px] font-black tracking-[0.1em] uppercase transition-colors flex items-center justify-between group/opt ${value === o.key ? "bg-slate-100 text-black border-l-2 border-black" : "text-gray-500 hover:bg-orange-500 hover:text-white"
+                  className={`w-full text-left px-4 py-2.5 text-[10px] font-black tracking-[0.1em] uppercase transition-colors flex items-center justify-between group/opt ${value === o.key ? "bg-slate-50 text-orange-500 border-l-2 border-orange-500" : "text-gray-500 hover:bg-orange-500 hover:text-white"
                     }`}
                 >
                   {o.label}
                   {value === o.key && (
-                    <svg className="w-3 h-3 text-black group-hover/opt:text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 text-orange-500 group-hover/opt:text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                     </svg>
                   )}
@@ -96,7 +96,7 @@ const DateFilter: React.FC<DateFilterProps> = ({ value, onChange }) => {
             ))}
             <li>
               {customMode ? (
-                <div className="p-3 bg-slate-50">
+                <div className="p-3 bg-slate-50/50">
                   <input
                     type="date"
                     autoFocus
@@ -108,7 +108,7 @@ const DateFilter: React.FC<DateFilterProps> = ({ value, onChange }) => {
                         setCustomMode(false);
                       }
                     }}
-                    className="w-full border border-black/20 rounded-sm px-2 py-1.5 text-xs text-black font-semibold outline-none focus:border-black transition-all"
+                    className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-black font-semibold outline-none focus:border-orange-500 bg-white transition-all shadow-inner"
                   />
                 </div>
               ) : (

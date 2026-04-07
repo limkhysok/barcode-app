@@ -28,11 +28,11 @@ const TypeFilterSelect: React.FC<TypeFilterSelectProps> = ({ value, onChange }) 
   const current = options.find((o) => o.key === value) ?? options[0];
 
   const isActive = value !== "";
-  let buttonStyles = "border-black bg-gray-50 text-gray-400 hover:bg-orange-500 hover:text-white";
+  let buttonStyles = "border-gray-100 bg-gray-50/50 text-gray-400 hover:bg-orange-500 hover:border-orange-200 hover:text-white";
   if (isActive) {
     buttonStyles = "border-orange-500 bg-orange-500 text-white font-black";
   } else if (open) {
-    buttonStyles = "border-black bg-white ring-1 ring-black text-gray-900";
+    buttonStyles = "border-orange-500 bg-white text-gray-900 shadow-sm";
   }
 
   const iconColorClass = isActive ? "text-white" : "text-slate-500";
@@ -57,7 +57,7 @@ const TypeFilterSelect: React.FC<TypeFilterSelectProps> = ({ value, onChange }) 
         </svg>
       </button>
       {open && (
-        <ul className="absolute z-200 top-full mt-1 w-full bg-white border border-black rounded-sm shadow-lg overflow-hidden">
+        <ul className="absolute z-200 top-full mt-1 w-full bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200">
           {options.map((o) => (
             <li key={o.key || "all"} >
               <button
