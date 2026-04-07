@@ -33,21 +33,30 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
     <div className="space-y-3">
 
       {/* ── Mobile Overview (Unified Style) ── */}
-      <div className="sm:hidden bg-white border border-gray-800 rounded-xl overflow-hidden shadow-sm">
+      <div className="sm:hidden group bg-white border border-gray-800 rounded-xl overflow-hidden flex flex-col transition-all duration-300 active:scale-[0.98] hover:border-orange-500/50">
+        {/* Compact Header */}
+        <div className="px-3 py-1 bg-black flex items-center justify-between transition-colors duration-500 group-hover:bg-orange-600">
+          <span className="text-[9px] font-black text-white/80 uppercase tracking-[0.2em]">Quick Stats</span>
+          <span className="text-[9px] font-bold text-white tabular-nums opacity-60">Today Overview</span>
+        </div>
 
-        <div className="grid grid-cols-3 divide-x divide-black/10">
+        <div className="grid grid-cols-3 divide-x divide-gray-100 bg-white">
           {[
-            { label: "Receive", count: receiveCount, icon: "↗", color: "text-black" },
-            { label: "Sale", count: saleCount, icon: "↘", color: "text-gray-400" },
-            { label: "Total", count: totalMovements, icon: "●", color: "text-black" },
-          ].map(({ label, count, icon, color }) => (
-            <div key={label} className="flex flex-col gap-0.5 px-3 py-3">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter truncate">{label}</p>
-              <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-lg ${color === 'text-black' ? 'bg-black' : 'bg-gray-200'} flex items-center justify-center shrink-0`}>
-                  <span className={`text-[14px] font-black ${color === 'text-black' ? 'text-white' : 'text-gray-600'}`}>{icon}</span>
-                </div>
-                <span className="text-[18px] font-black text-black tabular-nums tracking-tight">{count.toLocaleString()}</span>
+            { label: "Receive", count: receiveCount, icon: "↓", today: receiveTodayCount },
+            { label: "Sale", count: saleCount, icon: "↑", today: saleTodayCount },
+            { label: "Total", count: totalMovements, icon: "●", today: todayMovements },
+          ].map((item) => (
+            <div key={item.label} className="px-2 py-3 flex flex-col items-center text-center gap-1.5 hover:bg-slate-50/50 transition-colors">
+              <div className="w-7 h-7 rounded-lg bg-slate-950 flex items-center justify-center shrink-0 shadow-md ring-1 ring-white/10 group-hover:bg-orange-500 transition-colors">
+                <span className="text-white text-[11px] font-black">{item.icon}</span>
+              </div>
+              <div className="space-y-0.5">
+                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest group-hover:text-orange-400 truncate">{item.label}</p>
+                <p className="text-lg font-black text-black tabular-nums tracking-tighter group-hover:text-orange-600 transition-colors leading-none">{item.count.toLocaleString()}</p>
+              </div>
+              <div className="flex flex-col items-center">
+                 <span className="text-[7.5px] font-black text-gray-300 uppercase leading-none">Today</span>
+                 <span className="text-[10px] font-black text-black tabular-nums group-hover:text-orange-600 leading-none">+{item.today.toLocaleString()}</span>
               </div>
             </div>
           ))}
