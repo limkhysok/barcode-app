@@ -107,8 +107,8 @@ const TransactionTemplate = ({ transaction }: {
       </table>
 
       {/* Footer Section — signature blocks */}
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "60px", padding: "0 20px" }}>
-        {(["ផ្នែក QC", "ផ្នែកជាង", "ប្រធានឃ្លាំង"] as const).map((label) => (
+      <div style={{ display: "flex", justifyContent: "space-evenly", marginTop: "60px", padding: "0 20px" }}>
+        {(["ផ្នែកជាង", "ប្រធានឃ្លាំង"] as const).map((label) => (
           <div key={label} style={{ textAlign: "center", width: "120px" }}>
             <p style={{ fontSize: "13px", fontWeight: "bold", margin: "0 0 60px 0" }}>{label}</p>
             <div style={{ borderBottom: "1px solid black", width: "100%" }} />
