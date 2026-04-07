@@ -78,13 +78,6 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [pdfPanelOpen, setPdfPanelOpen] = useState(false);
   const [pdfDate, setPdfDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [pdfDateDisplay, setPdfDateDisplay] = useState(() => {
-    const d = new Date();
-    const dd = String(d.getDate()).padStart(2, "0");
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const yy = String(d.getFullYear()).slice(-2);
-    return `${dd}/${mm}/${yy}`;
-  });
   const [pdfType, setPdfType] = useState<"Receive" | "Sale">("Receive");
   const [pdfTypeMenuOpen, setPdfTypeMenuOpen] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -407,7 +400,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
           <div className="relative" ref={pdfPanelRef}>
             <button
               type="button"
-              onClick={() => { setPdfPanelOpen((v) => !v); setPdfError(""); }}
+              onClick={() => { setPdfPanelOpen(!pdfPanelOpen); setPdfError(""); }}
               className="flex items-center gap-2 px-2 py-1.5 sm:px-4 rounded-md text-xs font-light tracking-widest border border-black bg-white text-black hover:bg-gray-50 active:scale-[0.97] transition shadow-sm"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
@@ -418,23 +411,13 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
             {pdfPanelOpen && (
               <div className="absolute right-0 z-50 mt-1 w-56 bg-white border border-black rounded-sm shadow-lg p-3 space-y-2.5">
                 <div className="space-y-1">
-                  <label htmlFor="pdf-date" className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Date</label>
+                  <label htmlFor="pdf-date" className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Date Selection</label>
                   <input
                     id="pdf-date"
-                    type="text"
-                    placeholder="DD/MM/YY"
-                    maxLength={8}
-                    value={pdfDateDisplay}
-                    onChange={(e) => {
-                      const raw = e.target.value;
-                      setPdfDateDisplay(raw);
-                      const match = /^(\d{2})\/(\d{2})\/(\d{2})$/.exec(raw);
-                      if (match) {
-                        const [, dd, mm, yy] = match;
-                        setPdfDate(`20${yy}-${mm}-${dd}`);
-                      }
-                    }}
-                    className="w-full border border-gray-300 rounded-sm px-2 py-1 text-xs text-gray-800 focus:outline-none focus:border-black"
+                    type="date"
+                    value={pdfDate}
+                    onChange={(e) => setPdfDate(e.target.value)}
+                    className="w-full border border-gray-300 rounded-sm px-2 py-1 text-xs text-gray-800 bg-slate-50 focus:outline-none focus:border-black focus:bg-white transition-all cursor-pointer"
                   />
                 </div>
                 <div className="space-y-1">

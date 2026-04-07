@@ -34,16 +34,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
 
       {/* ── Mobile Overview (Unified Style) ── */}
       <div className="sm:hidden bg-white border border-gray-800 rounded-xl overflow-hidden shadow-sm">
-        <div className="flex h-1.5 w-full bg-gray-100">
-          <div
-            className="h-full bg-black transition-all duration-700"
-            style={{ width: `${receiveShare}%` }}
-          />
-          <div
-            className="h-full bg-gray-300 transition-all duration-700"
-            style={{ width: `${saleShare}%` }}
-          />
-        </div>
+
         <div className="grid grid-cols-3 divide-x divide-black/10">
           {[
             { label: "Receive", count: receiveCount, icon: "↗", color: "text-black" },
@@ -60,23 +51,6 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
               </div>
             </div>
           ))}
-        </div>
-        <div className="px-3 pb-3 pt-2.5 space-y-1.5 border-t border-black/10 bg-slate-50/50">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Qty activity today</p>
-          <div className="flex h-1.5 w-full rounded-full overflow-hidden bg-gray-100">
-            <div
-              className="h-full bg-black transition-all duration-700"
-              style={{ width: `${receiveQtyShare}%` }}
-            />
-            <div
-              className="h-full bg-gray-300 transition-all duration-700"
-              style={{ width: `${100 - receiveQtyShare}%` }}
-            />
-          </div>
-          <div className="flex justify-between text-[11px] text-gray-600 tabular-nums font-bold tracking-tight">
-            <span>+{receiveTodayQty.toLocaleString()} IN</span>
-            <span>{saleTodayQty.toLocaleString()} OUT</span>
-          </div>
         </div>
       </div>
 
