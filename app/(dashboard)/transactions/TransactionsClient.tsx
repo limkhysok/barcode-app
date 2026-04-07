@@ -147,17 +147,20 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
         await document.fonts.ready;
       } catch { /* already loaded */ }
       const html2canvas = (await import("html2canvas")).default;
-      const node = templateRef.current;
-      if (!node) return;
-      const canvas = await html2canvas(node, {
-        scale: 3, useCORS: true, backgroundColor: "#ffffff",
-        logging: false, width: node.scrollWidth, height: node.scrollHeight,
-      });
       const { default: jsPDF } = await import("jspdf");
-      const doc = new jsPDF({ orientation: "portrait", format: "a5", unit: "mm", compress: true });
+      const doc = new jsPDF({ orientation: "portrait", format: "a4", unit: "mm", compress: true });
       const pdfW = doc.internal.pageSize.getWidth();
       const pdfH = doc.internal.pageSize.getHeight();
-      doc.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, pdfW, pdfH);
+      const pageNodes = Array.from(templateRef.current?.children ?? []) as HTMLElement[];
+      for (let i = 0; i < pageNodes.length; i++) {
+        const pageNode = pageNodes[i];
+        const canvas = await html2canvas(pageNode, {
+          scale: 3, useCORS: true, backgroundColor: "#ffffff",
+          logging: false, width: pageNode.scrollWidth, height: pageNode.scrollHeight,
+        });
+        if (i > 0) doc.addPage();
+        doc.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, pdfW, pdfH);
+      }
       const pdfBlob = doc.output("blob");
       window.open(URL.createObjectURL(pdfBlob), "_blank");
     } catch (err) {
@@ -257,20 +260,22 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
       console.error("Font loading error:", err);
     }
     const html2canvas = (await import("html2canvas")).default;
-    const node = templateRef.current;
-    if (!node) return;
-    const canvas = await html2canvas(node, {
-      scale: 3, useCORS: true, backgroundColor: "#ffffff",
-      logging: false, width: node.scrollWidth, height: node.scrollHeight,
-    });
     const { default: jsPDF } = await import("jspdf");
-    const doc = new jsPDF({ orientation: "portrait", format: "a5", unit: "mm", compress: true });
+    const doc = new jsPDF({ orientation: "portrait", format: "a4", unit: "mm", compress: true });
     const pdfW = doc.internal.pageSize.getWidth();
     const pdfH = doc.internal.pageSize.getHeight();
-    doc.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, pdfW, pdfH);
+    const pageNodes = Array.from(templateRef.current?.children ?? []) as HTMLElement[];
+    for (let i = 0; i < pageNodes.length; i++) {
+      const pageNode = pageNodes[i];
+      const canvas = await html2canvas(pageNode, {
+        scale: 3, useCORS: true, backgroundColor: "#ffffff",
+        logging: false, width: pageNode.scrollWidth, height: pageNode.scrollHeight,
+      });
+      if (i > 0) doc.addPage();
+      doc.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, pdfW, pdfH);
+    }
     const pdfBlob = doc.output("blob");
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    window.open(pdfUrl, "_blank");
+    window.open(URL.createObjectURL(pdfBlob), "_blank");
     setMenuOpenId(null);
     setPendingExportItems([]);
   };
@@ -673,7 +678,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
       <div
         ref={templateRef}
         aria-hidden="true"
-        style={{ position: "fixed", left: "-9999px", top: 0, zIndex: -1, pointerEvents: "none" }}
+        style={{ position: "absolute", left: "-9999px", top: 0, zIndex: -1, pointerEvents: "none" }}
       >
         {pendingExportItems.length > 0 && (
           <TransactionTemplate transaction={{ transaction_type: pendingExportType, items: pendingExportItems }} />
