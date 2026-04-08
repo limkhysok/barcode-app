@@ -249,32 +249,29 @@ export default function ProductsClient({
     <div className="px-4 py-6 sm:px-8 sm:py-8 space-y-8 bg-white min-h-screen">
 
       {/* ── Header: Command Center ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border border-gray-100 bg-white rounded-md p-3 shadow-sm gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-slate-950 flex items-center justify-center shrink-0 shadow-2xl shadow-slate-950/20 group hover:scale-105 transition-transform duration-300">
-            <svg className="w-7 h-7 text-orange-500" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 2.625c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
-            </svg>
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-black text-slate-950 uppercase tracking-tighter leading-none">Catalog</h1>
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 shadow-sm animate-pulse">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Online</span>
-              </div>
+      <div className="flex items-center justify-between border border-gray-200 bg-white rounded-md py-3 px-3 gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col">
+            <h1 className="text-[12px] font-black text-slate-950 uppercase tracking-[0.2em] leading-none">Catalog</h1>
+            <div className="flex items-center gap-1.5 leading-none">
+              <svg className="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+              </svg>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none" suppressHydrationWarning>
+                {new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Phnom_Penh" })}
+              </p>
             </div>
-            <p className="text-[11px] text-slate-400 font-bold uppercase tracking-[0.2em]">Product Database v2.4</p>
           </div>
         </div>
 
         <button onClick={openCreate}
-          className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-orange-500 text-white hover:bg-orange-600 active:scale-95 transition-all duration-300 shadow-xl shadow-orange-500/25 border border-orange-400/20 group"
+          className="flex items-center gap-2.5 px-3.5 py-1.5 sm:px-5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer"
         >
-          <svg className="w-5 h-5 transition-transform group-hover:rotate-90 duration-300" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+          <svg className="w-4 h-4 hidden sm:block" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          <span className="text-xs font-black uppercase tracking-widest">New Product</span>
+          <span className="hidden sm:inline">New Product</span>
+          <span className="sm:hidden">New</span>
         </button>
       </div>
 
