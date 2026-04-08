@@ -21,9 +21,9 @@ const TypeFilterSelect: React.FC<TypeFilterSelectProps> = ({ value, onChange }) 
   }, []);
 
   const options: { key: TxTypeFilter; label: string }[] = [
-    { key: "",        label: "All Types"  },
-    { key: "Receive", label: "Receive"    },
-    { key: "Sale",    label: "Sale"       },
+    { key: "", label: "All Types" },
+    { key: "Receive", label: "Receive" },
+    { key: "Sale", label: "Sale" },
   ];
   const current = options.find((o) => o.key === value) ?? options[0];
 
@@ -42,7 +42,7 @@ const TypeFilterSelect: React.FC<TypeFilterSelectProps> = ({ value, onChange }) 
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`w-full px-2.5 py-1.5 rounded-sm border text-[12px] font-bold text-left flex items-center justify-between gap-2.5 transition-all focus:outline-none group ${buttonStyles} min-w-30`}
+        className={`w-full px-2.5 py-1 rounded-sm border text-[12px] font-bold text-left flex items-center justify-between gap-2.5 transition-all focus:outline-none group ${buttonStyles} min-w-30`}
       >
         <div className="flex items-center gap-2 truncate">
           <div className={`transition-colors duration-200 ${isActive ? "text-white" : "text-gray-400 group-hover:text-white"}`}>

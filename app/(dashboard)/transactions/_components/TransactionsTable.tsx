@@ -94,11 +94,11 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                 {/* Row 1: ID, Type and Quantity */}
                 <div className="p-2 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="bg-gray-200 text-slate-900 text-[10px] font-bold px-1 py-0.5 rounded-sm shadow-sm">
+                    <span className="bg-gray-300 text-slate-900 rounded-sm text-[11px] font-bold px-1 py-0.5">
                       #{t.id}
                     </span>
-                    <span className={`bg-gray-300 text-slate-800 text-[10px] font-bold uppercase tracking-wider px-1 py-0.5 rounded-sm`}>
-                      {t.transaction_type}
+                    <span className={`bg-gray-100 text-slate-800 text-[10px] font-bold uppercase tracking-wider px-1 py-0.5 rounded-sm`}>
+                      | {t.transaction_type} |
                     </span>
                   </div>
                   <div className="text-right shrink-0">
@@ -114,7 +114,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                 {/* Row 2: Product Name, Date and Actions */}
                 <div className="px-2 py-1 flex items-center justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-black text-slate-900 truncate uppercase leading-tight group-hover:text-orange-600 transition-colors">
+                    <h3 className="text-[10px] font-black text-slate-900 truncate uppercase leading-tight group-hover:text-orange-600 transition-colors">
                       {first?.product_name ?? "—"}
                       {more > 0 && <span className="text-gray-400 font-bold ml-1.5 text-[11px]">+{more} MORE</span>}
                     </h3>
@@ -226,19 +226,16 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
               {displayed.map((t) => {
-                const cfg = TYPE_CONFIG[t.transaction_type as keyof typeof TYPE_CONFIG];
+                const totalQty = t.items.reduce((sum, item) => sum + Math.abs(item.quantity), 0);
                 return (
                   <tr key={t.id} className="group hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <span className="text-[11px] font-black text-black tabular-nums group-hover:text-orange-600 transition-colors">#{t.id}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${t.transaction_type === 'Receive' ? 'bg-orange-500' : 'bg-blue-500'}`} />
-                        <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest group-hover:text-orange-400">
-                          {cfg.label}
-                        </span>
-                      </div>
+                      <span className="text-[11px] font-black text-gray-500 uppercase tracking-widest">
+                        {t.transaction_type}
+                      </span>
                     </td>
                     <td className="px-6 py-4 font-bold text-gray-800 text-[12px]">
                       {t.items.length} {t.items.length === 1 ? "Item" : "Items"}
@@ -246,7 +243,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                     <td className="px-6 py-4">
                       <div className="inline-flex items-center justify-center px-2 py-1 border-gray-100 group-hover:bg-orange-50 transition-colors">
                         <span className="font-black tabular-nums text-black text-[12px] group-hover:text-orange-600">
-                          {t.items.reduce((sum, item) => sum + Math.abs(item.quantity), 0)}
+                          {totalQty}
                         </span>
                       </div>
                     </td>

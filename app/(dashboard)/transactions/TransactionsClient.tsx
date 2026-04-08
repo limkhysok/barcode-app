@@ -393,7 +393,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
       <div className="flex items-center justify-between border border-gray-200 bg-white rounded-md py-3 px-3 gap-4">
         <div className="flex items-center gap-3">
           <div className="flex flex-col">
-            <h1 className="text-[13px] font-black text-slate-950 uppercase tracking-[0.2em] leading-none">Transactions</h1>
+            <h1 className="text-[12px] font-black text-slate-950 uppercase tracking-[0.2em] leading-none">Transactions</h1>
             <div className="flex items-center gap-1.5 leading-none">
               <svg className="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
@@ -557,7 +557,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
       <StatsOverview stats={stats} />
 
-      <div className="flex flex-wrap items-center gap-3 border border-gray-200 bg-white rounded-md p-2 transition-all hover:border-gray-200">
+      <div className="flex flex-wrap items-center gap-3 border border-gray-200 bg-white rounded-md px-1 py-1 transition-all hover:border-gray-200">
         {/* Desktop Toolbar */}
         <div className="hidden sm:flex items-center">
           <div className="flex items-center gap-2 pr-3 border-r border-gray-50">

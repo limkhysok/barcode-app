@@ -3,9 +3,9 @@
 import React from "react";
 import type { TransactionStats } from "@/src/services/transaction.service";
 import {
-  ArrowDownLeft,
-  ArrowUpRight,
-  BarChart3,
+  TrendingDown,
+  TrendingUp,
+  Zap,
   Layers
 } from "lucide-react";
 
@@ -33,7 +33,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
         {/* Header: Lifetime Stats (With Vertical Dividers) */}
         <div className="p-2 bg-white border-b border-slate-100">
           <div className="flex items-center gap-2 mb-4">
-            <Layers className="h-3.5 w-3.5 text-black" strokeWidth={2.5} />
+            <Layers className="h-5 w-5 text-black" strokeWidth={2} />
             <span className="text-[10px] font-black uppercase tracking-widest text-black">Lifetime</span>
           </div>
 
@@ -74,8 +74,8 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
             {/* Today Receive - Horizontal */}
             <div className="flex items-center p-2.5 bg-white rounded-sm border border-slate-200">
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 bg-orange-50 rounded text-orange-600 shrink-0">
-                  <ArrowDownLeft size={14} strokeWidth={3} />
+                <div className="p-1.5 bg-orange-50 rounded text-orange-800 shrink-0">
+                  <TrendingDown size={18} strokeWidth={2.5} className="scale-x-[-1]" />
                 </div>
                 <div>
                   <p className="text-[11px] font-black text-black leading-tight">+{receiveToday}</p>
@@ -87,8 +87,8 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
             {/* Today Sale - Horizontal */}
             <div className="flex items-center p-2.5 bg-white rounded-sm border border-slate-200">
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 bg-slate-50 rounded text-black shrink-0">
-                  <ArrowUpRight size={14} strokeWidth={3} />
+                <div className="p-1.5 bg-orange-50 rounded text-orange-600 shrink-0">
+                  <TrendingUp size={18} strokeWidth={2.5} />
                 </div>
                 <div>
                   <p className="text-[11px] font-black text-black leading-tight">-{saleToday}</p>
@@ -101,46 +101,46 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
       </div>
 
       {/* ── Desktop Overview (3 Card Layout) ── */}
-      <div className="hidden sm:grid grid-cols-3 gap-4">
+      <div className="hidden sm:grid grid-cols-3 gap-3">
         {/* Box: Receive */}
-        <div className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between pb-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Total Receive</p>
-            <ArrowDownLeft className="h-4 w-4 text-black" strokeWidth={2.5} />
+        <div className="rounded-md border border-slate-200 bg-white p-4">
+          <div className="flex items-start justify-between pb-2">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Total Receive</p>
+            <TrendingDown className="h-8 w-8 text-orange-600 scale-x-[-1]" strokeWidth={1.5} />
           </div>
           <div className="space-y-1">
             <p className="text-3xl font-black tracking-tighter text-black">{receiveCount.toLocaleString()}</p>
-            <div className="flex items-center justify-between pt-2 border-t border-slate-50 mt-2">
+            <div className="flex items-center justify-between pt-2 border-t border-gray-200 mt-3">
               <span className="text-xs font-black text-orange-600">+{receiveToday} Today</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Qty: {receiveTodayQty}</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase">Quantity {receiveTodayQty}</span>
             </div>
           </div>
         </div>
 
         {/* Box: Sale */}
-        <div className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between pb-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Total Sale</p>
-            <ArrowUpRight className="h-4 w-4 text-black" strokeWidth={2.5} />
+        <div className="rounded-md border border-slate-200 bg-white p-4">
+          <div className="flex items-start justify-between pb-2">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Total Sale</p>
+            <TrendingUp className="h-8 w-8 text-orange-600" strokeWidth={1.5} />
           </div>
           <div className="space-y-1">
             <p className="text-3xl font-black tracking-tighter text-black">{saleCount.toLocaleString()}</p>
-            <div className="flex items-center justify-between pt-2 border-t border-slate-50 mt-2">
+            <div className="flex items-center justify-between pt-2 border-t border-gray-200 mt-3">
               <span className="text-xs font-black text-orange-600">-{saleToday} Today</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Qty: {saleTodayQty}</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase">Quantity {saleTodayQty}</span>
             </div>
           </div>
         </div>
 
         {/* Box: Total */}
-        <div className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between pb-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Total Activity</p>
-            <BarChart3 className="h-4 w-4 text-black" strokeWidth={2.5} />
+        <div className="rounded-md border border-slate-200 bg-white p-4">
+          <div className="flex items-start justify-between pb-2">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Total Activity</p>
+            <Zap className="h-8 w-8 text-orange-600" strokeWidth={1.5} />
           </div>
           <div className="space-y-1">
             <p className="text-3xl font-black tracking-tighter text-black">{total.toLocaleString()}</p>
-            <div className="flex items-center justify-between pt-2 border-t border-slate-50 mt-2">
+            <div className="flex items-center justify-between pt-2 border-t border-gray-200 mt-3">
               <span className="text-xs font-black text-black uppercase tracking-widest">{today} Today</span>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Processed</span>
             </div>

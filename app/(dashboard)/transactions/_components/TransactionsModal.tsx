@@ -47,7 +47,7 @@ export const ViewTransactionModal: React.FC<ViewModalProps> = ({ viewTarget, onC
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:px-4">
       <button className="absolute inset-0 bg-black/20 backdrop-blur-sm cursor-default" onClick={onClose} aria-label="Close modal" />
       <div className="relative bg-white rounded-t-xl sm:rounded-sm shadow-2xl w-full sm:max-w-xl flex flex-col max-h-[90vh] overflow-hidden">
-       
+
         <div className="flex items-center justify-between px-5 py-4 border-b border-black shrink-0 bg-white">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-sm bg-black flex items-center justify-center shrink-0">
@@ -106,18 +106,18 @@ export const ViewTransactionModal: React.FC<ViewModalProps> = ({ viewTarget, onC
                 {viewTarget.items.map((item, idx) => {
                   const rec = inventory.find((r) => r.id === item.inventory);
                   return (
-                  <div key={item.id} className="flex items-center gap-1 sm:gap-4 px-3 py-2.5 hover:bg-slate-50/60 transition-colors">
-                    <span className="hidden sm:inline-block w-5 shrink-0 text-[10px] font-black text-gray-300 text-center">{String(idx + 1).padStart(2, "0")}</span>
-                    <div className="flex-1 sm:w-64 sm:shrink-0 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{item.product_name}</p>
+                    <div key={item.id} className="flex items-center gap-1 sm:gap-4 px-3 py-2.5 hover:bg-slate-50/60 transition-colors">
+                      <span className="hidden sm:inline-block w-5 shrink-0 text-[10px] font-black text-gray-300 text-center">{String(idx + 1).padStart(2, "0")}</span>
+                      <div className="flex-1 sm:w-64 sm:shrink-0 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">{item.product_name}</p>
+                      </div>
+                      <div className="w-28 shrink-0 min-w-0">
+                        <span className="text-[11px] font-mono text-gray-800 truncate block">{rec?.product_details.barcode ?? "—"}</span>
+                      </div>
+                      <div className="w-16 sm:w-24 shrink-0 text-right">
+                        <span className="text-sm font-black text-gray-900 tabular-nums">{Math.abs(item.quantity)}</span>
+                      </div>
                     </div>
-                    <div className="w-28 shrink-0 min-w-0">
-                      <span className="text-[11px] font-mono text-gray-800 truncate block">{rec?.product_details.barcode ?? "—"}</span>
-                    </div>
-                    <div className="w-16 sm:w-24 shrink-0 text-right">
-                      <span className="text-sm font-black text-gray-900 tabular-nums">{Math.abs(item.quantity)}</span>
-                    </div>
-                  </div>
                   );
                 })}
               </div>
@@ -164,7 +164,7 @@ export const DeleteConfirmModal: React.FC<DeleteModalProps> = ({ deleteTarget, o
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:px-4">
       <button className="absolute inset-0 bg-black/20 backdrop-blur-sm cursor-default" onClick={onClose} aria-label="Close modal" />
       <div className="relative bg-white rounded-t-md sm:rounded-md shadow-2xl w-full sm:max-w-sm overflow-hidden">
-     
+
         <div className="px-5 py-5">
           <p className="text-[13px] font-bold text-gray-800">
             Are you sure to delete Transaction{" "}
@@ -319,7 +319,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:px-4">
       <button className="absolute inset-0 bg-black/20 backdrop-blur-sm cursor-default" onClick={onClose} aria-label="Close modal" />
       <div className="relative bg-white rounded-t-xl sm:rounded-sm shadow-2xl w-full sm:max-w-xl flex flex-col max-h-[90vh] overflow-hidden">
-     
+
         <div className="flex items-center justify-between px-5 py-4 border-b border-black shrink-0 bg-white">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-sm bg-black flex items-center justify-center shrink-0">
@@ -502,7 +502,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
           )}
           <div className="flex justify-end gap-2">
             <button type="button" onClick={onClose}
-              className="w-30 py-1.5 rounded-sm text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition shadow-sm">
+              className="w-30 py-1.5 rounded-sm text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition">
               Cancel
             </button>
             <button
@@ -513,7 +513,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
             >
               {saving ? "Saving..." : "Save"}
             </button>
-            
+
           </div>
         </div>
       </div>
@@ -647,7 +647,7 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:px-4">
       <button className="absolute inset-0 bg-black/20 backdrop-blur-sm cursor-default" onClick={onClose} aria-label="Close modal" />
       <div className="relative bg-white rounded-t-xl sm:rounded-sm shadow-2xl w-full sm:max-w-xl flex flex-col max-h-[90vh] overflow-hidden">
-     
+
         <div className="flex items-center justify-between px-5 py-4 border-b border-black shrink-0 bg-white">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-sm bg-black flex items-center justify-center shrink-0">
@@ -845,7 +845,7 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
               type="button"
               onClick={handleSubmit}
               disabled={saving}
-              className="w-30 py-1.5 rounded-sm text-[11px]  font-black tracking-widest uppercase text-white bg-orange-500 active:scale-[0.98] transition disabled:opacity-60 shadow-md transform hover:-translate-y-0.5"
+              className="w-30 py-1.5 rounded-sm text-[11px]  font-black tracking-widest uppercase text-white bg-orange-500 active:scale-[0.98] transition disabled:opacity-60 transform hover:-translate-y-0.5"
             >
               {saving ? "Saving..." : "Save Changes"}
             </button>
