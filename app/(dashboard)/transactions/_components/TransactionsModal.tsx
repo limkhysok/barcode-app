@@ -139,7 +139,7 @@ export const ViewTransactionModal: React.FC<ViewModalProps> = ({ viewTarget, onC
 
         <div className="border-t border-black px-5 py-3 shrink-0 bg-gray-50/50 flex justify-end">
           <button type="button" onClick={onClose}
-            className="w-30 py-1.5 rounded-sm text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition shadow-sm">
+            className="w-30 py-1.5 rounded-sm text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition">
             Close
           </button>
         </div>
