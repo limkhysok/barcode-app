@@ -59,7 +59,7 @@ export default function ProductsClient({
   initialStats: ProductStats | null;
 }>) {
   const { role } = useAuth();
-  const canEdit   = role === "boss" || role === "superadmin";
+  const canEdit = role === "boss" || role === "superadmin";
   const canDelete = role === "superadmin";
 
   const [paginated, setPaginated] = useState<PaginatedProducts>(initialPaginated);
@@ -246,7 +246,7 @@ export default function ProductsClient({
   }
 
   return (
-    <div className="px-4 py-6 sm:px-8 sm:py-8 space-y-8 bg-white min-h-screen">
+    <div className="px-4 py-5 sm:px-5 sm:py-5 space-y-3">
 
       {/* ── Header: Command Center ── */}
       <div className="flex items-center justify-between border border-gray-200 bg-white rounded-md py-3 px-3 gap-4">

@@ -1,8 +1,14 @@
 "use client";
 
+import React, { useMemo } from "react";
 import type { ProductStats } from "@/src/types/api.types";
 import type { Product } from "@/src/types/product.types";
-import { useMemo } from "react";
+import {
+  Package,
+  Layers,
+  Zap,
+  Box
+} from "lucide-react";
 
 interface StatsOverviewProps {
   stats: ProductStats | null;
@@ -39,86 +45,111 @@ export function StatsOverview({ stats, products }: Readonly<StatsOverviewProps>)
   }, [stats, products]);
 
   return (
-    <div className="flex flex-wrap items-center gap-3 border border-gray-100 bg-white rounded-xl p-2 shadow-sm transition-all hover:border-gray-200">
-      {/* Desktop Stats */}
-      <div className="hidden sm:flex items-center gap-3">
-        {/* Accessories */}
-        <div className="flex items-center gap-2 pr-3 border-r border-gray-100">
-          <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center shrink-0 border border-orange-100/50">
-            <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.222-.127c-.324-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
+    <div className="w-full">
+      {/* ── Mobile Overview ── */}
+      <div className="block sm:hidden rounded-md border border-slate-200 bg-white overflow-hidden">
+
+        {/* Header: Distribution (With Vertical Dividers) */}
+        <div className="p-2 bg-white border-b border-slate-100">
+          <div className="flex items-center gap-2 mb-4">
+            <Layers className="h-5 w-5 text-black" strokeWidth={2} />
+            <span className="text-[10px] font-black uppercase tracking-widest text-black">Catalog Distribution</span>
           </div>
-          <div className="flex flex-col">
-            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Accessories</span>
-            <div className="flex items-center gap-1">
-              <span className="text-sm font-black text-slate-900 tabular-nums">{categoryStats.accessories.count.toLocaleString()}</span>
-              <span className="text-[9px] font-bold text-slate-400 uppercase">Items</span>
+
+          <div className="grid grid-cols-3 gap-0 divide-x divide-slate-200">
+            {/* Accessories */}
+            <div className="text-center">
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter leading-none mb-1">Accessories</p>
+              <p className="text-base font-black text-black leading-none">{categoryStats.accessories.count.toLocaleString()}</p>
             </div>
-          </div>
-          <div className="flex flex-col items-end gap-1 pl-1">
-            <span className="text-[9px] font-black text-orange-500">{categoryStats.accessories.share}%</span>
-            <div className="w-14 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full bg-linear-to-r from-orange-500 to-orange-400 rounded-full transition-all duration-700" style={{ width: `${categoryStats.accessories.share}%` }} />
+
+            {/* Fasteners */}
+            <div className="text-center">
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter leading-none mb-1">Fasteners</p>
+              <p className="text-base font-black text-black leading-none">{categoryStats.fasteners.count.toLocaleString()}</p>
+            </div>
+
+            {/* Total */}
+            <div className="text-center">
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter leading-none mb-1">Total</p>
+              <p className="text-base font-black text-black leading-none">{categoryStats.total.toLocaleString()}</p>
             </div>
           </div>
         </div>
 
-        {/* Fasteners */}
-        <div className="flex items-center gap-2 pr-3 border-r border-gray-100">
-          <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center shrink-0 border border-orange-100/50">
-            <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-2.25-1.313M21 7.5v2.25m0-2.25l-2.25 1.313M3 7.5l2.25-1.313M3 7.5v2.25m0-2.25l2.25 1.313m0 9v2.25m0-2.25l-2.25-1.313m2.25 1.313l2.25-1.313m11.25 4.5l2.25-1.313m-2.25 1.313V16.5m0 2.25l-2.25-1.313M12 3v2.25m0-2.25l2.25 1.313M12 3L9.75 4.313M12 21v-2.25m0 2.25l2.25-1.313M12 21l-2.25-1.313m0-12.375L12 6l2.25 1.313M9.75 16.5L12 18l2.25-1.313M4.5 12L12 16.5l7.5-4.5L12 7.5 4.5 12z" />
-            </svg>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Fasteners</span>
-            <div className="flex items-center gap-1">
-              <span className="text-sm font-black text-slate-900 tabular-nums">{categoryStats.fasteners.count.toLocaleString()}</span>
-              <span className="text-[9px] font-bold text-slate-400 uppercase">Items</span>
+        {/* Share: Horizontal Layout */}
+        <div className="p-2 bg-slate-50/50">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
+              <span className="text-[10px] font-black text-black uppercase tracking-widest">Market Share</span>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-1 pl-1">
-            <span className="text-[9px] font-black text-orange-500">{categoryStats.fasteners.share}%</span>
-            <div className="w-14 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full bg-linear-to-r from-orange-500 to-orange-400 rounded-full transition-all duration-700" style={{ width: `${categoryStats.fasteners.share}%` }} />
-            </div>
-          </div>
-        </div>
 
-        {/* Total */}
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center shrink-0 border border-orange-100/50">
-            <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 14.25v2.25m3-2.25v2.25m3-2.25v2.25m3-2.25v2.25m-13.5 0h16.5" />
-            </svg>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total</span>
-            <div className="flex items-center gap-1">
-              <span className="text-sm font-black text-slate-900 tabular-nums">{categoryStats.total.toLocaleString()}</span>
-              <span className="text-[9px] font-bold text-slate-400 uppercase">Items</span>
+          <div className="grid grid-cols-2 gap-2">
+            {/* Accessories Share */}
+            <div className="flex items-center p-2.5 bg-white rounded-sm border border-slate-200">
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 bg-orange-50 rounded text-orange-800 shrink-0">
+                  <Package size={18} strokeWidth={2.5} />
+                </div>
+                <div>
+                  <p className="text-[11px] font-black text-black leading-tight">{categoryStats.accessories.share}%</p>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase leading-tight">Accessories</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Fasteners Share */}
+            <div className="flex items-center p-2.5 bg-white rounded-sm border border-slate-200">
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 bg-orange-50 rounded text-orange-600 shrink-0">
+                  <Box size={18} strokeWidth={2.5} />
+                </div>
+                <div>
+                  <p className="text-[11px] font-black text-black leading-tight">{categoryStats.fasteners.share}%</p>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase leading-tight">Fasteners</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Mobile: compact inline stats */}
-      <div className="sm:hidden flex items-center gap-4 px-2 py-1">
-        {[
-          { label: "Acc", count: categoryStats.accessories.count, share: categoryStats.accessories.share },
-          { label: "Fast", count: categoryStats.fasteners.count, share: categoryStats.fasteners.share },
-          { label: "Total", count: categoryStats.total, share: 100 },
-        ].map(({ label, count, share }) => (
-          <div key={label} className="flex flex-col items-center gap-0.5">
-            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{label}</span>
-            <span className="text-xs font-black text-slate-900 tabular-nums">{count.toLocaleString()}</span>
-            <div className="w-10 h-1 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full bg-orange-400 rounded-full" style={{ width: `${share}%` }} />
-            </div>
+      {/* ── Desktop Overview (3 Card Layout) ── */}
+      <div className="hidden sm:grid grid-cols-3 gap-3">
+        {/* Box: Accessories */}
+        <div className="rounded-md border border-slate-200 bg-white p-4">
+          <div className="flex items-start justify-between pb-2">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Accessories</p>
+            <Package className="h-8 w-8 text-orange-600" strokeWidth={1.5} />
           </div>
-        ))}
+          <div className="space-y-1">
+            <p className="text-3xl font-black tracking-tighter text-black">{categoryStats.accessories.count.toLocaleString()}</p>
+          </div>
+        </div>
+
+        {/* Box: Fasteners */}
+        <div className="rounded-md border border-slate-200 bg-white p-4">
+          <div className="flex items-start justify-between pb-2">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Fasteners</p>
+            <Box className="h-8 w-8 text-orange-600" strokeWidth={1.5} />
+          </div>
+          <div className="space-y-1">
+            <p className="text-3xl font-black tracking-tighter text-black">{categoryStats.fasteners.count.toLocaleString()}</p>
+          </div>
+        </div>
+
+        {/* Box: Total */}
+        <div className="rounded-md border border-slate-200 bg-white p-4">
+          <div className="flex items-start justify-between pb-2">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Total Catalog</p>
+            <Zap className="h-8 w-8 text-orange-600" strokeWidth={1.5} />
+          </div>
+          <div className="space-y-1">
+            <p className="text-3xl font-black tracking-tighter text-black">{categoryStats.total.toLocaleString()}</p>
+          </div>
+        </div>
       </div>
     </div>
   );
