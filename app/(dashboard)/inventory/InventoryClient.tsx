@@ -12,7 +12,7 @@ import { InventoryTable } from "./_components/InventoryTable";
 import { InventoryToolbar } from "./_components/InventoryToolbar";
 import { InventoryModal } from "./_components/InventoryModal";
 import { DeleteConfirmModal } from "./_components/DeleteConfirmModal";
-import { Plus, LayoutGrid } from "lucide-react";
+// no lucide imports needed currently for this line if they are all SVGs
 
 type QuantitySort = "asc" | "desc" | "";
 type DateSort = "asc" | "desc" | "";
@@ -198,20 +198,25 @@ export default function InventoryClient({
       {/* ── Header: Command Center ── */}
       <div className="flex items-center justify-between border border-gray-200 bg-white rounded-md py-3 px-3 gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-sm bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
-            <LayoutGrid size={22} strokeWidth={2.5} />
-          </div>
-          <div>
-            <h1 className="text-lg font-black text-slate-950 uppercase tracking-tighter leading-none">Inventory Center</h1>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Global Stock Ledger • {new Date().toLocaleDateString('en-GB')}</p>
+          <div className="flex flex-col">
+            <h1 className="text-[12px] font-black text-slate-950 uppercase tracking-[0.2em] leading-none">Inventory</h1>
+            <div className="flex items-center gap-1.5 leading-none">
+              <svg className="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+              </svg>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none" suppressHydrationWarning>
+                {new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Phnom_Penh" })}
+              </p>
+            </div>
           </div>
         </div>
 
-        <button
-          onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-sm bg-slate-950 text-white text-[11px] font-black uppercase tracking-widest hover:bg-orange-600 transition-all active:scale-95 shadow-md"
+        <button onClick={openCreate}
+          className="flex items-center gap-2.5 px-3.5 py-1.5 sm:px-5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer shadow-sm"
         >
-          <Plus size={16} strokeWidth={3} />
+          <svg className="w-4 h-4 hidden sm:block" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
           <span className="hidden sm:inline">New Record</span>
           <span className="sm:hidden">New</span>
         </button>
