@@ -2,9 +2,9 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import type { SortDir } from "./ProductsTable";
-import { 
-  Search, 
-  X, 
+import {
+  Search,
+  X,
   ArrowUpDown,
   ListFilter,
   ChevronDown,
@@ -23,7 +23,7 @@ interface ProductToolbarProps {
   filtersRef: React.RefObject<HTMLDivElement | null>;
 }
 
-function CategoryFilter({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function CategoryFilter({ value, onChange }: Readonly<{ value: string; onChange: (v: string) => void }>) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -62,7 +62,7 @@ function CategoryFilter({ value, onChange }: { value: string; onChange: (v: stri
           <LayoutGrid size={14} strokeWidth={3} />
         </div>
         <span className="truncate">{activeLabel}</span>
-        <ChevronDown 
+        <ChevronDown
           className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""} ${isActive ? "text-white" : "text-gray-400 group-hover:text-white"}`}
           strokeWidth={3}
         />
@@ -98,7 +98,7 @@ function CategoryFilter({ value, onChange }: { value: string; onChange: (v: stri
   );
 }
 
-function SortToggleButton({ label, dir, onToggle, icon }: { label: string; dir: SortDir; onToggle: () => void; icon?: React.ReactNode }) {
+function SortToggleButton({ label, dir, onToggle, icon }: Readonly<{ label: string; dir: SortDir; onToggle: () => void; icon?: React.ReactNode }>) {
   const isSelected = dir !== "";
   const isDesc = dir === "desc";
 
@@ -109,7 +109,7 @@ function SortToggleButton({ label, dir, onToggle, icon }: { label: string; dir: 
       className={`px-3 py-1 rounded-sm border text-[12px] transition-all flex items-center gap-2.5 focus:outline-none group shrink-0 ${isSelected
         ? "border-orange-500 bg-orange-500 text-white shadow-sm font-black"
         : "border-gray-100 bg-gray-50/50 text-gray-400 hover:bg-orange-600 hover:border-orange-600 hover:text-white font-bold"
-      }`}
+        }`}
     >
       {icon && (
         <div className={`transition-colors duration-200 shrink-0 ${isSelected ? "text-white" : "text-gray-400 group-hover:text-white/80"}`}>
@@ -140,31 +140,31 @@ export function ProductToolbar({
   const activeCount = [categoryFilter, reorderDir].filter(Boolean).length;
 
   return (
-    <div className="flex flex-wrap items-center gap-3 border border-gray-200 bg-white rounded-xl px-1 py-1 transition-all hover:border-gray-200">
-      
+    <div className="flex flex-wrap items-center gap-3 border border-gray-200 bg-white rounded-md px-1 py-1 transition-all hover:border-gray-200">
+
       {/* Desktop Toolbar */}
       <div className="hidden sm:flex items-center flex-1">
         <div className="flex items-center gap-2 pr-3 border-r border-gray-100">
-           <CategoryFilter value={categoryFilter} onChange={setCategoryFilter} />
+          <CategoryFilter value={categoryFilter} onChange={setCategoryFilter} />
         </div>
 
         <div className="flex items-center gap-2 px-2">
-            <SortToggleButton
-              label="Reorder"
-              dir={reorderDir}
-              onToggle={() => {
-                if (!reorderDir) setReorderDir("desc");
-                else if (reorderDir === "desc") setReorderDir("asc");
-                else setReorderDir("");
-              }}
-              icon={<ArrowUpDown size={14} strokeWidth={3} />}
-            />
+          <SortToggleButton
+            label="Reorder"
+            dir={reorderDir}
+            onToggle={() => {
+              if (!reorderDir) setReorderDir("desc");
+              else if (reorderDir === "desc") setReorderDir("asc");
+              else setReorderDir("");
+            }}
+            icon={<ArrowUpDown size={14} strokeWidth={3} />}
+          />
         </div>
 
         <div className="ml-auto flex items-center gap-2 bg-slate-50 border border-gray-100 rounded-lg px-2.5 py-1.5 focus-within:border-gray-300 focus-within:bg-white transition-all w-64 lg:w-80 overflow-hidden">
           <Search size={14} className="text-gray-400 shrink-0" strokeWidth={2} />
-          <input 
-            type="text" 
+          <input
+            type="text"
             placeholder="Search catalog..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -183,9 +183,8 @@ export function ProductToolbar({
         <div className="relative" ref={filtersRef}>
           <button
             onClick={() => setFiltersOpen(!filtersOpen)}
-            className={`flex items-center gap-2 px-3 py-1 rounded-sm border transition-all ${
-              filtersOpen ? "bg-black text-white border-black" : "bg-white text-black border-black/70"
-            } text-[11px] font-black uppercase tracking-widest`}
+            className={`flex items-center gap-2 px-3 py-1 rounded-sm border transition-all ${filtersOpen ? "bg-orange-500 text-white border-orange-500" : "bg-white text-gray-400 border-gray-200"
+              } text-[11px] font-black uppercase tracking-widest`}
           >
             <ListFilter size={14} strokeWidth={3} />
             <span>Filter</span>
@@ -197,40 +196,39 @@ export function ProductToolbar({
               <div className="space-y-2">
                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Filter By Category</span>
                 <div className="flex flex-col gap-2">
-                   {["", "Accessories", "Fasteners"].map((cat) => (
-                     <button
-                       key={cat}
-                       onClick={() => { setCategoryFilter(cat); setFiltersOpen(false); }}
-                       className={`w-full text-left px-4 py-2.5 text-[10px] font-black tracking-widest uppercase transition-colors flex items-center justify-between group/opt ${categoryFilter === cat ? "bg-slate-50 text-orange-500 border-l-2 border-orange-500" : "text-gray-500 hover:bg-orange-500 hover:text-white"
-                         }`}
-                     >
-                       {cat || "All Categories"}
-                       {categoryFilter === cat && (
-                         <X size={12} className="text-orange-500 group-hover/opt:text-white" />
-                       )}
-                     </button>
-                   ))}
+                  {["", "Accessories", "Fasteners"].map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => { setCategoryFilter(cat); setFiltersOpen(false); }}
+                      className={`w-full text-left px-4 py-2.5 text-[10px] font-black tracking-widest uppercase transition-colors flex items-center justify-between group/opt ${categoryFilter === cat ? "bg-slate-50 text-orange-500 border-l-2 border-orange-500" : "text-gray-500 hover:bg-orange-500 hover:text-white"
+                        }`}
+                    >
+                      {cat || "All Categories"}
+                      {categoryFilter === cat && (
+                        <X size={12} className="text-orange-500 group-hover/opt:text-white" />
+                      )}
+                    </button>
+                  ))}
                 </div>
               </div>
 
               <div className="space-y-2">
                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Sort By Reorder</span>
                 <div className="flex gap-2">
-                   {[
-                     { label: "Default", val: "" },
-                     { label: "Low → High", val: "asc" },
-                     { label: "High → Low", val: "desc" },
-                   ].map((opt) => (
-                     <button
-                       key={opt.val}
-                       onClick={() => { setReorderDir(opt.val as SortDir); setFiltersOpen(false); }}
-                       className={`px-3 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider border ${
-                         reorderDir === opt.val ? "bg-black text-white border-black" : "bg-white text-gray-400 border-gray-100"
-                       }`}
-                     >
-                       {opt.label}
-                     </button>
-                   ))}
+                  {[
+                    { label: "Default", val: "" },
+                    { label: "Low → High", val: "asc" },
+                    { label: "High → Low", val: "desc" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.val}
+                      onClick={() => { setReorderDir(opt.val as SortDir); setFiltersOpen(false); }}
+                      className={`px-3 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider border ${reorderDir === opt.val ? "bg-black text-white border-black" : "bg-white text-gray-400 border-gray-100"
+                        }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -247,8 +245,8 @@ export function ProductToolbar({
         {/* Mobile Search */}
         <div className="flex-1 ml-3 flex items-center gap-2 bg-slate-50 border border-gray-100 rounded-sm px-2.5 py-1.5">
           <Search size={14} className="text-gray-400 shrink-0" strokeWidth={2} />
-          <input 
-            type="text" 
+          <input
+            type="text"
             placeholder="Search..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}

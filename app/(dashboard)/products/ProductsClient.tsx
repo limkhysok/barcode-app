@@ -292,7 +292,7 @@ export default function ProductsClient({
       />
 
       {/* Table */}
-      <div className="rounded-xl border border-black overflow-hidden bg-white ">
+      <div className="rounded-md border border-gray-200 overflow-hidden bg-white ">
         <ProductsTable
           loading={loading}
           error={error}
