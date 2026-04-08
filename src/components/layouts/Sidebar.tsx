@@ -81,7 +81,7 @@ function NavItem({
     >
       <span className={`shrink-0 transition-transform duration-200 ${active ? "scale-110" : "group-hover:scale-110"}`}>{icon}</span>
       <span
-        className="text-[10px] font-black uppercase tracking-[0.1em]"
+        className="text-[10px] font-black uppercase tracking-widest"
         style={{
           maxWidth: isCollapsed ? 0 : 140,
           opacity: isCollapsed ? 0 : 1,

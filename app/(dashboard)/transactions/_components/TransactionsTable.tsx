@@ -99,7 +99,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
               />
 
               {/* Card Content (Layered above button base but below actions) */}
-              <div className="relative z-[1] pointer-events-none">
+              <div className="relative z-1 pointer-events-none">
                 {/* Card Header (Row 1) */}
                 <div className="flex items-center justify-between gap-2 pb-2 border-b border-gray-50">
                   <div className="flex flex-col gap-0.5 flex-1 min-w-0">
@@ -189,7 +189,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                            <span className={`w-1.5 h-1.5 rounded-full ${t.transaction_type === 'Receive' ? 'bg-orange-500' : 'bg-blue-500'}`} />
                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none group-hover:text-orange-400">{t.transaction_type}</p>
                         </div>
-                        <p className="text-[16px] font-black text-black leading-tight tracking-tight group-hover:text-orange-600 transition-colors uppercase truncate max-w-[150px]">{first?.product_name ?? "—"}</p>
+                        <p className="text-[16px] font-black text-black leading-tight tracking-tight group-hover:text-orange-600 transition-colors uppercase truncate max-w-37.5">{first?.product_name ?? "—"}</p>
                         {more > 0 && <p className="text-[10px] font-bold text-gray-400 group-hover:text-orange-300">and {more} more items...</p>}
                      </div>
                      <div className="w-10 h-10 rounded-xl bg-slate-50 border border-gray-100 flex items-center justify-center shrink-0 shadow-sm group-hover:bg-orange-500 transition-all">
@@ -237,7 +237,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
 
       {/* Desktop — list view */}
       {viewMode === "list" && (
-      <div className="hidden sm:block overflow-x-auto bg-white border border-gray-200 rounded-2xl shadow-sm">
+      <div className="hidden sm:block overflow-x-auto bg-white border border-gray-200 rounded-md shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-slate-50/50 border-b border-gray-100">
             <tr>

@@ -54,7 +54,7 @@ const DateFilter: React.FC<DateFilterProps> = ({ value, onChange }) => {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`px-2.5 py-1.5 rounded-lg border text-[12px] font-bold transition-all duration-150 focus:outline-none flex items-center gap-2.5 group ${buttonStyles} min-w-[130px]`}
+        className={`px-2.5 py-1.5 rounded-lg border text-[12px] font-bold transition-all duration-150 focus:outline-none flex items-center gap-2.5 group ${buttonStyles} min-w-32.5`}
       >
         <div className={`transition-colors duration-200 ${isActive ? "text-white" : "text-gray-400 group-hover:text-white"}`}>
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
@@ -77,7 +77,7 @@ const DateFilter: React.FC<DateFilterProps> = ({ value, onChange }) => {
       </button>
 
       {open && (
-        <div className="absolute z-[100] left-0 mt-1 min-w-[190px] bg-white border border-gray-100 rounded-xl shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden">
+        <div className="absolute z-100 left-0 mt-1 min-w-47.5 bg-white border border-gray-100 rounded-xl shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden">
           <ul className="divide-y divide-gray-50">
             {options.map((o) => (
               <li key={o.key}>
@@ -88,7 +88,7 @@ const DateFilter: React.FC<DateFilterProps> = ({ value, onChange }) => {
                     setOpen(false);
                     setCustomMode(false);
                   }}
-                  className={`w-full text-left px-4 py-2.5 text-[10px] font-black tracking-[0.1em] uppercase transition-colors flex items-center justify-between group/opt ${value === o.key ? "bg-slate-50 text-orange-500 border-l-2 border-orange-500" : "text-gray-500 hover:bg-orange-500 hover:text-white"
+                  className={`w-full text-left px-4 py-2.5 text-[10px] font-black tracking-widest uppercase transition-colors flex items-center justify-between group/opt ${value === o.key ? "bg-slate-50 text-orange-500 border-l-2 border-orange-500" : "text-gray-500 hover:bg-orange-500 hover:text-white"
                     }`}
                 >
                   {o.label}
@@ -121,7 +121,7 @@ const DateFilter: React.FC<DateFilterProps> = ({ value, onChange }) => {
                 <button
                   type="button"
                   onClick={() => setCustomMode(true)}
-                  className={`w-full text-left px-4 py-2.5 text-[10px] font-black tracking-[0.1em] uppercase transition-colors flex items-center justify-between ${/^\d{4}-\d{2}-\d{2}$/.test(value) ? "bg-slate-100 text-black" : "text-gray-500 hover:bg-gray-50 hover:text-black"
+                  className={`w-full text-left px-4 py-2.5 text-[10px] font-black tracking-widest uppercase transition-colors flex items-center justify-between ${/^\d{4}-\d{2}-\d{2}$/.test(value) ? "bg-slate-100 text-black" : "text-gray-500 hover:bg-gray-50 hover:text-black"
                     }`}
                 >
                   Custom Date

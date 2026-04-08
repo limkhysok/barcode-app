@@ -387,14 +387,9 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   }, [transactions, typeFilter, dateFilter, sortBy]);
 
   return (
-    <div className="px-4 py-5 sm:px-5 sm:py-5 space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border border-gray-100 bg-white rounded-md p-3 shadow-sm gap-4">
+    <div className="px-4 py-5 sm:px-5 sm:py-5 space-y-3">
+      <div className="flex items-center justify-between border border-gray-100 bg-white rounded-md p-3 gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-sm bg-slate-950 flex items-center justify-center shrink-0 shadow-lg border border-white/10">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.128 16.556 17.975 12 17.975s-8.25-1.847-8.25-4.125v-3.75m16.5 0v3.75" />
-            </svg>
-          </div>
           <div className="flex flex-col">
             <h1 className="text-[17px] font-black text-black uppercase tracking-tight leading-none">Transactions</h1>
             <div className="mt-1 flex items-center gap-2">
@@ -406,13 +401,13 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 sm:justify-end">
           {/* Export PDF */}
           <div className="relative" ref={pdfPanelRef}>
             <button
               type="button"
               onClick={() => { setPdfPanelOpen(!pdfPanelOpen); setPdfError(""); }}
-              className={`flex items-center gap-2.5 px-3.5 py-1.5 rounded-sm text-[11px] font-black uppercase tracking-wider border-2 transition-all shadow-sm ${
+              className={`flex items-center gap-2.5 px-3.5 py-1.5 rounded-sm text-[11px] font-black uppercase tracking-wider border-2 transition-all  ${
                 pdfPanelOpen ? "border-slate-900 bg-slate-900 text-white" : "border-gray-100 bg-white text-slate-700 hover:border-slate-900 hover:bg-slate-50"
               }`}
             >
@@ -440,7 +435,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
                       type="button"
                       id="pdf-type"
                       onClick={() => setPdfTypeMenuOpen(!pdfTypeMenuOpen)}
-                      className="w-full flex items-center justify-between border-2 border-gray-50 rounded-sm px-2.5 py-2 text-xs font-bold text-gray-800 bg-white hover:border-gray-200 transition-colors focus:outline-none shadow-sm"
+                      className="w-full flex items-center justify-between border-2 border-gray-50 rounded-sm px-2.5 py-2 text-xs font-bold text-gray-800 bg-white hover:border-gray-200 transition-colors focus:outline-none "
                     >
                       <span className="uppercase">{pdfType}</span>
                       <svg
@@ -500,7 +495,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
           <button
             onClick={() => { setFormError(""); setModalOpen(true); }}
-            className="flex items-center gap-2.5 px-3.5 py-2 sm:px-5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all shadow-lg shadow-orange-500/30 ring-2 ring-orange-500/20"
+            className="flex items-center gap-2.5 px-3.5 py-2 sm:px-5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all "
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -513,7 +508,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
       <StatsOverview stats={stats} />
 
-      <div className="flex flex-wrap items-center gap-3 border border-gray-100 bg-white rounded-md p-2 shadow-sm transition-all hover:border-gray-200">
+      <div className="flex flex-wrap items-center gap-3 border border-gray-200 bg-white rounded-md p-2 transition-all hover:border-gray-200">
         {/* Desktop Toolbar */}
         <div className="hidden sm:flex items-center gap-3">
           <div className="flex items-center gap-2 pr-3 border-r border-gray-50">
@@ -598,7 +593,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
               onClick={() => setViewMode(mode)}
               title={mode === "list" ? "List view" : "Grid view"}
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[10px] font-black tracking-widest uppercase transition-all duration-150 ${viewMode === mode
-                ? "bg-orange-500 text-white shadow-sm"
+                ? "bg-orange-500 text-white"
                 : "text-gray-400 hover:text-white hover:bg-orange-500"
                 }`}
             >
