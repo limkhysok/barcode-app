@@ -545,7 +545,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
           <button
             onClick={() => { setFormError(""); setModalOpen(true); }}
-            className="flex items-center gap-2.5 px-3.5 py-2 sm:px-5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer"
+            className="flex items-center gap-2.5 px-3.5 py-1.5 sm:px-5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
