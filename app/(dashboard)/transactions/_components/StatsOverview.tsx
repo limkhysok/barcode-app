@@ -64,7 +64,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
           <div className="group/receive bg-white border border-gray-200 rounded-md px-3.5 pt-3 pb-2.5 transition-all duration-300 hover:border-orange-500/30 hover:shadow-md flex flex-col gap-2">
             {/* Header row: label + icon */}
             <div className="flex items-center justify-between">
-              <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest leading-none group-hover/receive:text-orange-500 transition-colors">All Receive</p>
+              <p className="text-[13px] font-black text-gray-400 uppercase tracking-widest leading-none group-hover/receive:text-orange-500 transition-colors">All Receive</p>
               <svg className="w-8 h-8 text-gray-300 group-hover/receive:text-orange-400 transition-colors shrink-0" fill="currentColor" viewBox="0 0 24 24">
                 <path fillRule="evenodd" d="M6.912 3a3 3 0 00-2.868 2.118l-2.411 7.838a3 3 0 00-.133.882V18a3 3 0 003 3h15a3 3 0 003-3v-4.162c0-.299-.045-.596-.133-.882l-2.412-7.838A3 3 0 0017.088 3H6.912zm13.823 9.75l-2.213-7.191A1.5 1.5 0 0017.088 4.5H6.912a1.5 1.5 0 00-1.434 1.059L3.265 12.75H6.11a3 3 0 012.684 1.658l.256.513a1.5 1.5 0 001.342.829h3.218a1.5 1.5 0 001.342-.83l.256-.512a3 3 0 012.684-1.658h2.844z" clipRule="evenodd" />
                 <path fillRule="evenodd" d="M12 2.25a.75.75 0 01.75.75v6.44l1.72-1.72a.75.75 0 111.06 1.06l-3 3a.75.75 0 01-1.06 0l-3-3a.75.75 0 011.06-1.06l1.72 1.72V3a.75.75 0 01.75-.75z" clipRule="evenodd" />
@@ -103,7 +103,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
           <div className="group/sale bg-white border border-gray-200 rounded-md px-3.5 pt-3 pb-2.5 transition-all duration-300 hover:border-orange-500/30 hover:shadow-md flex flex-col gap-2">
             {/* Header row: label + icon */}
             <div className="flex items-center justify-between">
-              <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest leading-none group-hover/sale:text-orange-500 transition-colors">All Sale</p>
+              <p className="text-[13px] font-black text-gray-400 uppercase tracking-widest leading-none group-hover/sale:text-orange-500 transition-colors">All Sale</p>
               <svg className="w-8 h-8 text-gray-300 group-hover/sale:text-orange-400 transition-colors shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15m0-3l-3-3m0 0l-3 3m3-3V15" />
               </svg>
@@ -143,7 +143,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
           <div className="group h-full bg-white border border-gray-200 rounded-md px-3.5 pt-3 pb-2.5 transition-all duration-300 hover:border-orange-500/30 hover:shadow-md flex flex-col gap-2">
             {/* Header row: label + icon */}
             <div className="flex items-center justify-between">
-              <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest leading-none group-hover:text-orange-500 transition-colors">Lifetime</p>
+              <p className="text-[13px] font-black text-gray-400 uppercase tracking-widest leading-none group-hover:text-orange-500 transition-colors">Lifetime</p>
               <svg className="w-8 h-8 text-gray-300 group-hover:text-orange-400 transition-colors shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
               </svg>

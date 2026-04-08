@@ -212,15 +212,6 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
 
                 {/* Actions Footer */}
                 <div className="px-4 py-3 pb-4 flex flex-col gap-3 mt-2">
-                   {/* Performed By Row */}
-                   <div className="flex items-center justify-between px-1">
-                     <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-[9px] font-black text-gray-400 uppercase">{t.performed_by_username?.[0] ?? '?'}</div>
-                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight group-hover:text-orange-400">{t.performed_by_username}</span>
-                     </div>
-                     <span className="text-[9px] font-bold text-gray-200 tabular-nums uppercase" suppressHydrationWarning>{formatDateTime(t.transaction_date).split(' ')[1]}</span>
-                   </div>
-
                    {/* Action Buttons Row */}
                    <div className="flex items-center justify-between gap-1.5 pt-1">
                       <button type="button" onClick={() => onView(t)} className="flex-1 flex items-center justify-center py-2.5 rounded-xl bg-slate-50 border border-gray-100 text-gray-400 hover:text-orange-500 hover:border-orange-200 hover:bg-orange-50 transition-all active:scale-90 shadow-sm" title="View"><svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></button>
@@ -241,7 +232,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
         <table className="w-full text-sm">
           <thead className="bg-slate-50/50 border-b border-gray-100">
             <tr>
-              {["#", "Type", "Items", "Total Quantity", "Date", "Performed By", "Actions"].map((h) => (
+              {["#", "Type", "Items", "Total Quantity", "Date", "Actions"].map((h) => (
                 <th key={h} className="px-6 py-4 text-left text-[11px] font-black tracking-widest text-gray-400 uppercase">{h}</th>
               ))}
             </tr>
@@ -252,7 +243,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
               return (
                 <tr key={t.id} className="group hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4">
-                     <span className="text-[14px] font-black text-black tabular-nums group-hover:text-orange-600 transition-colors">#{t.id}</span>
+                     <span className="text-[11px] font-black text-black tabular-nums group-hover:text-orange-600 transition-colors">#{t.id}</span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
@@ -262,34 +253,28 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                        </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 font-bold text-gray-800 text-[13px]">
+                  <td className="px-6 py-4 font-bold text-gray-800 text-[12px]">
                     {t.items.length} {t.items.length === 1 ? "Item" : "Items"}
                   </td>
                   <td className="px-6 py-4">
-                     <div className="inline-flex items-center justify-center px-2 py-1 bg-slate-50 border border-gray-100 rounded-lg group-hover:bg-orange-50 transition-colors">
-                        <span className="font-black tabular-nums text-black text-[13px] group-hover:text-orange-600">
+                     <div className="inline-flex items-center justify-center px-2 py-1 border-gray-100 group-hover:bg-orange-50 transition-colors">
+                        <span className="font-black tabular-nums text-black text-[12px] group-hover:text-orange-600">
                            {t.items.reduce((sum, item) => sum + Math.abs(item.quantity), 0)}
                         </span>
                      </div>
                   </td>
                   <td className="px-6 py-4" suppressHydrationWarning>
                     <div className="flex flex-col">
-                       <span className="text-[12px] font-black text-gray-800 uppercase tracking-tight group-hover:text-orange-600">{formatDateTime(t.transaction_date).split(' ')[0]}</span>
-                       <span className="text-[10px] font-bold text-gray-300 tabular-nums">{formatDateTime(t.transaction_date).split(' ')[1]}</span>
+                       <span className="text-[11px] font-black text-gray-800 uppercase tracking-tight group-hover:text-orange-600">{formatDateTime(t.transaction_date).split(' ')[0]}</span>
+                       <span className="text-[11px] font-bold text-gray-300 tabular-nums">{formatDateTime(t.transaction_date).split(' ')[1]}</span>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
-                     <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-[10px] font-black text-gray-400 uppercase">{t.performed_by_username?.[0] ?? '?'}</div>
-                        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-tight group-hover:text-orange-400">{t.performed_by_username}</span>
-                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1.5">
                       <button
                         type="button"
                         onClick={() => onView(t)}
-                        className="p-2 rounded-xl bg-slate-50 border border-gray-100 text-gray-300 hover:text-orange-500 hover:border-orange-200 hover:bg-orange-50 transition-all active:scale-90 shadow-sm"
+                        className="p-2 text-gray-300 hover:text-orange-500 transition-all cursor-pointer"
                         title="View Details"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -302,7 +287,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                         <button
                           type="button"
                           onClick={() => onEdit(t)}
-                          className="p-2 rounded-xl bg-slate-50 border border-gray-100 text-gray-300 hover:text-blue-500 hover:border-blue-200 hover:bg-blue-50 transition-all active:scale-90 shadow-sm"
+                          className="p-2 text-gray-300 hover:text-orange-500 transition-all cursor-pointer"
                           title="Edit Transaction"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -314,7 +299,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                       <button
                         type="button"
                         onClick={() => onPrint(t)}
-                        className="p-2 rounded-xl bg-slate-50 border border-gray-100 text-gray-300 hover:text-black hover:border-black/50 hover:bg-gray-100 transition-all active:scale-90 shadow-sm"
+                        className="p-2 text-gray-300 hover:text-orange-500 transition-all cursor-pointer"
                         title="Print PDF"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -326,11 +311,11 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                         <button
                           type="button"
                           onClick={() => onDelete(t)}
-                          className="p-2 rounded-xl bg-slate-50 border border-gray-100 text-gray-300 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all active:scale-90 shadow-sm"
+                          className="p-2 text-gray-300 hover:text-red-500 transition-all cursor-pointer"
                           title="Delete Transaction"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.34 9m-4.72 0l-.34-9m9.48-3.32a48.108 48.108 0 00-3.45-1.24.47.47 0 01-.36-.31L15.65 1.11A.75.75 0 0015.01 1H8.99a.75.75 0 00-.64.11l-.38 1.41a.47.47 0 01-.36.31c-1.17.3-2.31.72-3.45 1.24m11.31 10.59l-.83 6.7a1.5 1.5 0 01-1.49 1.32H8.3a1.5 1.5 0 01-1.49-1.32l-.83-6.7m13.26-2.4l-13.26 2.4" />
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path fillRule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z" clipRule="evenodd" />
                           </svg>
                         </button>
                       )}

@@ -545,7 +545,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
           <button
             onClick={() => { setFormError(""); setModalOpen(true); }}
-            className="flex items-center gap-2.5 px-3.5 py-2 sm:px-5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer shadow-xl shadow-black/20"
+            className="flex items-center gap-2.5 px-3.5 py-2 sm:px-5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -567,7 +567,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none no-scrollbar">
-            <div className="flex items-center gap-1.5 shrink-0 px-2 py-1.5 bg-slate-50 rounded-lg">
+            <div className="flex items-center gap-1.5 shrink-0 px-2 ">
               <SortToggleButton 
                 label="Date" 
                 field="transaction_date" 
@@ -583,7 +583,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
                 icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-3.75zM2.25 16.875c0-.621.504-1.125 1.125-1.125h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75z"/></svg>}
               />
               <SortToggleButton 
-                label="Qty" 
+                label="Quantity" 
                 field="total_qty" 
                 currentSort={sortBy} 
                 onSort={setSortBy} 

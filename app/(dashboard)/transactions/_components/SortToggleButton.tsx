@@ -36,7 +36,7 @@ const SortToggleButton: React.FC<SortToggleButtonProps> = ({
     <button
       type="button"
       onClick={handleClick}
-      className={`px-3 py-1.5 rounded-lg border text-[12px] transition-all flex items-center gap-2.5 focus:outline-none group shrink-0 ${isSelected
+      className={`px-3 py-1.5 rounded-sm border text-[12px] transition-all flex items-center gap-2.5 focus:outline-none group shrink-0 ${isSelected
         ? "border-orange-500 bg-orange-500 text-white shadow-sm font-black"
         : "border-gray-100 bg-gray-50/50 text-gray-400 hover:bg-orange-600 hover:border-orange-600 hover:text-white font-bold"
         }`}
