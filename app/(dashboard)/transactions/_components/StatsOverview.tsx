@@ -53,7 +53,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
         {/* Left Side: Detail Metrics (7 cols) */}
         <div className="col-span-7 grid grid-cols-2 gap-2">
           {/* All Receive */}
-          <div className="group bg-white border border-gray-100 rounded-xl p-3.5 shadow-sm transition-all duration-300 hover:border-orange-500/30 hover:shadow-xl group/receive overflow-hidden flex flex-col justify-between h-full">
+          <div className="group bg-white border border-gray-100 rounded-md p-3.5 shadow-sm transition-all duration-300 hover:border-orange-500/30 hover:shadow-xl group/receive overflow-hidden flex flex-col justify-between h-full">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-xl bg-slate-50 flex items-center justify-center transition-all group-hover/receive:bg-orange-500 shrink-0 shadow-sm border border-gray-100/50">
                 <svg className="w-8 h-8 text-gray-400 group-hover/receive:text-white transition-colors" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -84,7 +84,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
           </div>
 
           {/* All Sale */}
-          <div className="group bg-white border border-gray-100 rounded-xl p-3.5 shadow-sm transition-all duration-300 hover:border-orange-500/10 hover:shadow-xl group/sale overflow-hidden flex flex-col justify-between h-full">
+          <div className="group bg-white border border-gray-100 rounded-md p-3.5 shadow-sm transition-all duration-300 hover:border-orange-500/10 hover:shadow-xl group/sale overflow-hidden flex flex-col justify-between h-full">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-xl bg-slate-50 flex items-center justify-center transition-all group-hover/sale:bg-orange-500 shrink-0 shadow-sm border border-gray-100/50">
                 <svg className="w-8 h-8 text-gray-400 group-hover/sale:text-white transition-colors" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -117,7 +117,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
 
         {/* Right Side: Lifetime Overview (3 cols) */}
         <div className="col-span-3">
-          <div className="group h-full bg-white border border-gray-100 rounded-xl p-3.5 shadow-sm transition-all duration-300 hover:border-orange-500/30 hover:shadow-xl flex flex-col justify-between">
+          <div className="group h-full bg-white border border-gray-100 rounded-md p-3.5 shadow-sm transition-all duration-300 hover:border-orange-500/30 hover:shadow-xl flex flex-col justify-between">
             <div className="space-y-3">
               <div className="flex items-center gap-4 pt-0.5">
                 <div className="w-14 h-14 rounded-xl bg-slate-950 flex items-center justify-center shrink-0 shadow-xl group-hover:bg-orange-500 transition-all duration-500 shadow-black/20 group-hover:shadow-orange-500/20">

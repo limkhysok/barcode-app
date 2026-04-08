@@ -103,7 +103,7 @@ function SidebarContent({
   onClose,
 }: Readonly<{ isCollapsed: boolean; onClose: () => void }>) {
   return (
-    <div className="flex flex-col h-full w-full bg-white border-r border-gray-100">
+    <div className="flex flex-col h-full w-full bg-white border-r border-gray-200">
 
       {/* ── Brand ── */}
 
@@ -185,8 +185,8 @@ function CollapseToggle({
       aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       className="
         absolute top-5 -right-3.5 z-30 hidden md:flex
-        items-center justify-center w-7 h-7 rounded-lg
-        bg-black text-white border border-gray-100
+        items-center justify-center w-7 h-7 rounded-full
+        bg-orange-500 text-white border border-gray-100
         hover:bg-orange-500 hover:scale-110 active:scale-95 transition-all duration-200
         shadow-lg
       "

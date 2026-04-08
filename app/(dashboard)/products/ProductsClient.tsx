@@ -88,143 +88,153 @@ function ProductTable({ loading, error, displayed, products, costDir, reorderDir
 }>) {
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="w-7 h-7 rounded-full border-2 border-t-transparent animate-spin"
-          style={{ borderColor: "#FA4900", borderTopColor: "transparent" }} />
+      <div className="flex items-center justify-center py-24">
+        <div className="w-10 h-10 rounded-full border-[3px] border-orange-500/20 border-t-orange-500 animate-spin" />
       </div>
     );
   }
-  if (error) return <p className="text-center py-20 text-sm text-red-400">{error}</p>;
+  if (error) return <div className="p-12 text-center text-sm font-black text-red-500 uppercase tracking-widest bg-red-50/50 rounded-2xl border border-red-100 mx-4 my-8">{error}</div>;
   if (displayed.length === 0) {
-    const msg = products.length === 0 ? "No products yet. Add your first one." : "No products match your search.";
+    const msg = products.length === 0 ? "Empty Catalog" : "No Match Found";
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-3 text-gray-400">
-        <svg className="w-10 h-10 opacity-30" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round"
-            d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-        </svg>
-        <p className="text-sm font-medium">{msg}</p>
+      <div className="flex flex-col items-center justify-center py-24 gap-4 text-slate-300">
+        <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center">
+            <svg className="w-10 h-10 opacity-20" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+            </svg>
+        </div>
+        <p className="text-sm font-black uppercase tracking-[0.3em]">{msg}</p>
       </div>
     );
   }
   return (
-    <>
-      {/* Mobile cards */}
-      <div className="sm:hidden divide-y divide-black border-y border-black bg-white">
-        {displayed.map((p, idx) => {
-          return (
-            <div key={p.id ?? idx} className="px-3 py-2.5 bg-white">
-              {/* Row 1: Header - ID + Category + Name + Actions */}
-              <div className="flex items-center justify-between gap-3 pb-2 border-b border-slate-50">
-                <div className="flex flex-col gap-1 flex-1 min-w-0">
+    <div className="space-y-4">
+      {/* ── Mobile: High Density Cards ── */}
+      <div className="sm:hidden space-y-3 px-4">
+        {displayed.map((p, idx) => (
+          <div key={p.id ?? idx} className="relative group bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:border-orange-500/30 transition-all duration-300">
+             
+            {/* Stretched Link Overlay */}
+            {canEdit && (
+              <button 
+                onClick={() => onEdit(p)}
+                className="absolute inset-0 z-0 w-full h-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-500/20 rounded-2xl"
+                aria-label={`Edit ${p.product_name}`}
+              />
+            )}
+
+            <div className="relative z-10 pointer-events-none">
+                <div className="flex items-center justify-between gap-4 mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono font-black text-white bg-black px-1.5 py-0.5 rounded-sm shrink-0">#{p.id}</span>
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest bg-gray-100 px-2 py-0.5 rounded-md truncate">{p.category}</span>
+                    <span className="text-[10px] font-black text-white bg-slate-950 px-2 py-0.5 rounded-md shadow-sm">ID-{p.id}</span>
+                    <span className="text-[9px] font-black text-orange-600 bg-orange-50 px-2.5 py-0.5 rounded-full uppercase tracking-widest border border-orange-100">{p.category}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest shrink-0">Name:</span>
-                    <p className="font-black text-gray-900 text-[11px] leading-snug truncate uppercase tracking-tighter">{p.product_name}</p>
-                  </div>
-                </div>
-                <div className="flex items-center -mr-1">
-                  {canEdit && (
-                    <button onClick={() => onEdit(p)} className="p-1 px-1.5 rounded-lg text-gray-300 hover:text-gray-900 transition-colors active:scale-95" title="Edit">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                      </svg>
-                    </button>
-                  )}
+                  
+                  {/* Secondary Action: Delete */}
                   {canDelete && (
-                    <button onClick={() => onDelete(p)} className="p-1 px-1.5 rounded-lg text-gray-300 hover:text-red-500 transition-colors active:scale-95" title="Delete">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); onDelete(p); }}
+                      className="pointer-events-auto p-2 rounded-xl text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all active:scale-90"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                       </svg>
                     </button>
                   )}
                 </div>
-              </div>
 
-              {/* Row 2: Metadata - Supplier + Barcode */}
-              <div className="flex items-center gap-3 mt-2 px-1 py-1 bg-slate-50/70 border border-slate-100/50 rounded-lg text-[10px] shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)]">
-                <div className="flex items-center gap-1.5 min-w-0 text-slate-500">
-                  <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 16.5h.75v.75h-.75v-.75zM16.5 13.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z" />
-                  </svg>
-                  <span className="truncate font-mono">{p.barcode}</span>
+                <h3 className="text-sm font-black text-slate-950 uppercase tracking-tighter mb-1 line-clamp-1">{p.product_name}</h3>
+                
+                <div className="flex items-center gap-3 py-2 bg-slate-50/50 rounded-xl px-3 border border-slate-100/50 mb-3">
+                   <div className="flex items-center gap-1.5 min-w-0">
+                      <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5z" />
+                      </svg>
+                      <span className="text-[10px] font-mono font-bold text-slate-500 truncate">{p.barcode}</span>
+                   </div>
+                   <div className="w-px h-3 bg-slate-200" />
+                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest truncate">{p.supplier}</span>
                 </div>
-                <div className="ml-auto flex items-center gap-1.5 shrink-0">
-                  <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest">Supplier</span>
-                  <span className="font-black text-slate-900 tabular-nums bg-white px-1.5 py-0.5 rounded border border-slate-100 shadow-sm">{p.supplier}</span>
-                </div>
-              </div>
 
-              {/* Row 3: Metrics - Reorder level + Created at */}
-              <div className="flex items-center justify-between px-1.5 mt-2 pt-2 border-t border-slate-50">
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0" />
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Reorder at</span>
-                  <span className="text-[10px] font-black text-gray-900 tabular-nums ml-0.5">{p.reorder_level}</span>
+                <div className="flex items-center justify-between pt-1">
+                   <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Reorder Level</span>
+                      <span className="text-xs font-black text-slate-950 tabular-nums">{p.reorder_level}</span>
+                   </div>
+                   <p className="text-[9px] font-black text-orange-500 font-mono tracking-tighter uppercase tabular-nums">
+                     {new Date(p.created_at).toLocaleDateString()}
+                   </p>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-slate-200 text-[12px]">•</span>
-                  <p className="text-[9px] font-black text-slate-500 font-mono tracking-tighter uppercase tabular-nums">
-                    {new Date(p.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
 
-      {/* Desktop table */}
-      <div className="hidden sm:block overflow-x-auto">
+      {/* ── Desktop: Brutalist Table ── */}
+      <div className="hidden sm:block overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-all hover:border-gray-200">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 border-b border-black">
+          <thead className="bg-slate-50/50 border-b border-gray-100">
             <tr>
-              <th className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">#</th>
-              <th className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">Barcode</th>
-              <th className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">Name</th>
-              <th className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">Category</th>
-              <th className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">
-                <span className="inline-flex items-center gap-1">
-                  {"Reorder"}{" "}
-                  <span className="flex flex-col leading-none">
+              <th className="pl-8 pr-4 py-5 text-left text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase">IDENTIFIER</th>
+              <th className="px-4 py-5 text-left text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase">BARCODE</th>
+              <th className="px-4 py-5 text-left text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase leading-none">
+                 <div className="flex flex-col">
+                    <span>NAME</span>
+                    <span className="text-[8px] tracking-widest font-bold text-slate-300">DESCRIPTION</span>
+                 </div>
+              </th>
+              <th className="px-4 py-5 text-left text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase">CATEGORY</th>
+              <th className="px-4 py-5 text-left">
+                <div className="flex items-center gap-2 text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase">
+                  <span>REORDER</span>
+                  <div className="flex flex-col -space-y-1">
                     <svg className={`w-2.5 h-2.5 ${reorderDir === "asc" ? "text-orange-500" : "text-gray-300"}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 4l8 8H4z" /></svg>
                     <svg className={`w-2.5 h-2.5 ${reorderDir === "desc" ? "text-orange-500" : "text-gray-300"}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 20l-8-8h16z" /></svg>
-                  </span>
-                </span>
+                  </div>
+                </div>
               </th>
-              <th className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">Supplier</th>
-              <th className="px-5 py-3 text-left text-[12px] font-light tracking-widest text-slate-900">Actions</th>
+              <th className="px-4 py-5 text-left text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase">SUPPLIER</th>
+              <th className="pr-8 pl-4 py-5 text-right text-[10px] font-black tracking-[0.2em] text-slate-400 uppercase">TOOLS</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-black bg-white text-[12px]">
+          <tbody className="divide-y divide-gray-50 bg-white">
             {displayed.map((p, idx) => (
-              <tr key={p.id ?? idx} className="hover:bg-slate-50 transition-colors">
-                <td className="px-5 py-2 font-black text-gray-400">#{p.id}</td>
-                <td className="px-5 py-2 font-mono text-gray-500">{p.barcode}</td>
-                <td className="px-5 py-2 font-semibold text-gray-800">{p.product_name}</td>
-                <td className="px-5 py-2">
-                  <span className="text-[10px] font-bold tracking-widest uppercase text-black">{p.category}</span>
+              <tr key={p.id ?? idx} className="group hover:bg-slate-50 transition-colors duration-300">
+                <td className="pl-8 pr-4 py-4">
+                   <div className="text-[11px] font-black text-white bg-slate-950 px-2 py-0.5 rounded shadow-sm inline-block tracking-tighter">ID-{p.id}</div>
                 </td>
-                <td className="px-5 py-2 text-gray-500">{p.reorder_level}</td>
-                <td className="px-5 py-2 text-gray-500">{p.supplier}</td>
-                <td className="px-5 py-2">
-                  <div className="flex items-center gap-1">
+                <td className="px-4 py-4">
+                   <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-slate-200" />
+                      <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-tighter tabular-nums">{p.barcode}</span>
+                   </div>
+                </td>
+                <td className="px-4 py-4 min-w-50">
+                   <span className="text-[12px] font-black text-slate-900 uppercase tracking-tight group-hover:text-orange-600 transition-colors">{p.product_name}</span>
+                </td>
+                <td className="px-4 py-4">
+                  <span className="text-[9px] font-black text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100 uppercase tracking-widest">{p.category}</span>
+                </td>
+                <td className="px-4 py-4">
+                   <span className="text-[12px] font-black text-slate-950 tabular-nums">{p.reorder_level}</span>
+                </td>
+                <td className="px-4 py-4">
+                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{p.supplier}</span>
+                </td>
+                <td className="pr-8 pl-4 py-4">
+                  <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-300">
                     {canEdit && (
                       <button onClick={() => onEdit(p)}
-                        className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition" title="Edit">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-950 transition-all active:scale-95 shadow-sm border border-transparent hover:border-slate-800" title="Edit">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                         </svg>
                       </button>
                     )}
                     {canDelete && (
                       <button onClick={() => onDelete(p)}
-                        className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition" title="Delete">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-red-600 transition-all active:scale-95 shadow-sm border border-transparent hover:border-red-500" title="Delete">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                         </svg>
                       </button>
@@ -236,7 +246,7 @@ function ProductTable({ loading, error, displayed, products, costDir, reorderDir
           </tbody>
         </table>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -472,137 +482,185 @@ export default function ProductsClient({
   const saveLabel = getSaveLabel(saving, editing);
 
   return (
-    <div className="px-4 py-5 sm:px-5 sm:py-5 space-y-4">
+    <div className="px-4 py-6 sm:px-8 sm:py-8 space-y-8 bg-white min-h-screen">
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-0.5">
-          <h1 className="text-xl font-light text-gray-900">Products</h1>
+      {/* ── Header: Command Center ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border border-gray-100 bg-white rounded-md p-3 shadow-sm gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-slate-950 flex items-center justify-center shrink-0 shadow-2xl shadow-slate-950/20 group hover:scale-105 transition-transform duration-300">
+            <svg className="w-7 h-7 text-orange-500" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 2.625c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+            </svg>
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-black text-slate-950 uppercase tracking-tighter leading-none">Catalog</h1>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 shadow-sm animate-pulse">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Online</span>
+              </div>
+            </div>
+            <p className="text-[11px] text-slate-400 font-bold uppercase tracking-[0.2em]">Product Database v2.4</p>
+          </div>
         </div>
+
         <button onClick={openCreate}
-          className="flex items-center gap-2 px-2 py-1.5 sm:px-4 rounded-lg text-xs font-light tracking-widest bg-orange-500 text-white hover:opacity-90 active:scale-[0.97] transition shadow-sm"
+          className="flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-orange-500 text-white hover:bg-orange-600 active:scale-95 transition-all duration-300 shadow-xl shadow-orange-500/25 border border-orange-400/20 group"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+          <svg className="w-5 h-5 transition-transform group-hover:rotate-90 duration-300" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          <span className="hidden sm:inline">Add Product</span>
-          <span className="sm:hidden">Add</span>
+          <span className="text-xs font-black uppercase tracking-widest">New Product</span>
         </button>
-      </div>      {/* Category Overview - Mobile (Combined Box) */}
-      <div className="sm:hidden bg-white border border-black rounded-xl overflow-hidden shadow-sm">
-        <div className="flex h-1.5 w-full bg-gray-100">
-          <div
-            className="h-full bg-black transition-all duration-700"
-            style={{ width: `${categoryStats.accessories.share}%` }}
-          />
-          <div
-            className="h-full bg-gray-300 transition-all duration-700"
-            style={{ width: `${categoryStats.fasteners.share}%` }}
-          />
-        </div>
-        <div className="grid grid-cols-3 divide-x divide-black/10">
-          {[
-            { label: "Accessories", count: categoryStats.accessories.count, icon: "↗", color: "text-black" },
-            { label: "Fasteners", count: categoryStats.fasteners.count, icon: "↘", color: "text-gray-400" },
-            { label: "Total", count: categoryStats.total, icon: "•", color: "text-black" },
-          ].map(({ label, count, icon, color }) => (
-            <div key={label} className="flex flex-col gap-0.5 px-3 py-2.5">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter truncate">{label}</p>
+      </div>
+
+      {/* ── Stats: Category Overview ── */}
+      <div className="flex flex-wrap items-center gap-3 border border-gray-100 bg-white rounded-xl p-2 shadow-sm transition-all hover:border-gray-200">
+        {/* Desktop Stats */}
+        <div className="hidden sm:flex items-center gap-3">
+
+          {/* Accessories */}
+          <div className="flex items-center gap-2 pr-3 border-r border-gray-100">
+            <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center shrink-0 border border-orange-100/50">
+              <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.222-.127c-.324-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Accessories</span>
               <div className="flex items-center gap-1">
-                <span className={`text-[12px] font-black ${color}`}>{icon}</span>
-                <span className="text-[14px] font-black text-black tabular-nums tracking-tight">{count.toLocaleString()}</span>
+                <span className="text-sm font-black text-slate-900 tabular-nums">{categoryStats.accessories.count.toLocaleString()}</span>
+                <span className="text-[9px] font-bold text-slate-400 uppercase">Items</span>
+              </div>
+            </div>
+            <div className="flex flex-col items-end gap-1 pl-1">
+              <span className="text-[9px] font-black text-orange-500">{categoryStats.accessories.share}%</span>
+              <div className="w-14 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full bg-linear-to-r from-orange-500 to-orange-400 rounded-full transition-all duration-700" style={{ width: `${categoryStats.accessories.share}%` }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Fasteners */}
+          <div className="flex items-center gap-2 pr-3 border-r border-gray-100">
+            <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center shrink-0 border border-orange-100/50">
+              <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-2.25-1.313M21 7.5v2.25m0-2.25l-2.25 1.313M3 7.5l2.25-1.313M3 7.5v2.25m0-2.25l2.25 1.313m0 9v2.25m0-2.25l-2.25-1.313m2.25 1.313l2.25-1.313m11.25 4.5l2.25-1.313m-2.25 1.313V16.5m0 2.25l-2.25-1.313M12 3v2.25m0-2.25l2.25 1.313M12 3L9.75 4.313M12 21v-2.25m0 2.25l2.25-1.313M12 21l-2.25-1.313m0-12.375L12 6l2.25 1.313M9.75 16.5L12 18l2.25-1.313M4.5 12L12 16.5l7.5-4.5L12 7.5 4.5 12z" />
+              </svg>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Fasteners</span>
+              <div className="flex items-center gap-1">
+                <span className="text-sm font-black text-slate-900 tabular-nums">{categoryStats.fasteners.count.toLocaleString()}</span>
+                <span className="text-[9px] font-bold text-slate-400 uppercase">Items</span>
+              </div>
+            </div>
+            <div className="flex flex-col items-end gap-1 pl-1">
+              <span className="text-[9px] font-black text-orange-500">{categoryStats.fasteners.share}%</span>
+              <div className="w-14 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full bg-linear-to-r from-orange-500 to-orange-400 rounded-full transition-all duration-700" style={{ width: `${categoryStats.fasteners.share}%` }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Total */}
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center shrink-0 border border-orange-100/50">
+              <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 14.25v2.25m3-2.25v2.25m3-2.25v2.25m3-2.25v2.25m-13.5 0h16.5" />
+              </svg>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total</span>
+              <div className="flex items-center gap-1">
+                <span className="text-sm font-black text-slate-900 tabular-nums">{categoryStats.total.toLocaleString()}</span>
+                <span className="text-[9px] font-bold text-slate-400 uppercase">Items</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile: compact inline stats */}
+        <div className="sm:hidden flex items-center gap-4 px-2 py-1">
+          {[
+            { label: "Acc", count: categoryStats.accessories.count, share: categoryStats.accessories.share },
+            { label: "Fast", count: categoryStats.fasteners.count, share: categoryStats.fasteners.share },
+            { label: "Total", count: categoryStats.total, share: 100 },
+          ].map(({ label, count, share }) => (
+            <div key={label} className="flex flex-col items-center gap-0.5">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{label}</span>
+              <span className="text-xs font-black text-slate-900 tabular-nums">{count.toLocaleString()}</span>
+              <div className="w-10 h-1 bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full bg-orange-400 rounded-full" style={{ width: `${share}%` }} />
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Category stat cards - Desktop */}
-      <div className="hidden sm:grid sm:grid-cols-3 gap-3">
-        {[
-          {
-            label: "Accessories",
-            count: categoryStats.accessories.count,
-            share: categoryStats.accessories.share,
-            icon: (
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
-              </svg>
-            ),
-          },
-          {
-            label: "Fasteners",
-            count: categoryStats.fasteners.count,
-            share: categoryStats.fasteners.share,
-            icon: (
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 4.5l15 15m0 0V8.25m0 11.25H8.25" />
-              </svg>
-            ),
-          },
-          {
-            label: "Total Products",
-            count: categoryStats.total,
-            share: 100,
-            icon: (
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
-            ),
-          },
-        ].map(({ label, count, share, icon }) => (
-          <div key={label} className="px-5 py-4 border border-black bg-white rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.02)] hover:shadow-md hover:bg-slate-50/50 transition-all duration-300">
-            <div className="flex items-center justify-between mb-4">
-              <div className="space-y-0.5">
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest leading-none">{label}</p>
-                <div className="flex items-baseline gap-1.5 mt-0.5">
-                  <span className="text-2xl font-black text-black tabular-nums tracking-tighter leading-none">{count}</span>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">items</span>
-                </div>
-              </div>
-              <div className="w-10 h-10 bg-black flex items-center justify-center shrink-0 rounded-lg shadow-sm">
-                {icon}
-              </div>
-            </div>
-            <div className="space-y-1.5 pt-1 border-t border-gray-50">
-              <div className="flex h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-black transition-all duration-1000 ease-out" style={{ width: `${share}%` }} />
-              </div>
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{share}% of catalog composition</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Toolbar */}
+      {/* ── Toolbar: Advanced Filters ── */}
       <div className="hidden lg:block">
-        <div className="grid grid-cols-[1fr_1fr_1fr_minmax(0,140px)_2fr] gap-2.5">
-          <div className="bg-white rounded-sm">
-            <CustomSelect id="filter-category" value={categoryFilter} onChange={setCategoryFilter}
-              options={[
-                { value: "", label: "All Categories" },
-                { value: "Accessories", label: "Accessories" },
-                { value: "Fasteners", label: "Fasteners" },
-              ]} />
+        <div className="flex flex-wrap items-center gap-3 border border-gray-100 bg-white rounded-xl p-2 shadow-sm transition-all hover:border-gray-200">
+          
+          {/* 1. Category Filter (Dropdown) */}
+          <div className="flex items-center gap-2 pl-2">
+             <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center shrink-0 border border-orange-100/50">
+               <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
+               </svg>
+             </div>
+             <div className="w-44">
+                <CustomSelect id="filter-category" value={categoryFilter} onChange={setCategoryFilter}
+                  options={[
+                    { value: "", label: "All Categories" },
+                    { value: "Accessories", label: "Accessories" },
+                    { value: "Fasteners", label: "Fasteners" },
+                  ]} />
+             </div>
           </div>
-          <div className="bg-white rounded-sm">
-            <CustomSelect id="sort-reorder" value={reorderDir} onChange={(v) => setReorderDir(v as SortDir)}
-              options={[
-                { value: "", label: "Reorder (sort)" },
-                { value: "asc", label: "Low → High" },
-                { value: "desc", label: "High → Low" },
-              ]} />
+
+          <div className="w-px h-8 bg-gray-100 mx-1" />
+
+          {/* 2. Reorder Level Sort (Toggle Group) */}
+          <div className="flex items-center gap-3">
+             <div className="flex items-center gap-2 px-2 py-1 bg-slate-50 rounded-lg border border-slate-100 shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)]">
+                <span className="text-[10px] font-black text-slate-400 pl-1 uppercase tracking-widest">Reorder</span>
+                <div className="flex items-center gap-1">
+                   {[
+                     { dir: "asc", icon: <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg> },
+                     { dir: "desc", icon: <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg> }
+                   ].map(({ dir, icon }) => (
+                     <button
+                       key={dir}
+                       onClick={() => setReorderDir(reorderDir === dir ? "" : dir as SortDir)}
+                       className={`
+                         flex items-center justify-center w-8 h-8 rounded-md transition-all duration-300
+                         ${reorderDir === dir 
+                           ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20 scale-105" 
+                           : "text-slate-400 hover:bg-white hover:text-slate-900"}
+                       `}
+                     >
+                       {icon}
+                     </button>
+                   ))}
+                </div>
+             </div>
           </div>
-          <div className="flex items-center gap-2 bg-white rounded-md border border-black px-3 py-1 shadow-sm transition-all focus-within:ring-2 focus-within:ring-orange-500/20">
-            <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+
+          <div className="w-px h-8 bg-gray-100 mx-1" />
+
+          {/* 3. Search Module */}
+          <div className="flex-1 flex items-center gap-3 bg-slate-50 rounded-xl px-4 py-2 border border-transparent focus-within:border-orange-500/20 focus-within:bg-white focus-within:ring-4 focus-within:ring-orange-500/5 transition-all group">
+            <svg className="w-4 h-4 text-slate-400 group-focus-within:text-orange-500 shrink-0 transition-colors" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
             </svg>
-            <input id="product-search" name="product-search" type="text" placeholder="Search name, barcode, supplier"
+            <input id="product-search" name="product-search" type="text" placeholder="Search name, barcode, supplier..."
               value={search} onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 min-w-0 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal bg-transparent outline-none" />
+              className="flex-1 min-w-0 text-xs font-black text-slate-900 placeholder:text-slate-400 placeholder:font-bold bg-transparent outline-none" />
             {search && (
-              <button type="button" onClick={() => setSearch("")} aria-label="Clear search" className="text-slate-300 hover:text-black transition shrink-0">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <button type="button" onClick={() => setSearch("")} aria-label="Clear search" className="w-5 h-5 flex items-center justify-center rounded-full bg-slate-200 text-white hover:bg-slate-950 transition-colors shrink-0">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -611,83 +669,82 @@ export default function ProductsClient({
         </div>
       </div>
 
-      {/* Mobile filters — Single Row Layout */}
-      <div className="flex flex-nowrap lg:hidden gap-2 items-center">
+      {/* ── Mobile Toolbar: High Density ── */}
+      <div className="flex lg:hidden gap-2 items-center px-4">
         {/* Filters dropdown */}
         <div className="relative shrink-0" ref={filtersRef}>
           {(() => {
             const activeCount = [categoryFilter, costDir, reorderDir].filter(Boolean).length;
             return (
               <button type="button" onClick={() => setFiltersOpen((v) => !v)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[13px] transition ${filtersOpen ? "bg-black text-white border-black" : "bg-white text-slate-700 border-black hover:bg-slate-50"
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-[13px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm ${filtersOpen ? "bg-slate-950 text-white border-slate-950" : "bg-white text-slate-700 border-gray-100"
                   }`}>
-                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
                 </svg>
                 {activeCount > 0 && (
-                  <span className="flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold bg-orange-500 text-white mr-0.5">
+                  <span className="flex items-center justify-center w-4 h-4 rounded-lg text-[9px] font-black bg-orange-500 text-white">
                     {activeCount}
                   </span>
                 )}
-                Filters
+                <span className="hidden sm:inline">Filters</span>
               </button>
             );
           })()}
 
           {filtersOpen && (
-            <div className="absolute top-full left-0 mt-1 z-50 w-64 bg-white border border-black rounded-lg shadow-xl p-3 space-y-3">
-              <p className="text-[9px] font-bold tracking-widest uppercase text-slate-400">Filters &amp; Sorting</p>
-              <div className="space-y-1.5">
-                <p className="text-[10px] font-semibold text-slate-500">Category</p>
-                <CustomSelect id="mob-filter-category" value={categoryFilter} onChange={setCategoryFilter}
-                  options={[
-                    { value: "", label: "All Categories" },
-                    { value: "Accessories", label: "Accessories" },
-                    { value: "Fasteners", label: "Fasteners" },
-                  ]} />
+            <div className="absolute top-full left-0 mt-2 z-50 w-72 bg-white border border-gray-100 rounded-2xl shadow-2xl p-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="flex items-center justify-between pb-2 border-b border-gray-50">
+                 <p className="text-[10px] font-black tracking-widest uppercase text-slate-400">Filters & Sorting</p>
+                 <button onClick={() => setFiltersOpen(false)} className="text-slate-300 hover:text-slate-900 transition-colors">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                 </button>
               </div>
-              <div className="space-y-1.5">
-                <p className="text-[10px] font-semibold text-slate-500">Cost / Unit (sort)</p>
-                <CustomSelect id="mob-sort-cost" value={costDir} onChange={(v) => setCostDir(v as SortDir)}
-                  options={[
-                    { value: "", label: "Default" },
-                    { value: "asc", label: "Low → High" },
-                    { value: "desc", label: "High → Low" },
-                  ]} />
+              
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">Category</p>
+                  <CustomSelect id="mob-filter-category" value={categoryFilter} onChange={setCategoryFilter}
+                    options={[
+                      { value: "", label: "All Categories" },
+                      { value: "Accessories", label: "Accessories" },
+                      { value: "Fasteners", label: "Fasteners" },
+                    ]} />
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">Reorder Level (sort)</p>
+                  <CustomSelect id="mob-sort-reorder" value={reorderDir} onChange={(v) => setReorderDir(v as SortDir)}
+                    options={[
+                      { value: "", label: "Default Sort" },
+                      { value: "asc", label: "Low → High" },
+                      { value: "desc", label: "High → Low" },
+                    ]} />
+                </div>
               </div>
-              <div className="space-y-1.5">
-                <p className="text-[10px] font-semibold text-slate-500">Reorder(sort)</p>
-                <CustomSelect id="mob-sort-reorder" value={reorderDir} onChange={(v) => setReorderDir(v as SortDir)}
-                  options={[
-                    { value: "", label: "Default" },
-                    { value: "asc", label: "Low → High" },
-                    { value: "desc", label: "High → Low" },
-                  ]} />
-              </div>
+
               {[categoryFilter, costDir, reorderDir].some(Boolean) && (
                 <button type="button"
                   onClick={() => { setCategoryFilter(""); setCostDir(""); setReorderDir(""); }}
-                  className="w-full py-1.5 text-[10px] font-bold tracking-widest uppercase text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition">
-                  Clear All
+                  className="w-full py-2.5 text-[10px] font-black tracking-widest uppercase text-red-500 bg-red-50 border border-red-100 rounded-xl hover:bg-red-100 transition-all duration-300">
+                  Reset Catalog Filters
                 </button>
               )}
             </div>
           )}
         </div>
 
-
         {/* Search */}
-        <div className="flex-1 flex items-center gap-2 bg-white rounded-md border border-black px-2.5 py-1 shadow-sm min-w-0">
-          <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+        <div className="flex-1 flex items-center gap-3 bg-white rounded-xl border border-gray-100 px-4 py-2.5 shadow-sm focus-within:ring-4 focus-within:ring-orange-500/5 focus-within:border-orange-500/20 transition-all">
+          <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
           </svg>
           <input id="product-search-mobile" name="product-search" type="text"
-            placeholder="Search..."
+            placeholder="Search catalog..."
             value={search} onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 min-w-0 text-[13px] font-black text-slate-900 placeholder:text-slate-400 placeholder:font-normal bg-transparent outline-none" />
+            className="flex-1 min-w-0 text-[13px] font-black text-slate-900 placeholder:text-slate-400 placeholder:font-bold bg-transparent outline-none" />
           {search && (
-            <button type="button" onClick={() => setSearch("")} aria-label="Clear search" className="text-slate-300 hover:text-black transition shrink-0">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <button type="button" onClick={() => setSearch("")} aria-label="Clear search" className="w-5 h-5 flex items-center justify-center rounded-full bg-slate-100 text-slate-400 hover:bg-slate-950 hover:text-white transition-all shrink-0">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
