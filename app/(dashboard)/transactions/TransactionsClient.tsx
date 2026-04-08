@@ -77,6 +77,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [pdfPanelOpen, setPdfPanelOpen] = useState(false);
+  const [pdfAutoDate, setPdfAutoDate] = useState(true);
   const [pdfDate, setPdfDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [pdfType, setPdfType] = useState<"Receive" | "Sale">("Receive");
   const [pdfTypeMenuOpen, setPdfTypeMenuOpen] = useState(false);
@@ -86,6 +87,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const filterPanelRef = useRef<HTMLDivElement>(null);
+  const pdfDateInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -421,17 +423,63 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
             {pdfPanelOpen && (
               <div className="absolute right-0 z-100 mt-2 w-64 bg-white border border-gray-100 rounded-md shadow-2xl p-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
                 <div className="space-y-2">
-                  <label htmlFor="pdf-date" className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Target Date</label>
-                  <input
-                    id="pdf-date"
-                    type="date"
-                    value={pdfDate}
-                    onChange={(e) => setPdfDate(e.target.value)}
-                    className="w-full border border-gray-200 rounded-sm px-2.5 py-2 text-xs font-bold text-gray-600 bg-white focus:outline-none focus:border-orange-500 focus:bg-white transition-all cursor-pointer"
-                  />
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="pdf-date" className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Date</label>
+                    <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={pdfAutoDate}
+                        onChange={(e) => setPdfAutoDate(e.target.checked)}
+                        className="sr-only"
+                      />
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Auto Date</span>
+                      <div className={`w-3.5 h-3.5 rounded-sm border-2 flex items-center justify-center shrink-0 transition-all ${pdfAutoDate ? "bg-orange-500 border-orange-500" : "bg-white border-gray-300"}`}>
+                        {pdfAutoDate && (
+                          <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth={3.5} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                          </svg>
+                        )}
+                      </div>
+                    </label>
+                  </div>
+                  {(() => {
+                    const active = pdfDate;
+                    const [yyyy, mm, dd] = active.split("-");
+                    const handlePart = (part: "dd" | "mm" | "yyyy", val: string) => {
+                      const cur = pdfDate.split("-");
+                      if (part === "dd") cur[2] = val.padStart(2, "0");
+                      if (part === "mm") cur[1] = val.padStart(2, "0");
+                      if (part === "yyyy") cur[0] = val;
+                      setPdfDate(cur.join("-"));
+                    };
+                    return (
+                      <div className="relative flex items-center gap-1 border border-gray-200 rounded-sm px-2.5 py-2 bg-white focus-within:border-orange-500 transition-all">
+                        <input type="text" inputMode="numeric" maxLength={2} value={dd} onChange={(e) => handlePart("dd", e.target.value.replaceAll(/\D/g, ""))}
+                          className="w-6 text-xs font-bold text-gray-600 bg-transparent outline-none text-center" />
+                        <span className="text-gray-300 text-xs font-bold">|</span>
+                        <input type="text" inputMode="numeric" maxLength={2} value={mm} onChange={(e) => handlePart("mm", e.target.value.replaceAll(/\D/g, ""))}
+                          className="w-6 text-xs font-bold text-gray-600 bg-transparent outline-none text-center" />
+                        <span className="text-gray-300 text-xs font-bold">|</span>
+                        <input type="text" inputMode="numeric" maxLength={4} value={yyyy} onChange={(e) => handlePart("yyyy", e.target.value.replaceAll(/\D/g, ""))}
+                          className="w-10 text-xs font-bold text-gray-600 bg-transparent outline-none text-center" />
+                        <button type="button" onClick={() => pdfDateInputRef.current?.showPicker()} className="ml-auto text-slate-400 hover:text-orange-500 transition-colors">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                          </svg>
+                        </button>
+                        <input
+                          ref={pdfDateInputRef}
+                          type="date"
+                          value={active}
+                          onChange={(e) => setPdfDate(e.target.value)}
+                          className="absolute opacity-0 pointer-events-none w-0 h-0"
+                        />
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="pdf-type" className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Filter By Flow</label>
+                  <label htmlFor="pdf-type" className="text-[10px] font-black text-gray-400 uppercase tracking-widest">SELECT TYPE</label>
                   <div className="relative">
                     <button
                       type="button"
@@ -700,7 +748,11 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
         style={{ position: "absolute", left: "-9999px", top: 0, zIndex: -1, pointerEvents: "none" }}
       >
         {pendingExportItems.length > 0 && (
-          <TransactionTemplate transaction={{ transaction_type: pendingExportType, items: pendingExportItems }} />
+          <TransactionTemplate
+            transaction={{ transaction_type: pendingExportType, items: pendingExportItems }}
+            autoDate={pdfAutoDate}
+            date={pdfDate}
+          />
         )}
       </div>
     </div>

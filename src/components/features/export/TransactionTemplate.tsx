@@ -47,13 +47,24 @@ const TableHead = () => (
   </thead>
 );
 
-const TransactionTemplate = ({ transaction }: {
+const TransactionTemplate = ({ transaction, autoDate, date }: {
   transaction: {
     transaction_type: "Sale" | "Receive";
     items: { barcode: string; product_name: string; unit?: string; quantity: number }[];
   };
+  autoDate?: boolean;
+  date?: string;
 }) => {
   const title = TITLE[transaction.transaction_type];
+  const displayDate = autoDate && date
+    ? (() => {
+        const d = new Date(date);
+        const dd = String(d.getDate()).padStart(2, "0");
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const yy = String(d.getFullYear());
+        return `ថ្ងៃទី ${dd} ខែ ${mm} ឆ្នាំ ${yy}`;
+      })()
+    : "ថ្ងៃទី....... ខែ....... ឆ្នាំ ........";
   const items = transaction.items;
 
   // Split items into pages
@@ -96,7 +107,7 @@ const TransactionTemplate = ({ transaction }: {
                   {title}
                 </h1>
                 <p style={{ fontSize: "14px", margin: 0 }}>
-                  ថ្ងៃទី....... ខែ....... ឆ្នាំ ........
+                  {displayDate}
                 </p>
               </div>
             )}
@@ -139,6 +150,17 @@ const TransactionTemplate = ({ transaction }: {
                     <td style={CELL_BODY}></td>
                   </tr>
                 ))}
+                {/* Summary rows — last page only */}
+                {isLast && (
+                  <tr>
+                    <td style={CELL_BODY}></td>
+                    <td style={{ ...CELL_BODY, textAlign: "right", fontWeight: "bold", paddingRight: "6px" }}>មុខទំនិញសរុប</td>
+                    <td style={{ ...CELL_CENTER, fontWeight: "bold" }}>{items.length}</td>
+                    <td style={{ ...CELL_BODY, textAlign: "right", fontWeight: "bold", paddingRight: "6px" }}>បរិមាណសរុប</td>
+                    <td style={{ ...CELL_CENTER, fontWeight: "bold" }}>{items.reduce((sum, i) => sum + Math.abs(i.quantity), 0)}</td>
+                    <td style={CELL_BODY}></td>
+                  </tr>
+                )}
               </tbody>
             </table>
 
