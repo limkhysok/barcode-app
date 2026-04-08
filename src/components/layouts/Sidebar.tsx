@@ -65,23 +65,22 @@ function NavItem({
       onClick={onClick}
       title={isCollapsed ? label : undefined}
       className={`
-        flex items-center mx-3 my-2 rounded-lg
-        transition-all duration-200 select-none group
+        flex items-center w-full transition-all duration-200 select-none group
         ${active
-          ? "bg-orange-500 text-white font-black shadow-md shadow-orange-500/10"
-          : "text-slate-400 font-bold hover:bg-slate-50 hover:text-black"
+          ? "bg-orange-500 text-white"
+          : "text-slate-400 hover:bg-slate-50 hover:text-slate-900"
         }
       `}
       style={{
-        padding: isCollapsed ? "10px 0" : "10px 16px",
+        padding: isCollapsed ? "11px 0" : "11px 20px",
         justifyContent: isCollapsed ? "center" : "flex-start",
-        gap: isCollapsed ? 0 : 12,
+        gap: isCollapsed ? 0 : 10,
         transition: `padding ${easing}, gap ${easing}`,
       }}
     >
-      <span className={`shrink-0 transition-transform duration-200 ${active ? "scale-110" : "group-hover:scale-110"}`}>{icon}</span>
+      <span className="shrink-0">{icon}</span>
       <span
-        className="text-[10px] font-black uppercase tracking-widest"
+        className="text-[11px] font-black uppercase tracking-widest leading-none"
         style={{
           maxWidth: isCollapsed ? 0 : 140,
           opacity: isCollapsed ? 0 : 1,
@@ -110,16 +109,15 @@ function SidebarContent({
 
       {/* ── Nav ── */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-none no-scrollbar">
-        <div className="px-0 py-4 space-y-0.5">
+        <div className="py-4">
           <p
-            className="text-[9px] font-black text-slate-300 uppercase tracking-[0.25em] mb-3"
+            className="text-[9px] font-black text-slate-300 uppercase tracking-[0.25em] mb-2 px-5"
             style={{
-              padding: isCollapsed ? "0 4px" : "0 24px",
               maxWidth: isCollapsed ? 0 : 160,
               opacity: isCollapsed ? 0 : 1,
               overflow: "hidden",
               whiteSpace: "nowrap",
-              transition: `max-width ${easing}, opacity ${easing}, padding ${easing}`,
+              transition: `max-width ${easing}, opacity ${easing}`,
             }}
           >
             MENU
@@ -134,38 +132,6 @@ function SidebarContent({
               onClick={onClose}
             />
           ))}
-        </div>
-      </div>
-
-      {/* ── Footer ── */}
-      <div className="shrink-0 border-t border-gray-50 bg-slate-50/30">
-        <div
-          className="flex items-center"
-          style={{
-            padding: isCollapsed ? "14px 10px" : "14px 20px",
-            gap: isCollapsed ? 0 : 10,
-            justifyContent: isCollapsed ? "center" : "flex-start",
-            transition: `padding ${easing}, gap ${easing}`,
-          }}
-        >
-          <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center shrink-0 border border-orange-100">
-            <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11 16l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div
-            className="flex flex-col"
-            style={{
-              maxWidth: isCollapsed ? 0 : 160,
-              opacity: isCollapsed ? 0 : 1,
-              overflow: "hidden",
-              whiteSpace: "nowrap",
-              transition: `max-width ${easing}, opacity ${easing}`,
-            }}
-          >
-            <span className="text-[10px] font-black text-black leading-none">CTK ACCESS</span>
-            <span className="text-[8px] font-bold text-slate-400 mt-0.5">V2.4.0</span>
-          </div>
         </div>
       </div>
     </div>

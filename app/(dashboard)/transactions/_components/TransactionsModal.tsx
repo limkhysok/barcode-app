@@ -46,7 +46,7 @@ export const ViewTransactionModal: React.FC<ViewModalProps> = ({ viewTarget, onC
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:px-4">
       <button className="absolute inset-0 bg-black/20 backdrop-blur-sm cursor-default" onClick={onClose} aria-label="Close modal" />
-      <div className="relative bg-white rounded-t-xl sm:rounded-md shadow-2xl w-full sm:max-w-xl flex flex-col max-h-[90vh] overflow-hidden">
+      <div className="relative bg-white rounded-t-xl sm:rounded-sm shadow-2xl w-full sm:max-w-xl flex flex-col max-h-[90vh] overflow-hidden">
        
         <div className="flex items-center justify-between px-5 py-4 border-b border-black shrink-0 bg-white">
           <div className="flex items-center gap-3">
@@ -163,7 +163,7 @@ export const DeleteConfirmModal: React.FC<DeleteModalProps> = ({ deleteTarget, o
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:px-4">
       <button className="absolute inset-0 bg-black/20 backdrop-blur-sm cursor-default" onClick={onClose} aria-label="Close modal" />
-      <div className="relative bg-white rounded-t-xl sm:rounded-xl shadow-2xl w-full sm:max-w-sm overflow-hidden">
+      <div className="relative bg-white rounded-t-md sm:rounded-md shadow-2xl w-full sm:max-w-sm overflow-hidden">
      
         <div className="px-5 py-5">
           <p className="text-[13px] font-bold text-gray-800">
@@ -174,11 +174,11 @@ export const DeleteConfirmModal: React.FC<DeleteModalProps> = ({ deleteTarget, o
         </div>
         <div className="border-t border-black px-5 py-3 bg-gray-50/50 flex justify-end gap-2">
           <button onClick={onClose} disabled={deleting}
-            className="w-20 py-1.5 rounded-lg text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition disabled:opacity-60 shadow-sm">
+            className="w-20 py-1.5 rounded-sm text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition disabled:opacity-60 shadow-sm">
             Cancel
           </button>
           <button onClick={onConfirm} disabled={deleting}
-            className="w-20 py-1.5 rounded-lg text-[11px] font-black tracking-widest uppercase text-white bg-red-500 hover:bg-red-600 active:scale-[0.98] transition disabled:opacity-60 shadow-md">
+            className="w-20 py-1.5 rounded-sm text-[11px] font-black tracking-widest uppercase text-white bg-red-500 hover:bg-red-600 active:scale-[0.98] transition disabled:opacity-60 shadow-md">
             {deleting ? "Deleting…" : "Delete"}
           </button>
         </div>
@@ -318,7 +318,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:px-4">
       <button className="absolute inset-0 bg-black/20 backdrop-blur-sm cursor-default" onClick={onClose} aria-label="Close modal" />
-      <div className="relative bg-white rounded-t-xl sm:rounded-md shadow-2xl w-full sm:max-w-xl flex flex-col max-h-[90vh] overflow-hidden">
+      <div className="relative bg-white rounded-t-xl sm:rounded-sm shadow-2xl w-full sm:max-w-xl flex flex-col max-h-[90vh] overflow-hidden">
      
         <div className="flex items-center justify-between px-5 py-4 border-b border-black shrink-0 bg-white">
           <div className="flex items-center gap-3">
@@ -383,7 +383,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                     if (value !== "") handleScanBarcodeWithValue(value);
                   }
                 }}
-                className="w-full pl-9 pr-12 py-1.5 rounded-md border-2 border-black text-[12px] bg-white text-black outline-none focus:border-[#FA4900] transition-all placeholder:text-gray-300 font-mono tracking-widest uppercase"
+                className="w-full pl-9 pr-12 py-1.5 rounded-sm border-2 border-black text-[12px] bg-white text-black outline-none focus:border-[#FA4900] transition-all placeholder:text-gray-300 font-mono tracking-widest uppercase"
               />
               <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
                 <svg className="w-5 h-5 text-gray-800" viewBox="0 0 24 24" fill="none">
@@ -502,14 +502,14 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
           )}
           <div className="flex justify-end gap-2">
             <button type="button" onClick={onClose}
-              className="w-30 py-1.5 rounded-md text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition shadow-sm">
+              className="w-30 py-1.5 rounded-sm text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition shadow-sm">
               Cancel
             </button>
             <button
               type="button"
               onClick={(e) => handleSubmit(e, false)}
               disabled={saving}
-              className="w-30 py-1.5 rounded-md text-[11px]  font-black tracking-widest uppercase text-white bg-orange-500 active:scale-[0.98] transition disabled:opacity-60 shadow-md transform hover:-translate-y-0.5"
+              className="w-30 py-1.5 rounded-sm text-[11px]  font-black tracking-widest uppercase text-white bg-orange-500 active:scale-[0.98] transition disabled:opacity-60 shadow-md transform hover:-translate-y-0.5"
             >
               {saving ? "Saving..." : "Save"}
             </button>
@@ -646,7 +646,7 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:px-4">
       <button className="absolute inset-0 bg-black/20 backdrop-blur-sm cursor-default" onClick={onClose} aria-label="Close modal" />
-      <div className="relative bg-white rounded-t-xl sm:rounded-md shadow-2xl w-full sm:max-w-xl flex flex-col max-h-[90vh] overflow-hidden">
+      <div className="relative bg-white rounded-t-xl sm:rounded-sm shadow-2xl w-full sm:max-w-xl flex flex-col max-h-[90vh] overflow-hidden">
      
         <div className="flex items-center justify-between px-5 py-4 border-b border-black shrink-0 bg-white">
           <div className="flex items-center gap-3">
@@ -838,14 +838,14 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
           )}
           <div className="flex justify-end gap-2">
             <button type="button" onClick={onClose}
-              className="w-30 py-1.5 rounded-md text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition shadow-sm">
+              className="w-30 py-1.5 rounded-sm text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition shadow-sm">
               Cancel
             </button>
             <button
               type="button"
               onClick={handleSubmit}
               disabled={saving}
-              className="w-30 py-1.5 rounded-md text-[11px]  font-black tracking-widest uppercase text-white bg-orange-500 active:scale-[0.98] transition disabled:opacity-60 shadow-md transform hover:-translate-y-0.5"
+              className="w-30 py-1.5 rounded-sm text-[11px]  font-black tracking-widest uppercase text-white bg-orange-500 active:scale-[0.98] transition disabled:opacity-60 shadow-md transform hover:-translate-y-0.5"
             >
               {saving ? "Saving..." : "Save Changes"}
             </button>

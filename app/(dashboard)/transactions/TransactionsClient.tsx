@@ -388,13 +388,15 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
   return (
     <div className="px-4 py-5 sm:px-5 sm:py-5 space-y-3">
-      <div className="flex items-center justify-between border border-gray-100 bg-white rounded-md p-3 gap-4">
+      <div className="flex items-center justify-between border border-gray-200 bg-white rounded-md py-3 px-3 gap-4">
         <div className="flex items-center gap-3">
           <div className="flex flex-col">
-            <h1 className="text-[17px] font-black text-black uppercase tracking-tight leading-none">Transactions</h1>
-            <div className="mt-1 flex items-center gap-2">
-              <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest" suppressHydrationWarning>
+            <h1 className="text-[13px] font-black text-slate-950 uppercase tracking-[0.2em] leading-none">Transactions</h1>
+            <div className="mt-1.5 flex items-center gap-1.5 leading-none">
+              <svg className="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+              </svg>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none" suppressHydrationWarning>
                 {new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Phnom_Penh" })}
               </p>
             </div>
@@ -408,7 +410,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
               type="button"
               onClick={() => { setPdfPanelOpen(!pdfPanelOpen); setPdfError(""); }}
               className={`flex items-center gap-2.5 px-3.5 py-1.5 rounded-sm text-[11px] font-black uppercase tracking-wider border-2 transition-all  ${
-                pdfPanelOpen ? "border-slate-900 bg-slate-900 text-white" : "border-gray-100 bg-white text-slate-700 hover:border-slate-900 hover:bg-slate-50"
+                pdfPanelOpen ? "border-slate-900 bg-slate-900 text-white" : "border-gray-100 bg-white text-slate-400 hover:border-slate-600 hover:bg-slate-50"
               }`}
             >
               <svg className={`w-3.5 h-3.5 ${pdfPanelOpen ? "text-white" : "text-slate-400"}`} fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
@@ -425,7 +427,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
                     type="date"
                     value={pdfDate}
                     onChange={(e) => setPdfDate(e.target.value)}
-                    className="w-full border-2 border-gray-50 rounded-lg px-2.5 py-2 text-xs font-bold text-gray-800 bg-slate-50 focus:outline-none focus:border-orange-500 focus:bg-white transition-all cursor-pointer shadow-inner"
+                    className="w-full border border-gray-200 rounded-sm px-2.5 py-2 text-xs font-bold text-gray-600 bg-white focus:outline-none focus:border-orange-500 focus:bg-white transition-all cursor-pointer"
                   />
                 </div>
                 <div className="space-y-2">
@@ -435,7 +437,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
                       type="button"
                       id="pdf-type"
                       onClick={() => setPdfTypeMenuOpen(!pdfTypeMenuOpen)}
-                      className="w-full flex items-center justify-between border-2 border-gray-50 rounded-sm px-2.5 py-2 text-xs font-bold text-gray-800 bg-white hover:border-gray-200 transition-colors focus:outline-none "
+                      className="w-full flex items-center justify-between border border-gray-200 rounded-sm px-2.5 py-2 text-xs font-bold text-gray-600 bg-white hover:border-gray-200 transition-colors focus:outline-none "
                     >
                       <span className="uppercase">{pdfType}</span>
                       <svg
@@ -482,12 +484,12 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
                   type="button"
                   onClick={handlePdfExport}
                   disabled={pdfLoading}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-[11px] font-black tracking-widest uppercase bg-slate-900 text-white hover:bg-black disabled:opacity-50 transition-all shadow-xl shadow-black/20 active:scale-[0.98]"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-sm text-[11px] font-black tracking-widest uppercase bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50 transition-all shadow-xl shadow-black/20 active:scale-[0.98]"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9.75v6.75m0 0l-3-3m3 3l3-3m-8.25 6a4.5 4.5 0 01-4.5-4.5V15a2.25 2.25 0 002.25 2.25h16.5A2.25 2.25 0 0021 15v1.5a4.5 4.5 0 01-4.5 4.5H6.75z" />
                   </svg>
-                  {pdfLoading ? "Processing..." : "Generate PDF"}
+                  {pdfLoading ? "Processing..." : "Print"}
                 </button>
               </div>
             )}
