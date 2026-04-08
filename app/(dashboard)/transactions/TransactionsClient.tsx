@@ -394,7 +394,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
         <div className="flex items-center gap-3">
           <div className="flex flex-col">
             <h1 className="text-[13px] font-black text-slate-950 uppercase tracking-[0.2em] leading-none">Transactions</h1>
-            <div className="mt-1.5 flex items-center gap-1.5 leading-none">
+            <div className="flex items-center gap-1.5 leading-none">
               <svg className="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
               </svg>
@@ -411,11 +411,10 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
             <button
               type="button"
               onClick={() => { setPdfPanelOpen(!pdfPanelOpen); setPdfError(""); }}
-              className={`flex items-center gap-2.5 px-3.5 py-1.5 rounded-sm text-[11px] font-black uppercase tracking-wider border transition-all cursor-pointer ${
-                pdfPanelOpen ? "border-orange-500 bg-orange-500 text-white" : "border-gray-700 bg-white text-gray-700 hover:border-slate-600 hover:bg-orange-600 hover:text-white"
-              }`}
+              className={`flex items-center gap-2.5 px-3.5 py-1.5 rounded-sm text-[11px] font-black uppercase tracking-wider border transition-all cursor-pointer ${pdfPanelOpen ? "border-orange-500 bg-orange-500 text-white" : "border-gray-200 bg-white text-gray-700 hover:border-gray-200 hover:bg-gray-200 hover:text-white"
+                }`}
             >
-              <svg className={`w-3.5 h-3.5 ${pdfPanelOpen ? "text-white" : "text-gray-700"}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <svg className={`w-3.5 h-3.5 hidden sm:block ${pdfPanelOpen ? "text-white" : "text-gray-700"}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
               </svg>
               <span>Print</span>
@@ -547,7 +546,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
             onClick={() => { setFormError(""); setModalOpen(true); }}
             className="flex items-center gap-2.5 px-3.5 py-1.5 sm:px-5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+            <svg className="w-4 h-4 hidden sm:block" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
             <span className="hidden sm:inline">New Transaction</span>
@@ -568,26 +567,26 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
           <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none no-scrollbar">
             <div className="flex items-center gap-1.5 shrink-0 px-2 ">
-              <SortToggleButton 
-                label="Date" 
-                field="transaction_date" 
-                currentSort={sortBy} 
-                onSort={setSortBy} 
-                icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zM14.25 15h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-2.25h.008v.008H16.5V15z"/></svg>}
+              <SortToggleButton
+                label="Date"
+                field="transaction_date"
+                currentSort={sortBy}
+                onSort={setSortBy}
+                icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zM14.25 15h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-2.25h.008v.008H16.5V15z" /></svg>}
               />
-              <SortToggleButton 
-                label="Items" 
-                field="items_count" 
-                currentSort={sortBy} 
-                onSort={setSortBy} 
-                icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-3.75zM2.25 16.875c0-.621.504-1.125 1.125-1.125h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75z"/></svg>}
+              <SortToggleButton
+                label="Items"
+                field="items_count"
+                currentSort={sortBy}
+                onSort={setSortBy}
+                icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-3.75zM2.25 16.875c0-.621.504-1.125 1.125-1.125h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75z" /></svg>}
               />
-              <SortToggleButton 
-                label="Quantity" 
-                field="total_qty" 
-                currentSort={sortBy} 
-                onSort={setSortBy} 
-                icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>}
+              <SortToggleButton
+                label="Quantity"
+                field="total_qty"
+                currentSort={sortBy}
+                onSort={setSortBy}
+                icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>}
               />
             </div>
           </div>
@@ -597,7 +596,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
         <div className="sm:hidden relative" ref={filterPanelRef}>
           <button
             onClick={() => setFilterPanelOpen(!filterPanelOpen)}
-            className={`flex items-center gap-2 px-3 py-1 rounded-md border text-[11px] font-light tracking-widest transition-all ${filterPanelOpen ? "bg-black text-white border-black" : "bg-white text-black border-black/70"
+            className={`flex items-center gap-2 px-3 py-1 rounded-sm border border-gray-200 text-[11px] font-light tracking-widest transition-all ${filterPanelOpen ? "bg-black text-white border-black" : "bg-white text-black border-black/70"
               }`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -607,9 +606,9 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
           </button>
 
           {filterPanelOpen && (
-            <div className="absolute left-0 mt-3 z-50 w-70 bg-white border border-black rounded-lg shadow-2xl p-4 flex flex-col gap-5 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute left-0 mt-3 z-50 w-70 bg-white border border-gray-200 rounded-sm shadow-xl p-4 flex flex-col gap-5 animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="space-y-2">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Filter By</span>
+                <span className="text-[10px] font-black text-gray-200 uppercase tracking-widest">Filter By</span>
                 <div className="flex flex-col gap-2">
                   <TypeFilterSelect value={typeFilter} onChange={setTypeFilter} />
                   <DateFilter value={dateFilter} onChange={setDateFilter} />
@@ -695,7 +694,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
             <button type="button" aria-label="Close menu" className="fixed inset-0 z-9998 cursor-default bg-transparent border-0 p-0" onClick={() => setMenuOpenId(null)} />
             <div
               style={{ position: "fixed", top: menuPos.top, left: menuPos.left, zIndex: 9999 }}
-              className="bg-white border border-black rounded-sm shadow-2xl py-0 w-20 overflow-hidden"
+              className="bg-white border border-gray-300 rounded-sm py-0 w-20 overflow-hidden"
             >
               <button type="button" onClick={() => { setViewTarget(t); setMenuOpenId(null); }}
                 className="w-full text-left px-4 py-2 text-[12px] font-black text-gray-700 hover:bg-slate-50 transition">View</button>
