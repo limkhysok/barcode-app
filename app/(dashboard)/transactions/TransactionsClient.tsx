@@ -406,7 +406,7 @@
               <button
                 type="button"
                 onClick={() => { setPdfPanelOpen(!pdfPanelOpen); setPdfError(""); }}
-                className={`flex items-center gap-2.5 px-3.5 py-1.5 rounded-sm text-[11px] font-black uppercase tracking-wider border transition-all cursor-pointer ${pdfPanelOpen ? "border-orange-500 bg-orange-500 text-white" : "border-gray-200 bg-white text-gray-700 hover:border-gray-200 hover:bg-gray-200 hover:text-white"
+                className={`flex items-center gap-2.5 px-3.5 py-1 rounded-sm text-[11px] font-black uppercase tracking-wider border transition-all cursor-pointer ${pdfPanelOpen ? "border-orange-500 bg-orange-500 text-white" : "border-gray-200 bg-white text-gray-700 hover:border-gray-200 hover:bg-gray-200 hover:text-white"
                   }`}
               >
                 <svg className={`w-3.5 h-3.5 hidden sm:block ${pdfPanelOpen ? "text-white" : "text-gray-700"}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -415,7 +415,7 @@
                 <span>Print</span>
               </button>
               {pdfPanelOpen && (
-                <div className="absolute right-0 z-100 mt-2 w-64 bg-white border border-gray-100 rounded-md shadow-2xl p-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute right-0 z-100 mt-2 w-64 bg-white border border-gray-200 rounded-md shadow-2xl p-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <label htmlFor="pdf-date" className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Date</label>
@@ -494,7 +494,7 @@
                       </button>
 
                       {pdfTypeMenuOpen && (
-                        <ul className="absolute z-110 left-0 right-0 mt-1 bg-white border border-gray-100 rounded-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                        <ul className="absolute z-110 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
                           {(["Receive", "Sale"] as const).map((type) => (
                             <li key={type}>
                               <button
@@ -539,7 +539,7 @@
 
             <button
               onClick={() => { setFormError(""); setModalOpen(true); }}
-              className="flex items-center gap-2.5 px-3.5 py-1.5 sm:px-5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer"
+              className="flex items-center gap-2.5 px-3.5 py-1 sm:px-5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer"
             >
               <svg className="w-4 h-4 hidden sm:block" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -552,16 +552,16 @@
 
         <StatsOverview stats={stats} />
 
-        <div className="flex flex-wrap items-center gap-3 border border-gray-200 bg-white rounded-md px-3 py-3 transition-all hover:border-gray-200">
+        <div className="flex flex-wrap items-center gap-3">
           {/* Desktop Toolbar */}
           <div className="hidden sm:flex items-center">
-            <div className="flex items-center gap-2 pr-3 border-r border-gray-50">
+            <div className="flex items-center gap-1">
               <TypeFilterSelect value={typeFilter} onChange={setTypeFilter} />
               <DateFilter value={dateFilter} onChange={setDateFilter} />
             </div>
 
             <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none no-scrollbar">
-              <div className="flex items-center gap-1.5 shrink-0 px-2 ">
+              <div className="flex items-center gap-1 shrink-0 pl-1">
                 <SortToggleButton
                   label="Date"
                   field="transaction_date"
@@ -589,21 +589,50 @@
 
           {/* Mobile Bundle Button */}
           <div className="sm:hidden relative" ref={filterPanelRef}>
-            <button
-              onClick={() => setFilterPanelOpen(!filterPanelOpen)}
-              className={`flex items-center gap-2 px-3 py-1 rounded-sm border border-gray-200 text-[11px] font-light tracking-widest transition-all ${filterPanelOpen ? "bg-black text-white border-black" : "bg-white text-black border-black/70"
-                }`}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
-              </svg>
-              <span>Filter</span>
-            </button>
+            {(() => {
+              let btnCls = "bg-white text-black border-gray-200";
+              if (filterPanelOpen) btnCls = "bg-orange-500 text-white border-orange-500";
+              else if (typeFilter || dateFilter) btnCls = "bg-orange-50 text-orange-500 border-orange-300";
+              return (
+                <>
+                  <button
+                    onClick={() => setFilterPanelOpen(!filterPanelOpen)}
+                    className={`relative flex items-center gap-2 px-3 py-1 rounded-sm border text-[11px] font-light text-gray-400 tracking-widest transition-all cursor-pointer ${btnCls}`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+                    </svg>
+                    <span>Filter</span>
+                    {(typeFilter || dateFilter) && !filterPanelOpen && (
+                      <span className="absolute -top-1.5 -right-1.5 h-4 w-4 flex items-center justify-center rounded-full bg-orange-500 text-white text-[8px] font-black">
+                        {[typeFilter, dateFilter].filter(Boolean).length}
+                      </span>
+                    )}
+                  </button>
 
-            {filterPanelOpen && (
+                  {filterPanelOpen && (
               <div className="absolute left-0 mt-3 z-50 w-70 bg-white border border-gray-200 rounded-sm shadow-xl p-4 flex flex-col gap-5 animate-in fade-in slide-in-from-top-2 duration-200">
+
+                {/* Active filter pills */}
+                {(typeFilter || dateFilter) && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {typeFilter && (
+                      <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-1 bg-orange-50 text-orange-500 border border-orange-200 rounded-full">
+                        {typeFilter}
+                        <button type="button" onClick={() => setTypeFilter("")} className="text-orange-400 hover:text-orange-600">✕</button>
+                      </span>
+                    )}
+                    {dateFilter && (
+                      <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-1 bg-orange-50 text-orange-500 border border-orange-200 rounded-full">
+                        {dateFilter}
+                        <button type="button" onClick={() => setDateFilter("")} className="text-orange-400 hover:text-orange-600">✕</button>
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 <div className="space-y-2">
-                  <span className="text-[10px] font-black text-gray-200 uppercase tracking-widest">Filter By</span>
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Filter By</span>
                   <div className="flex flex-col gap-2">
                     <TypeFilterSelect value={typeFilter} onChange={setTypeFilter} />
                     <DateFilter value={dateFilter} onChange={setDateFilter} />
@@ -619,26 +648,39 @@
                   </div>
                 </div>
 
-                <button
-                  onClick={() => setFilterPanelOpen(false)}
-                  className="mt-2 w-full py-2 bg-black text-white text-[11px] font-black uppercase rounded shadow-md"
-                >
-                  Close
-                </button>
+                <div className="flex gap-2 mt-2">
+                  {(typeFilter || dateFilter) && (
+                    <button
+                      onClick={() => { setTypeFilter(""); setDateFilter(""); }}
+                      className="flex-1 py-2 border border-gray-200 text-gray-400 text-[11px] font-black uppercase rounded hover:border-red-300 hover:text-red-400 transition-all"
+                    >
+                      Clear All
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setFilterPanelOpen(false)}
+                    className="flex-1 py-2 bg-black text-white text-[11px] font-black uppercase rounded"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
-            )}
+                  )}
+                </>
+              );
+            })()}
           </div>
 
-          <div className="ml-auto hidden sm:flex items-center gap-1 bg-slate-100 border border-black/10 rounded-sm p-1">
+          <div className="ml-auto hidden sm:flex items-center gap-0 bg-slate-100 border border-gray-100 rounded-sm">
             {(["list", "grid"] as const).map((mode) => (
               <button
                 key={mode}
                 type="button"
                 onClick={() => setViewMode(mode)}
                 title={mode === "list" ? "List view" : "Grid view"}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[10px] font-black tracking-widest uppercase transition-all duration-150 ${viewMode === mode
+                className={`flex items-center gap-1.5 px-1.5 py-1 rounded-sm text-[10px] font-black tracking-widest uppercase transition-all duration-150 cursor-pointer ${viewMode === mode
                   ? "bg-orange-500 text-white"
-                  : "text-gray-400 hover:text-white hover:bg-orange-500"
+                  : "text-gray-400 hover:text-orange-500 "
                   }`}
               >
                 {mode === "list" ? (
@@ -650,7 +692,6 @@
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
                   </svg>
                 )}
-                <span className="hidden sm:inline">{mode}</span>
               </button>
             ))}
           </div>

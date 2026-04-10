@@ -84,7 +84,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
               {/* Count left, Qty right */}
               <div className="flex items-baseline justify-between">
                 <p className="text-xl font-black text-black leading-none tabular-nums">+{receiveToday}</p>
-                <p className="text-[9px] font-bold text-slate-700 uppercase leading-none">/ {receiveTodayQty}</p>
+                <p className="text-[11px] font-bold text-slate-700 uppercase leading-none">/ {receiveTodayQty}</p>
               </div>
             </div>
 
@@ -98,7 +98,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
               {/* Count left, Qty right */}
               <div className="flex items-baseline justify-between">
                 <p className="text-xl font-black text-black leading-none tabular-nums">-{saleToday}</p>
-                <p className="text-[9px] font-bold text-slate-700 uppercase leading-none">/ {saleTodayQty}</p>
+                <p className="text-[11px] font-bold text-slate-700 uppercase leading-none">/ {saleTodayQty}</p>
               </div>
             </div>
           </div>
