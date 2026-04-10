@@ -12,6 +12,8 @@ import { InventoryTable } from "./_components/InventoryTable";
 import { InventoryToolbar } from "./_components/InventoryToolbar";
 import { InventoryModal } from "./_components/InventoryModal";
 import { DeleteConfirmModal } from "./_components/DeleteConfirmModal";
+import { FileDown, ChevronDown } from "lucide-react";
+import * as XLSX from "xlsx";
 // no lucide imports needed currently for this line if they are all SVGs
 
 type QuantitySort = "asc" | "desc" | "";
@@ -79,9 +81,20 @@ export default function InventoryClient({
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
-  // -- Delete modal state --
   const [deleteTarget, setDeleteTarget] = useState<InventoryRecord | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // -- Export dropdown state --
+  const [exportOpen, setExportOpen] = useState(false);
+  const exportRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (exportRef.current && !exportRef.current.contains(e.target as Node)) setExportOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   // -- Fetch logic: Reduced to manual reload only --
   function fetchInventory() {
@@ -148,6 +161,45 @@ export default function InventoryClient({
     } finally {
       setDeleting(false);
     }
+  }
+
+  function handleExport(mode: "low" | "all") {
+    setExportOpen(false);
+    const list = mode === "low" ? records.filter(r => r.reorder_status === "Yes") : records;
+    if (list.length === 0) {
+      setError("NO RECORDS FOUND TO EXPORT");
+      return;
+    }
+
+    const data = list.map(r => ({
+      "Product ID": r.id || 0,
+      "Product Name": r.product_details?.product_name || "N/A",
+      "Barcode": r.product_details?.barcode || "N/A",
+      "Site": r.site || "N/A",
+      "Location": r.location || "N/A",
+      "Reorder Level": r.product_details?.reorder_level ?? 0,
+      "Quantity": r.quantity_on_hand ?? 0,
+      "Status": r.reorder_status === "Yes" ? "LOW STOCK" : "NORMAL",
+      "Report Date": new Date().toLocaleDateString()
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    const sheetName = mode === "low" ? "Reorder Report" : "Inventory Snapshot";
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    
+    const maxWidths = data.reduce((acc: any, row: any) => {
+      Object.keys(row).forEach((key, i) => {
+        const val = String(row[key]);
+        const width = Math.max(acc[i] || 0, val.length, key.length);
+        acc[i] = width;
+      });
+      return acc;
+    }, []);
+    ws['!cols'] = maxWidths.map((w: number) => ({ wch: w + 5 }));
+
+    const fileName = mode === "low" ? `LowStock_Report_${new Date().toISOString().split('T')[0]}.xlsx` : `Inventory_Full_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, fileName);
   }
 
   const siteOptions = useMemo(
@@ -251,15 +303,48 @@ export default function InventoryClient({
           </div>
         </div>
 
-        <button onClick={openCreate}
-          className="flex items-center gap-2.5 px-3.5 py-1 sm:px-5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer"
-        >
-          <svg className="w-4 h-4 hidden sm:block" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          <span className="hidden sm:inline">New Record</span>
-          <span className="sm:hidden">New</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {canEdit && (
+            <div className="relative" ref={exportRef}>
+              <button 
+                onClick={() => setExportOpen(!exportOpen)}
+                className="flex items-center gap-2 px-3.5 py-1 rounded-sm text-[11px] font-black uppercase tracking-wider bg-slate-100 text-slate-900 border border-slate-200 hover:bg-slate-200 transition-all cursor-pointer group"
+              >
+                <FileDown size={14} strokeWidth={3} className="text-slate-500 group-hover:text-slate-900" />
+                <span className="hidden sm:inline">Export</span>
+                <ChevronDown size={10} strokeWidth={3} className={`transition-transform duration-200 ${exportOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {exportOpen && (
+                <div className="absolute top-full right-0 mt-1 w-48 bg-white border border-slate-200 rounded-sm shadow-xl z-[60] py-1 animate-in fade-in slide-in-from-top-1">
+                  <button 
+                    onClick={() => handleExport("low")}
+                    className="w-full text-left px-4 py-2 text-[10px] font-black text-red-500 hover:bg-red-50 uppercase tracking-widest transition-colors flex items-center justify-between"
+                  >
+                    <span>Low Stock Only</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                  </button>
+                  <button 
+                    onClick={() => handleExport("all")}
+                    className="w-full text-left px-4 py-2 text-[10px] font-black text-slate-600 hover:bg-slate-50 uppercase tracking-widest transition-colors"
+                  >
+                    All Records
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          <button onClick={openCreate}
+            className="flex items-center gap-2.5 px-3.5 py-1 sm:px-5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer"
+          >
+            <svg className="w-4 h-4 hidden sm:block" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            <span className="hidden sm:inline">New Record</span>
+            <span className="sm:hidden">New</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats Section */}
