@@ -6,7 +6,6 @@ import {
   TrendingDown,
   TrendingUp,
   Zap,
-  Layers
 } from "lucide-react";
 
 type StatsOverviewProps = {
@@ -31,68 +30,72 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
       <div className="block sm:hidden rounded-md border border-slate-200 bg-white overflow-hidden">
 
         {/* Header: Lifetime Stats (With Vertical Dividers) */}
-        <div className="p-2 bg-white border-b border-slate-100">
-          <div className="flex items-center gap-2 mb-4">
-            <Layers className="h-5 w-5 text-black" strokeWidth={2} />
-            <span className="text-[10px] font-black uppercase tracking-widest text-black">Lifetime</span>
+        <div className="px-0 py-0 bg-white border-b border-slate-200">
+          <div className="px-3 py-2 border-b border-slate-200 flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-orange-500 shrink-0" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-black">Overview</span>
           </div>
 
           <div className="grid grid-cols-3 gap-0 divide-x divide-slate-200">
-            {/* Receive - Left */}
-            <div className="text-center">
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter leading-none mb-1">Receive</p>
+            {/* Receive */}
+            <div className="flex flex-col items-center gap-1 py-4">
+              <TrendingDown className="h-6 w-6 text-orange-600 scale-x-[-1]" strokeWidth={2} />
+              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter leading-none">Receive</p>
               <p className="text-base font-black text-black leading-none">{receiveCount.toLocaleString()}</p>
             </div>
 
-            {/* Sale - Left (With border division) */}
-            <div className="text-center">
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter leading-none mb-1">Sale</p>
+            {/* Sale */}
+            <div className="flex flex-col items-center gap-1 py-4">
+              <TrendingUp className="h-6 w-6 text-orange-600" strokeWidth={2} />
+              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter leading-none">Sale</p>
               <p className="text-base font-black text-black leading-none">{saleCount.toLocaleString()}</p>
             </div>
 
-            {/* Total - Right (With border division) */}
-            <div className="text-center">
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter leading-none mb-1">Total</p>
+            {/* Total */}
+            <div className="flex flex-col items-center gap-1 py-4">
+              <Zap className="h-6 w-6 text-orange-600" strokeWidth={2} />
+              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter leading-none">Total</p>
               <p className="text-base font-black text-black leading-none">{total.toLocaleString()}</p>
             </div>
           </div>
         </div>
 
         {/* Today's Activity: Horizontal Layout */}
-        <div className="p-2 bg-slate-50/50">
-          <div className="flex items-center justify-between mb-3">
+        <div className="bg-white">
+          <div className="px-3 py-2  flex items-center justify-between border-b border-slate-200">
             <div className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
-              <span className="text-[10px] font-black text-black uppercase tracking-widest">Today's Activity</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-orange-500 shrink-0" />
+              <span className="text-[10px] font-black text-black uppercase tracking-widest">Today</span>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none" suppressHydrationWarning>
+                {new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Phnom_Penh" })}
+              </p>
             </div>
-            <span className="text-[9px] font-bold text-slate-400 uppercase italic">
-              {today} Total
-            </span>
+            <span className="text-[9px] font-bold text-slate-500 uppercase">{today} Total</span>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 division-y division-slate-300">
             {/* Today Receive - Horizontal */}
-            <div className="flex items-center p-2.5 bg-white rounded-sm border border-slate-200">
+            <div className="flex items-center py-2.5 px-7 bg-white border-r border-slate-200">
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 bg-orange-50 rounded text-orange-800 shrink-0">
+                <div className="p-1.5 text-black shrink-0">
                   <TrendingDown size={18} strokeWidth={2.5} className="scale-x-[-1]" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-black text-black leading-tight">+{receiveToday}</p>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase leading-tight">Quantity : {receiveTodayQty}</p>
+                  <p className="text-[9px] font-black text-slate-500 uppercase leading-tight">Item : +{receiveToday}</p>
+                  <p className="text-[9px] font-bold text-slate-500 uppercase leading-tight">Quantity : {receiveTodayQty}</p>
                 </div>
               </div>
             </div>
 
             {/* Today Sale - Horizontal */}
-            <div className="flex items-center p-2.5 bg-white rounded-sm border border-slate-200">
+            <div className="flex items-center py-2.5 px-7 bg-white">
               <div className="flex items-center gap-2.5">
-                <div className="p-1.5 bg-orange-50 rounded text-orange-600 shrink-0">
+                <div className="p-1.5 text-black shrink-0">
                   <TrendingUp size={18} strokeWidth={2.5} />
                 </div>
                 <div>
-                  <p className="text-[11px] font-black text-black leading-tight">-{saleToday}</p>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase leading-tight">Quantity : {saleTodayQty}</p>
+                  <p className="text-[9px] font-black text-slate-500 uppercase leading-tight">Item : -{saleToday}</p>
+                  <p className="text-[9px] font-bold text-slate-500 uppercase leading-tight">Quantity : {saleTodayQty}</p>
                 </div>
               </div>
             </div>

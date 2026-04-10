@@ -92,13 +92,13 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
             >
               <div className="flex flex-col divide-y divide-gray-100">
                 {/* Row 1: ID, Type and Quantity */}
-                <div className="p-2 flex items-center justify-between">
+                <div className="px-3 py-2 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="bg-gray-300 text-slate-900 rounded-sm text-[11px] font-bold px-1 py-0.5">
+                    <span className="text-slate-900 rounded-sm text-[11px] font-bold px-1 py-0.5">
                       #{t.id}
                     </span>
-                    <span className={`bg-gray-100 text-slate-800 text-[10px] font-bold uppercase tracking-wider px-1 py-0.5 rounded-sm`}>
-                      | {t.transaction_type} |
+                    <span className={`text-slate-800 text-[10px] font-bold uppercase tracking-wider px-1 py-0.5`}>
+                       {t.transaction_type}
                     </span>
                   </div>
                   <div className="text-right shrink-0">
@@ -112,7 +112,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                 </div>
 
                 {/* Row 2: Product Name, Date and Actions */}
-                <div className="px-2 py-1 flex items-center justify-between gap-4">
+                <div className="px-3 py-1 flex items-center justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <h3 className="text-[10px] font-black text-slate-900 truncate uppercase leading-tight group-hover:text-orange-600 transition-colors">
                       {first?.product_name ?? "—"}
