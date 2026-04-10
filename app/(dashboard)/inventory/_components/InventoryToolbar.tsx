@@ -5,10 +5,11 @@ import {
   Search, 
   X, 
   ArrowUpDown,
-  ListFilter,
+  Filter,
   ChevronDown,
   MapPin,
-  Calendar
+  Calendar,
+  Layers
 } from "lucide-react";
 
 interface InventoryToolbarProps {
@@ -59,20 +60,20 @@ function FilterDropdown({ label, value, options, onChange, icon: Icon }: Readonl
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`px-2.5 py-1 rounded-sm border text-[12px] font-bold transition-all duration-150 focus:outline-none flex items-center gap-2.5 group ${buttonStyles} min-w-36`}
+        className={`px-2.5 py-1 rounded-sm border text-[11px] font-black transition-all duration-150 focus:outline-none flex items-center gap-2.5 group ${buttonStyles} min-w-[140px] h-8`}
       >
-        <div className={`transition-colors duration-200 ${isActive ? "text-white" : "text-gray-400 group-hover:text-white"}`}>
+        <div className={`transition-colors duration-200 ${isActive ? "text-white" : "text-slate-400 group-hover:text-white"}`}>
           <Icon size={14} strokeWidth={3} />
         </div>
-        <span className="truncate">{activeLabel}</span>
+        <span className="truncate flex-1 text-left uppercase tracking-wider">{activeLabel}</span>
         <ChevronDown 
-          className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""} ${isActive ? "text-white" : "text-gray-400 group-hover:text-white"}`}
+          className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""} ${isActive ? "text-white" : "text-slate-400 group-hover:text-white"}`}
           strokeWidth={3}
         />
       </button>
 
       {open && (
-        <div className="absolute z-100 left-0 mt-1 min-w-48 bg-white border border-gray-100 rounded-sm shadow-xl animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden">
+        <div className="absolute z-100 left-0 mt-1 min-w-[200px] bg-white border border-slate-100 rounded-sm shadow-xl animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden max-h-64 overflow-y-auto">
           <ul className="divide-y divide-gray-50">
             {options.map((o) => (
               <li key={o.key}>
@@ -109,17 +110,17 @@ function SortToggleButton({ label, dir, onToggle, icon }: Readonly<{ label: stri
     <button
       type="button"
       onClick={onToggle}
-      className={`px-3 py-1 rounded-sm border text-[12px] transition-all flex items-center gap-2.5 focus:outline-none group shrink-0 ${isSelected
+      className={`px-3 py-1 rounded-sm border text-[11px] transition-all flex items-center gap-2.5 focus:outline-none group shrink-0 h-8 ${isSelected
         ? "border-orange-500 bg-orange-500 text-white shadow-sm font-black"
         : "border-slate-100 bg-slate-50/50 text-slate-400 hover:bg-orange-600 hover:border-orange-600 hover:text-white font-bold"
       }`}
     >
       {icon && (
-        <div className={`transition-colors duration-200 shrink-0 ${isSelected ? "text-white" : "text-gray-400 group-hover:text-white/80"}`}>
+        <div className={`transition-colors duration-200 shrink-0 ${isSelected ? "text-white" : "text-slate-400 group-hover:text-white/80"}`}>
           {icon}
         </div>
       )}
-      <span className="truncate flex-1 tracking-wider uppercase font-black text-[11px]">{label}</span>
+      <span className="truncate flex-1 tracking-[0.1em] uppercase font-black">{label}</span>
       <div className={`transition-transform duration-300 shrink-0 ${isDesc && isSelected ? "rotate-180" : "rotate-0 opacity-40 group-hover:opacity-100"}`}>
         <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3.5} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
@@ -144,13 +145,14 @@ export function InventoryToolbar({
   filtersRef,
 }: Readonly<InventoryToolbarProps>) {
   const activeCount = [siteFilter, quantitySort, dateSort].filter(Boolean).length;
+  const isFiltered = activeCount > 0 || search !== "";
 
   return (
     <div className="flex flex-wrap items-center gap-3 transition-all">
       
       {/* Desktop Toolbar */}
-      <div className="hidden sm:flex items-center flex-1">
-        <div className="flex items-center gap-2 pr-3 border-r border-gray-100">
+      <div className="hidden sm:flex items-center flex-1 gap-2">
+        <div className="flex items-center gap-1">
            <FilterDropdown 
              label="All Sites" 
              value={siteFilter} 
@@ -163,7 +165,7 @@ export function InventoryToolbar({
            />
         </div>
 
-        <div className="flex items-center gap-2 px-2">
+        <div className="flex items-center gap-1 pl-1 border-l border-slate-100">
             <SortToggleButton
               label="Quantity"
               dir={quantitySort}
@@ -172,144 +174,138 @@ export function InventoryToolbar({
                 else if (quantitySort === "desc") setQuantitySort("asc");
                 else setQuantitySort("");
               }}
-              icon={<ArrowUpDown size={14} strokeWidth={3} />}
+              icon={<ArrowUpDown size={13} strokeWidth={3} />}
             />
             <SortToggleButton
-              label="Order Date"
+              label="Date"
               dir={dateSort}
               onToggle={() => {
                 if (!dateSort) setDateSort("asc");
                 else if (dateSort === "asc") setDateSort("desc");
                 else setDateSort("");
               }}
-              icon={<Calendar size={14} strokeWidth={3} />}
+              icon={<Calendar size={13} strokeWidth={3} />}
             />
         </div>
 
-        <div className="ml-auto flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-sm px-2.5 py-1.5 focus-within:border-orange-200 focus-within:bg-white transition-all w-64 lg:w-80">
+        {isFiltered && (
+           <button 
+             onClick={() => { setSiteFilter(""); setQuantitySort(""); setDateSort(""); setSearch(""); }}
+             className="px-3 h-8 text-[10px] font-black uppercase tracking-widest text-slate-300 hover:text-red-500 transition-colors border border-dashed border-slate-200 rounded-sm hover:border-red-200 hover:bg-red-50 cursor-pointer"
+           >
+             Clear All
+           </button>
+        )}
+
+        <div className="ml-auto flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-sm px-2.5 h-8 focus-within:border-orange-200 focus-within:bg-white transition-all w-64 lg:w-80 overflow-hidden">
           <Search size={14} className="text-slate-400 shrink-0" strokeWidth={3} />
           <input 
             type="text" 
-            placeholder="Search products, sites..."
+            placeholder="Search record..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="bg-transparent border-none outline-none text-[11px] text-slate-900 placeholder:text-slate-300 w-full font-bold uppercase tracking-tight"
           />
           {search && (
             <button onClick={() => setSearch("")} className="text-slate-300 hover:text-slate-900 transition-colors cursor-pointer">
-              <X size={14} strokeWidth={2} />
+              <X size={14} strokeWidth={3} />
             </button>
           )}
         </div>
       </div>
 
       {/* Mobile Toolbar */}
-      <div className="sm:hidden flex items-center justify-between w-full px-1 py-1">
+      <div className="sm:hidden flex items-center justify-between w-full gap-2">
         <div className="relative" ref={filtersRef}>
           <button
             onClick={() => setFiltersOpen(!filtersOpen)}
-            className={`flex items-center gap-2 px-3 py-1 rounded-sm border transition-all cursor-pointer ${
-              filtersOpen ? "bg-orange-500 text-white border-orange-500" : "bg-white text-slate-400 border-slate-200 shadow-sm"
+            className={`flex items-center gap-2 px-3 h-8 rounded-sm border transition-all cursor-pointer ${
+              filtersOpen ? "bg-orange-500 text-white border-orange-500" : 
+              activeCount > 0 ? "bg-orange-50 text-orange-500 border-orange-200" : "bg-white text-slate-400 border-slate-200 shadow-sm"
             } text-[11px] font-black uppercase tracking-widest`}
           >
-            <ListFilter size={14} strokeWidth={3} />
+            <Filter size={14} strokeWidth={3} />
             <span>Filter</span>
-            {activeCount > 0 && <span className="ml-1 px-1 bg-orange-600 text-white rounded-full text-[9px]">{activeCount}</span>}
+            {activeCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 h-4 w-4 bg-orange-600 text-white text-[8px] rounded-full flex items-center justify-center font-black border border-white">
+                {activeCount}
+              </span>
+            )}
           </button>
 
           {filtersOpen && (
-            <div className="absolute left-0 mt-3 z-50 w-70 bg-white border border-gray-200 rounded-sm shadow-xl p-4 flex flex-col gap-5 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute left-0 mt-3 z-50 w-72 bg-white border border-slate-200 rounded-sm shadow-2xl p-4 flex flex-col gap-6 animate-in fade-in slide-in-from-top-2 duration-200">
+              
               <div className="space-y-2">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Filter By Site</span>
-                <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
-                   {["", ...siteOptions].map((site) => (
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                   <Layers size={10} /> Filter By Site
+                </span>
+                <div className="flex flex-col gap-1 max-h-48 overflow-y-auto pr-1">
+                   {["All Sites", ...siteOptions].map((site) => (
                      <button
                        key={site}
-                       onClick={() => { setSiteFilter(site); setFiltersOpen(false); }}
-                       className={`w-full text-left px-4 py-2.5 text-[10px] font-black tracking-widest uppercase transition-colors flex items-center justify-between group/opt ${siteFilter === site ? "bg-slate-50 text-orange-500 border-l-2 border-orange-500" : "text-gray-500 hover:bg-orange-500 hover:text-white"
-                         }`}
+                       onClick={() => { setSiteFilter(site === "All Sites" ? "" : site); setFiltersOpen(false); }}
+                       className={`w-full text-left px-3 py-2 text-[10px] font-black tracking-widest uppercase transition-colors flex items-center justify-between rounded-sm ${ (site === "All Sites" ? "" : site) === siteFilter ? "bg-orange-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}
                      >
-                       {site || "All Sites"}
-                       {siteFilter === site && (
-                         <X size={12} className="text-orange-500 group-hover/opt:text-white" />
-                       )}
+                       {site}
                      </button>
                    ))}
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Sort By Quantity</span>
-                  <div className="flex gap-2">
-                    {["", "asc", "desc"].map((d) => {
-                      const isSelected = quantitySort === d;
-                      const buttonStyles = isSelected 
-                        ? "bg-black text-white border-black" 
-                        : "bg-white text-gray-400 border-gray-100";
-                      
-                      let label = "Default";
-                      if (d === "asc") label = "Low";
-                      else if (d === "desc") label = "High";
-
-                      return (
-                        <button
-                          key={d}
-                          onClick={() => { setQuantitySort(d); setFiltersOpen(false); }}
-                          className={`flex-1 px-3 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider border ${buttonStyles}`}
-                        >
-                          {label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Sort By Date</span>
-                  <div className="flex gap-2">
-                    {["", "asc", "desc"].map((d) => {
-                      const isSelected = dateSort === d;
-                      const buttonStyles = isSelected 
-                        ? "bg-black text-white border-black" 
-                        : "bg-white text-gray-400 border-gray-100";
-                      
-                      let label = "Newest";
-                      if (d === "asc") label = "Oldest";
-
-                      return (
-                        <button
-                          key={d}
-                          onClick={() => { setDateSort(d); setFiltersOpen(false); }}
-                          className={`flex-1 px-3 py-1.5 rounded-sm text-[10px] font-black uppercase tracking-wider border ${buttonStyles}`}
-                        >
-                          {label}
-                        </button>
-                      );
-                    })}
-                  </div>
+              <div className="space-y-3">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                   <ArrowUpDown size={10} /> Sort By
+                </span>
+                <div className="flex flex-wrap gap-2">
+                    <SortToggleButton
+                      label="Qty"
+                      dir={quantitySort}
+                      onToggle={() => {
+                        if (!quantitySort) setQuantitySort("desc");
+                        else if (quantitySort === "desc") setQuantitySort("asc");
+                        else setQuantitySort("");
+                      }}
+                    />
+                    <SortToggleButton
+                      label="Date"
+                      dir={dateSort}
+                      onToggle={() => {
+                        if (!dateSort) setDateSort("asc");
+                        else if (dateSort === "asc") setDateSort("desc");
+                        else setDateSort("");
+                      }}
+                    />
                 </div>
               </div>
 
-              <button
-                onClick={() => setFiltersOpen(false)}
-                className="mt-2 w-full py-2 bg-black text-white text-[11px] font-black uppercase rounded shadow-md"
-              >
-                Close
-              </button>
+              <div className="flex gap-2 pt-2 border-t border-slate-50">
+                <button
+                  onClick={() => { setSiteFilter(""); setQuantitySort(""); setDateSort(""); setFiltersOpen(false); }}
+                  className="flex-1 py-2 border border-slate-100 text-slate-400 text-[10px] font-black uppercase rounded-sm hover:text-red-500"
+                >
+                  Reset
+                </button>
+                <button
+                  onClick={() => setFiltersOpen(false)}
+                  className="flex-1 py-2 bg-slate-900 text-white text-[10px] font-black uppercase rounded-sm"
+                >
+                  Done
+                </button>
+              </div>
             </div>
           )}
         </div>
 
         {/* Mobile Search */}
-        <div className="flex-1 ml-3 flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-sm px-2.5 py-1.5">
-          <Search size={14} className="text-gray-400 shrink-0" strokeWidth={2} />
+        <div className="flex-1 flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-sm px-2.5 h-8">
+          <Search size={14} className="text-slate-400 shrink-0" strokeWidth={3} />
           <input 
             type="text" 
-            placeholder="Search..."
+            placeholder="Search record..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="bg-transparent border-none outline-none text-xs text-slate-900 placeholder:text-gray-300 w-full font-medium"
+            className="bg-transparent border-none outline-none text-[11px] text-slate-900 placeholder:text-slate-300 w-full font-bold uppercase tracking-tight"
           />
         </div>
       </div>
