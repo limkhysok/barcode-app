@@ -82,58 +82,43 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
       <div className="sm:hidden space-y-2">
         {displayed.map((t) => {
           const totalQty = t.items.reduce((sum, item) => sum + Math.abs(item.quantity), 0);
-          const first = t.items[0];
-          const more = t.items.length - 1;
-
           return (
             <div
               key={t.id}
-              className="relative group bg-white border border-gray-200 rounded-sm overflow-hidden hover:shadow-md hover:border-orange-500/30 transition-all duration-300"
+              className="relative group bg-white border-b border-gray-200 overflow-hidden hover:shadow-md hover:border-orange-500/30 transition-all duration-300"
             >
-              <div className="flex flex-col divide-y divide-gray-100">
-                {/* Row 1: ID, Type and Quantity */}
-                <div className="px-3 py-2 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-slate-900 rounded-sm text-[11px] font-bold px-1 py-0.5">
-                      #{t.id}
-                    </span>
-                    <span className={`text-slate-800 text-[10px] font-bold uppercase tracking-wider px-1 py-0.5`}>
-                       {t.transaction_type}
-                    </span>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="flex items-baseline justify-end gap-1">
-                      <span className="text-xl font-black text-orange-600 tabular-nums leading-none">
-                        {totalQty}
-                      </span>
-                      <span className="text-[9px] font-black text-gray-500 uppercase tracking-tighter">Quantity</span>
-                    </div>
-                  </div>
+              {/* Single compact row */}
+              <div className="px-3 py-2 flex items-center gap-2">
+                {/* Left: ID + Items + Type */}
+                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                  <span className="text-slate-300 text-[10px] font-bold shrink-0">{t.id}</span>
+                  <span className="text-slate-300 shrink-0">·</span>
+                  <span className="shrink-0 text-[10px] font-black text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded-full">
+                    x{t.items.length} {t.items.length === 1 ? "item" : "items"}
+                  </span>
+                  <span className="text-slate-300 shrink-0">·</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0">{t.transaction_type}</span>
                 </div>
 
-                {/* Row 2: Product Name, Date and Actions */}
-                <div className="px-3 py-1 flex items-center justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-[10px] font-black text-slate-900 truncate uppercase leading-tight group-hover:text-orange-600 transition-colors">
-                      {first?.product_name ?? "—"}
-                      {more > 0 && <span className="text-gray-400 font-bold ml-1.5 text-[11px]">+{more} MORE</span>}
-                    </h3>
-                  </div>
-                  <div className="shrink-0 flex items-center gap-3 relative z-10">
-                    <span className="text-gray-600 font-mono text-[10px] uppercase font-bold tracking-tighter" suppressHydrationWarning>
-                      {formatDateTime(t.transaction_date).split(' ')[0]}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={(e) => onActionClick(e, t)}
-                      className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"
-                      title="More Actions"
-                    >
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 6a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" />
-                      </svg>
-                    </button>
-                  </div>
+                {/* Right: Quantity + Date + Action */}
+                <div className="shrink-0 flex items-center gap-2 relative z-10">
+                  <span className="text-[12px] font-black text-orange-600 tabular-nums leading-none">
+                    {t.transaction_type === "Receive" ? "+" : "-"}{totalQty}
+                  </span>
+                  <span className="text-slate-300">·</span>
+                  <span className="text-[10px] font-bold text-slate-400 font-mono tracking-tighter" suppressHydrationWarning>
+                    {formatDateTime(t.transaction_date).split(' ')[0]} · {formatDateTime(t.transaction_date).split(' ')[1]}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => onActionClick(e, t)}
+                    className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"
+                    title="More Actions"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 6a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" />
+                    </svg>
+                  </button>
                 </div>
               </div>
 
