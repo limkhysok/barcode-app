@@ -60,15 +60,15 @@ export default function DashboardLayout({ children }: Readonly<{ children: React
   if (!user) return null;
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
-      <DashboardNavbar onMenuClick={() => setSidebarOpen((v) => !v)} />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-          isCollapsed={sidebarCollapsed}
-          onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
-        />
+    <div className="flex h-screen bg-white md:bg-gray-50 overflow-hidden">
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        isCollapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
+      />
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+        <DashboardNavbar onMenuClick={() => setSidebarOpen((v) => !v)} />
         <main className="flex-1 overflow-y-auto">{children}</main>
         <Toaster
           position="top-right"
