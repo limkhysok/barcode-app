@@ -9,7 +9,8 @@ import {
   ChevronDown,
   MapPin,
   Calendar,
-  Layers
+  Layers,
+  Zap
 } from "lucide-react";
 
 interface InventoryToolbarProps {
@@ -20,6 +21,8 @@ interface InventoryToolbarProps {
   setQuantitySort: (v: string) => void;
   dateSort: string;
   setDateSort: (v: string) => void;
+  statusSort: string;
+  setStatusSort: (v: string) => void;
   search: string;
   setSearch: (v: string) => void;
   filtersOpen: boolean;
@@ -138,14 +141,24 @@ export function InventoryToolbar({
   setQuantitySort,
   dateSort,
   setDateSort,
+  statusSort,
+  setStatusSort,
   search,
   setSearch,
   filtersOpen,
   setFiltersOpen,
   filtersRef,
 }: Readonly<InventoryToolbarProps>) {
-  const activeCount = [siteFilter, quantitySort, dateSort].filter(Boolean).length;
+  const activeCount = [siteFilter, quantitySort, dateSort, statusSort].filter(Boolean).length;
   const isFiltered = activeCount > 0 || search !== "";
+
+  // Mobile Filter Button Style
+  let mobileFilterClass = "bg-white text-slate-400 border-slate-200 shadow-sm";
+  if (filtersOpen) {
+    mobileFilterClass = "bg-orange-500 text-white border-orange-500";
+  } else if (activeCount > 0) {
+    mobileFilterClass = "bg-orange-50 text-orange-500 border-orange-200";
+  }
 
   return (
     <div className="flex flex-wrap items-center gap-3 transition-all">
@@ -186,11 +199,21 @@ export function InventoryToolbar({
               }}
               icon={<Calendar size={13} strokeWidth={3} />}
             />
+            <SortToggleButton
+              label="Status"
+              dir={statusSort}
+              onToggle={() => {
+                if (!statusSort) setStatusSort("desc");
+                else if (statusSort === "desc") setStatusSort("asc");
+                else setStatusSort("");
+              }}
+              icon={<Zap size={13} strokeWidth={3} />}
+            />
         </div>
 
         {isFiltered && (
            <button 
-             onClick={() => { setSiteFilter(""); setQuantitySort(""); setDateSort(""); setSearch(""); }}
+             onClick={() => { setSiteFilter(""); setQuantitySort(""); setDateSort(""); setStatusSort(""); setSearch(""); }}
              className="px-3 h-8 text-[10px] font-black uppercase tracking-widest text-slate-300 hover:text-red-500 transition-colors border border-dashed border-slate-200 rounded-sm hover:border-red-200 hover:bg-red-50 cursor-pointer"
            >
              Clear All
@@ -219,10 +242,7 @@ export function InventoryToolbar({
         <div className="relative" ref={filtersRef}>
           <button
             onClick={() => setFiltersOpen(!filtersOpen)}
-            className={`flex items-center gap-2 px-3 h-8 rounded-sm border transition-all cursor-pointer ${
-              filtersOpen ? "bg-orange-500 text-white border-orange-500" : 
-              activeCount > 0 ? "bg-orange-50 text-orange-500 border-orange-200" : "bg-white text-slate-400 border-slate-200 shadow-sm"
-            } text-[11px] font-black uppercase tracking-widest`}
+            className={`flex items-center gap-2 px-3 h-8 rounded-sm border transition-all cursor-pointer ${mobileFilterClass} text-[11px] font-black uppercase tracking-widest`}
           >
             <Filter size={14} strokeWidth={3} />
             <span>Filter</span>
@@ -241,15 +261,18 @@ export function InventoryToolbar({
                    <Layers size={10} /> Filter By Site
                 </span>
                 <div className="flex flex-col gap-1 max-h-48 overflow-y-auto pr-1">
-                   {["All Sites", ...siteOptions].map((site) => (
-                     <button
-                       key={site}
-                       onClick={() => { setSiteFilter(site === "All Sites" ? "" : site); setFiltersOpen(false); }}
-                       className={`w-full text-left px-3 py-2 text-[10px] font-black tracking-widest uppercase transition-colors flex items-center justify-between rounded-sm ${ (site === "All Sites" ? "" : site) === siteFilter ? "bg-orange-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}
-                     >
-                       {site}
-                     </button>
-                   ))}
+                   {["All Sites", ...siteOptions].map((site) => {
+                     const isSelected = (site === "All Sites" ? "" : site) === siteFilter;
+                     return (
+                       <button
+                         key={site}
+                         onClick={() => { setSiteFilter(site === "All Sites" ? "" : site); setFiltersOpen(false); }}
+                         className={`w-full text-left px-3 py-2 text-[10px] font-black tracking-widest uppercase transition-colors flex items-center justify-between rounded-sm ${isSelected ? "bg-orange-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}
+                       >
+                         {site}
+                       </button>
+                     );
+                   })}
                 </div>
               </div>
 
@@ -276,12 +299,21 @@ export function InventoryToolbar({
                         else setDateSort("");
                       }}
                     />
+                    <SortToggleButton
+                      label="Status"
+                      dir={statusSort}
+                      onToggle={() => {
+                        if (!statusSort) setStatusSort("desc");
+                        else if (statusSort === "desc") setStatusSort("asc");
+                        else setStatusSort("");
+                      }}
+                    />
                 </div>
               </div>
 
               <div className="flex gap-2 pt-2 border-t border-slate-50">
                 <button
-                  onClick={() => { setSiteFilter(""); setQuantitySort(""); setDateSort(""); setFiltersOpen(false); }}
+                  onClick={() => { setSiteFilter(""); setQuantitySort(""); setDateSort(""); setStatusSort(""); setFiltersOpen(false); }}
                   className="flex-1 py-2 border border-slate-100 text-slate-400 text-[10px] font-black uppercase rounded-sm hover:text-red-500"
                 >
                   Reset

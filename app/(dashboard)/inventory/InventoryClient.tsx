@@ -16,6 +16,7 @@ import { DeleteConfirmModal } from "./_components/DeleteConfirmModal";
 
 type QuantitySort = "asc" | "desc" | "";
 type DateSort = "asc" | "desc" | "";
+type StatusSort = "asc" | "desc" | "";
 
 const emptyForm: InventoryPayload = {
   product: 0,
@@ -54,6 +55,7 @@ export default function InventoryClient({
   const [siteFilter, setSiteFilter] = useState("");
   const [quantitySort, setQuantitySort] = useState<QuantitySort>("");
   const [dateSort, setDateSort] = useState<DateSort>("");
+  const [statusSort, setStatusSort] = useState<StatusSort>("");
   const [search, setSearch] = useState("");
   const [ordering, setOrdering] = useState<string>("-updated_at");
 
@@ -97,7 +99,7 @@ export default function InventoryClient({
   useEffect(() => {
     const timer = setTimeout(() => fetchInventory(), 300);
     return () => clearTimeout(timer);
-  }, [search, siteFilter, quantitySort, dateSort]);
+  }, [search, siteFilter, quantitySort, dateSort, statusSort]);
 
   function openCreate() {
     setEditing(null);
@@ -182,7 +184,9 @@ export default function InventoryClient({
       'Site': 'site',
       'Location': 'location',
       'Quantity': 'quantity_on_hand',
+      'Status': 'reorder_status',
       'Order Date': 'updated_at',
+      'Updated': 'updated_at',
     };
     const field = orderingFields[colLabel];
     if (!field) return;
@@ -228,6 +232,8 @@ export default function InventoryClient({
         setDateSort={(v) => setDateSort(v as DateSort)}
         search={search}
         setSearch={setSearch}
+        statusSort={statusSort}
+        setStatusSort={(v) => setStatusSort(v as StatusSort)}
         filtersOpen={filtersOpen}
         setFiltersOpen={setFiltersOpen}
         filtersRef={filtersRef}

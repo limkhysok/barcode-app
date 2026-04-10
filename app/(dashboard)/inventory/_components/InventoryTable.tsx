@@ -7,8 +7,7 @@ import {
   Trash2, 
   Database,
   ChevronRight,
-  MapPin,
-  Box
+  MapPin
 } from "lucide-react";
 
 interface InventoryTableProps {
@@ -80,7 +79,9 @@ export function InventoryTable({
     'Product': 'product_name',
     'Site': 'site',
     'Quantity': 'quantity_on_hand',
+    'Status': 'reorder_status',
     'Updated': 'updated_at',
+    'Order Date': 'updated_at',
   };
 
   return (
@@ -106,15 +107,18 @@ export function InventoryTable({
           {displayed.map((r) => (
             <div
               key={r.id}
-              className="relative group bg-white border-b border-gray-100 overflow-hidden hover:bg-slate-50/50 cursor-pointer"
-              onClick={() => canEdit && onEdit(r)}
+              className="relative group bg-white border-b border-gray-100 overflow-hidden hover:bg-slate-50/10"
             >
               <div className="px-3 py-3 flex items-center gap-2">
-                {/* Left: ID + Name */}
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <span className="text-slate-300 text-[10px] font-black tabular-nums shrink-0">#{r.id}</span>
+                {/* Left: ID + Name wrapper as button for accessiblity */}
+                <button 
+                  onClick={() => onEdit(r)}
+                  className="flex items-center gap-2 flex-1 min-w-0 text-left group/btn appearance-none cursor-pointer"
+                  aria-label={`Edit ${r.product_details.product_name}`}
+                >
+                  <span className="text-slate-300 text-[10px] font-black tabular-nums shrink-0 group-hover/btn:text-orange-500 transition-colors">#{r.id}</span>
                   <div className="flex flex-col min-w-0">
-                    <h3 className="text-[11px] font-black text-slate-900 truncate uppercase tracking-tight">
+                    <h3 className="text-[11px] font-black text-slate-900 truncate uppercase tracking-tight group-hover/btn:text-orange-600 transition-colors">
                       {r.product_details.product_name}
                     </h3>
                     <div className="flex items-center gap-1">
@@ -123,7 +127,7 @@ export function InventoryTable({
                       </span>
                     </div>
                   </div>
-                </div>
+                </button>
 
                 {/* Right: Qty + Time + Action */}
                 <div className="shrink-0 flex items-center gap-2 relative z-10">
@@ -169,14 +173,14 @@ export function InventoryTable({
                     className={`px-5 py-3 text-[9px] font-black tracking-widest text-slate-400 uppercase ${h.class ?? ""} ${canSort ? "cursor-pointer select-none group/th" : ""}`}
                     onClick={() => canSort && onSort(h.label)}
                   >
-                    <div className={`flex items-center gap-1.5 ${h.class?.includes('center') ? 'justify-center' : h.class?.includes('right') ? 'justify-end' : ''}`}>
+                    <div className={`flex items-center gap-1.5 ${h.class?.includes('center') ? 'justify-center' : ''} ${h.class?.includes('right') ? 'justify-end' : ''}`}>
                       {h.label}
-                      {canSort && (
-                        <div className="flex flex-col -space-y-1 opacity-20 group-hover/th:opacity-100 transition-opacity">
-                           <ChevronRight size={8} className={`-rotate-90 ${isAsc ? "text-orange-500 opacity-100" : ""}`} strokeWidth={4} />
-                           <ChevronRight size={8} className={`rotate-90 ${isDesc ? "text-orange-500 opacity-100" : ""}`} strokeWidth={4} />
-                        </div>
-                      )}
+                    {canSort && (
+                    <div className="flex flex-col -space-y-1 opacity-20 group-hover/th:opacity-100 transition-opacity ml-1">
+                      <ChevronRight size={8} className={`-rotate-90 ${isAsc ? "text-orange-500 opacity-100" : ""}`} strokeWidth={4} />
+                      <ChevronRight size={8} className={`rotate-90 ${isDesc ? "text-orange-500 opacity-100" : ""}`} strokeWidth={4} />
+                    </div>
+                  )}
                     </div>
                   </th>
                 )
