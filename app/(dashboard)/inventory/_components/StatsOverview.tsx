@@ -1,9 +1,13 @@
 "use client";
 
+import React from "react";
 import { 
   Database, 
   Package, 
-  AlertCircle 
+  AlertCircle,
+  Hash,
+  Box,
+  Zap
 } from "lucide-react";
 
 interface StatsOverviewProps {
@@ -11,74 +15,118 @@ interface StatsOverviewProps {
 }
 
 export function StatsOverview({ stats }: Readonly<StatsOverviewProps>) {
+  const total = stats.total ?? 0;
+  const totalQty = stats.totalQty ?? 0;
+  const needsReorder = stats.needsReorder ?? 0;
+
   return (
     <div className="w-full">
-      {/* Mobile Overview */}
-      <div className="sm:hidden rounded-sm border border-gray-200 bg-white overflow-hidden shadow-sm">
-        <div className="flex h-1 w-full bg-gray-100">
-          <div className="h-full bg-orange-500 transition-all duration-700" style={{ width: '40%' }} />
-          <div className="h-full bg-slate-950 transition-all duration-700" style={{ width: '60%' }} />
+      {/* ── Mobile Overview: Multi-Section Layout ── */}
+      <div className="block sm:hidden rounded-md border border-slate-200 bg-white overflow-hidden shadow-sm">
+        
+        {/* Top: Summary Stats (Divided) */}
+        <div className="px-0 py-0 bg-white border-b border-slate-200">
+          <div className="px-3 py-2 border-b border-slate-100 flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-orange-500 shrink-0" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800">Inventory Summary</span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-0 divide-x divide-slate-100">
+            {/* Total */}
+            <div className="flex flex-col items-center gap-1 py-4">
+              <Database className="h-5 w-5 text-orange-600" strokeWidth={2} />
+              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter leading-none">Total</p>
+              <p className="text-base font-black text-slate-950 leading-none tabular-nums">{total.toLocaleString()}</p>
+            </div>
+
+            {/* Units */}
+            <div className="flex flex-col items-center gap-1 py-4">
+              <Package className="h-5 w-5 text-orange-600" strokeWidth={2} />
+              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter leading-none">Units</p>
+              <p className="text-base font-black text-slate-950 leading-none tabular-nums">{totalQty.toLocaleString()}</p>
+            </div>
+
+            {/* Critical */}
+            <div className="flex flex-col items-center gap-1 py-4">
+              <AlertCircle className={`h-5 w-5 ${needsReorder > 0 ? "text-red-500" : "text-slate-300"}`} strokeWidth={2} />
+              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter leading-none">Low</p>
+              <p className={`text-base font-black leading-none tabular-nums ${needsReorder > 0 ? "text-red-500" : "text-slate-950"}`}>{needsReorder.toLocaleString()}</p>
+            </div>
+          </div>
         </div>
-        <div className="grid grid-cols-2 divide-x divide-gray-100">
-          <div className="flex-1 flex flex-col gap-0.5 px-4 py-3">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">Total Records</p>
-            <div className="flex items-center gap-2">
-              <span className="text-[14px] font-black text-slate-950 tabular-nums leading-none">●</span>
-              <span className="text-[16px] font-black text-slate-950 tabular-nums tracking-tight leading-none">{stats.total.toLocaleString()}</span>
-            </div>
-          </div>
-          <div className="flex-1 flex flex-col gap-0.5 px-4 py-3">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">Unit Volume</p>
-            <div className="flex items-center gap-2">
-              <span className="text-[14px] font-black text-orange-600 tabular-nums leading-none">↗</span>
-              <span className="text-[16px] font-black text-slate-950 tabular-nums tracking-tight leading-none">{stats.totalQty.toLocaleString()}</span>
-            </div>
-          </div>
+
+        {/* Bottom: Modern Info Bar */}
+        <div className="bg-slate-50/50 px-4 py-3 border-t border-slate-50">
+           <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                 <Zap className="w-3.5 h-3.5 text-orange-500" />
+                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Active Status</span>
+              </div>
+              <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${needsReorder > 0 ? "bg-red-50 text-red-500" : "bg-green-50 text-green-600"}`}>
+                 {needsReorder > 0 ? "Needs Review" : "Healthy Stock"}
+              </span>
+           </div>
         </div>
       </div>
 
-      {/* Desktop Overview (3 Card Layout) */}
-      <div className="hidden sm:grid sm:grid-cols-3 gap-3">
-        {/* Total Records */}
-        <div className="px-5 py-4 border border-gray-200 bg-white rounded-sm transition-all duration-300 hover:border-orange-500/30">
-          <div className="flex items-start justify-between mb-2">
-            <div className="space-y-1">
-              <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest leading-none">Total Records</p>
-              <p className="text-3xl font-black text-slate-950 tabular-nums tracking-tighter leading-none">{stats.total.toLocaleString()}</p>
-            </div>
-            <div className="p-2.5 bg-slate-50 border border-slate-100 rounded-lg text-slate-400">
-              <Database size={20} strokeWidth={2.5} />
+      {/* ── Desktop Overview (3 Card Layout with sub-details) ── */}
+      <div className="hidden sm:grid grid-cols-3 gap-3">
+        {/* Box: Total Records */}
+        <div className="rounded-md border border-slate-200 bg-white p-4 transition-all duration-300 hover:border-orange-500/30">
+          <div className="flex items-start justify-between pb-2">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 leading-none">Total Records</p>
+            <Database className="h-8 w-8 text-orange-600/80" strokeWidth={1.5} />
+          </div>
+          <div className="space-y-1">
+            <p className="text-3xl font-black tracking-tighter text-slate-950 leading-none tabular-nums">{total.toLocaleString()}</p>
+            <div className="flex items-center justify-between pt-2 border-t border-slate-50 mt-4">
+               <div className="flex items-center gap-1.5">
+                  <Hash className="w-3 h-3 text-orange-500" />
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Unique Entries</span>
+               </div>
+               <span className="text-[10px] font-bold text-slate-400 uppercase">Tracked</span>
             </div>
           </div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Unique Entries</p>
         </div>
 
-        {/* Unit Volume */}
-        <div className="px-5 py-4 border border-gray-200 bg-white rounded-sm transition-all duration-300 hover:border-orange-500/30">
-          <div className="flex items-start justify-between mb-2">
-            <div className="space-y-1">
-              <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest leading-none">Unit Volume</p>
-              <p className="text-3xl font-black text-slate-950 tabular-nums tracking-tighter leading-none">{stats.totalQty.toLocaleString()}</p>
-            </div>
-            <div className="p-2.5 bg-orange-50 border border-orange-100 rounded-lg text-orange-600">
-              <Package size={20} strokeWidth={2.5} />
+        {/* Box: Unit Volume */}
+        <div className="rounded-md border border-slate-200 bg-white p-4 transition-all duration-300 hover:border-orange-500/30">
+          <div className="flex items-start justify-between pb-2">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 leading-none">Unit Volume</p>
+            <Package className="h-8 w-8 text-orange-600/80" strokeWidth={1.5} />
+          </div>
+          <div className="space-y-1">
+            <p className="text-3xl font-black tracking-tighter text-slate-950 leading-none tabular-nums">{totalQty.toLocaleString()}</p>
+            <div className="flex items-center justify-between pt-2 border-t border-slate-50 mt-4">
+               <div className="flex items-center gap-1.5">
+                  <Box className="w-3 h-3 text-orange-500" />
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Volume Level</span>
+               </div>
+               <span className="text-[10px] font-bold text-slate-400 uppercase">Total Qty</span>
             </div>
           </div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Total Stock Level</p>
         </div>
 
-        {/* Needs Reorder */}
-        <div className="px-5 py-4 border border-gray-200 bg-white rounded-sm transition-all duration-300 hover:border-orange-500/30">
-          <div className="flex items-start justify-between mb-2">
-            <div className="space-y-1">
-              <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest leading-none">Low Stock</p>
-              <p className="text-3xl font-black text-slate-950 tabular-nums tracking-tighter leading-none">{stats.needsReorder.toLocaleString()}</p>
-            </div>
-            <div className={`p-2.5 border rounded-lg ${stats.needsReorder > 0 ? "bg-red-50 border-red-100 text-red-600" : "bg-green-50 border-green-100 text-green-600"}`}>
-              <AlertCircle size={20} strokeWidth={2.5} />
+        {/* Box: Low Stock */}
+        <div className="rounded-md border border-slate-200 bg-white p-4 transition-all duration-300 hover:border-orange-500/30">
+          <div className="flex items-start justify-between pb-2">
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 leading-none">Critical Stock</p>
+            <AlertCircle className={`h-8 w-8 ${needsReorder > 0 ? "text-red-500/80" : "text-green-500/80"}`} strokeWidth={1.5} />
+          </div>
+          <div className="space-y-1">
+            <p className={`text-3xl font-black tracking-tighter leading-none tabular-nums ${needsReorder > 0 ? "text-red-600" : "text-slate-950"}`}>
+              {needsReorder.toLocaleString()}
+            </p>
+            <div className="flex items-center justify-between pt-2 border-t border-slate-50 mt-4">
+               <div className="flex items-center gap-1.5">
+                  <Zap className={`w-3 h-3 ${needsReorder > 0 ? "text-red-500" : "text-green-500"}`} />
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">System Health</span>
+               </div>
+               <span className={`text-[10px] font-black uppercase tracking-widest ${needsReorder > 0 ? "text-red-500" : "text-green-600"}`}>
+                  {needsReorder > 0 ? "Reorder" : "Stable"}
+               </span>
             </div>
           </div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Items for Review</p>
         </div>
       </div>
     </div>

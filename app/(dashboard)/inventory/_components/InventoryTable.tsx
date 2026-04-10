@@ -88,41 +88,42 @@ export function InventoryTable({
           >
             <div className="flex flex-col divide-y divide-gray-100">
               {/* Row 1: ID, Category and Qty */}
-              <div className="p-2 flex items-center justify-between">
+              <div className="p-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="bg-gray-300 text-slate-900 rounded-sm text-[11px] font-bold px-1 py-0.5">
+                  <span className="text-slate-300 text-[10px] font-black tabular-nums">
                     #{r.id}
                   </span>
-                  <span className="bg-gray-100 text-gray-400 text-[10px] font-bold uppercase tracking-wider px-1 py-0.5 rounded-sm">
+                  <span className="text-slate-300 text-xs">·</span>
+                  <span className="bg-slate-100 text-slate-900 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">
                     {r.product_details.category}
                   </span>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="flex items-baseline justify-end gap-1">
-                    <span className="text-xl font-black text-orange-600 tabular-nums leading-none">
+                  <div className="flex items-baseline justify-end gap-1.5">
+                    <span className="text-[17px] font-black text-orange-600 tabular-nums leading-none">
                       {r.quantity_on_hand.toLocaleString()}
                     </span>
-                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-tighter">Qty</span>
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">quantity</span>
                   </div>
                 </div>
               </div>
 
               {/* Row 2: Name and Status */}
-              <div className="px-2 py-1.5 flex items-center justify-between gap-4">
+              <div className="px-3 py-3 flex items-center justify-between gap-4 bg-slate-50/50">
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-[11px] font-black text-slate-950 truncate uppercase leading-tight group-hover:text-orange-600 transition-colors">
+                  <h3 className="text-[11px] font-black text-slate-950 truncate uppercase tracking-tight leading-tight group-hover:text-orange-600 transition-colors">
                     {r.product_details.product_name}
                   </h3>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <MapPin size={9} className="text-slate-400" />
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">{r.site} • {r.location}</p>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <MapPin size={10} className="text-slate-300" />
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.1em]">{r.site} • {r.location}</p>
                   </div>
                 </div>
-                <div className="shrink-0 flex items-center gap-1.5 relative z-10">
+                <div className="shrink-0 flex items-center gap-1 relative z-10">
                   {canEdit && (
                     <button
                       onClick={() => onEdit(r)}
-                      className="p-1.5 text-slate-300 hover:text-slate-950 hover:bg-slate-100 rounded-md transition-all"
+                      className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-white rounded transition-all cursor-pointer"
                     >
                       <Edit2 size={14} />
                     </button>
@@ -130,7 +131,7 @@ export function InventoryTable({
                   {canDelete && (
                     <button
                       onClick={() => onDelete(r)}
-                      className="p-1.5 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-md transition-all"
+                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-all cursor-pointer"
                     >
                       <Trash2 size={14} />
                     </button>
@@ -195,12 +196,12 @@ export function InventoryTable({
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
             {displayed.map((r) => (
-              <tr key={r.id} className="group hover:bg-slate-50/50 transition-colors">
+              <tr key={r.id} className="group hover:bg-slate-50/60 transition-colors">
                 <td className="pl-6 px-4 py-4">
-                  <span className="text-[11px] font-black text-black tabular-nums group-hover:text-orange-600 transition-colors">#{r.id}</span>
+                  <span className="text-[11px] font-black text-slate-500 tabular-nums">#{r.id}</span>
                 </td>
                 <td className="px-4 py-4">
-                  <span className="text-[12px] font-black text-slate-900 uppercase tracking-tight group-hover:text-orange-600 transition-colors">
+                  <span className="text-[13px] font-black text-slate-900 uppercase tracking-tight group-hover:text-orange-600 transition-colors">
                     {r.product_details.product_name}
                   </span>
                 </td>
@@ -236,11 +237,11 @@ export function InventoryTable({
                    </div>
                 </td>
                 <td className="pr-6 px-4 py-4 text-right">
-                  <div className="flex items-center justify-end gap-1.5">
+                  <div className="flex items-center justify-end gap-0.5 opacity-20 group-hover:opacity-100 transition-opacity">
                     {canEdit && (
                       <button
                         onClick={() => onEdit(r)}
-                        className="p-1.5 text-gray-300 hover:text-orange-500 hover:bg-orange-50 rounded-md transition-all"
+                        className="p-1.5 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded transition-all cursor-pointer"
                         title="Edit Record"
                       >
                         <Edit2 size={16} strokeWidth={2.5} />
@@ -249,15 +250,12 @@ export function InventoryTable({
                     {canDelete && (
                       <button
                         onClick={() => onDelete(r)}
-                        className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
+                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-all cursor-pointer"
                         title="Delete Record"
                       >
                         <Trash2 size={16} strokeWidth={2.5} />
                       </button>
                     )}
-                    <button className="p-1.5 text-gray-300 hover:text-slate-900 rounded-md transition-all">
-                      <ChevronRight size={16} strokeWidth={3} />
-                    </button>
                   </div>
                 </td>
               </tr>

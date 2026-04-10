@@ -47,11 +47,11 @@ function FilterDropdown({ label, value, options, onChange, icon: Icon }: Readonl
   const activeLabel = options.find(o => o.key === value)?.label || label;
   const isActive = value !== "";
 
-  let buttonStyles = "border-gray-100 bg-gray-50/50 text-gray-400 hover:text-white hover:bg-orange-500 hover:border-orange-300";
+  let buttonStyles = "border-slate-100 bg-slate-50/50 text-slate-400 hover:text-white hover:bg-orange-500 hover:border-orange-300";
   if (isActive) {
     buttonStyles = "border-orange-500 bg-orange-500 text-white font-black shadow-sm";
   } else if (open) {
-    buttonStyles = "border-orange-500 bg-white text-gray-900 shadow-sm";
+    buttonStyles = "border-orange-500 bg-white text-slate-900 shadow-sm";
   }
 
   return (
@@ -111,7 +111,7 @@ function SortToggleButton({ label, dir, onToggle, icon }: Readonly<{ label: stri
       onClick={onToggle}
       className={`px-3 py-1 rounded-sm border text-[12px] transition-all flex items-center gap-2.5 focus:outline-none group shrink-0 ${isSelected
         ? "border-orange-500 bg-orange-500 text-white shadow-sm font-black"
-        : "border-gray-100 bg-gray-50/50 text-gray-400 hover:bg-orange-600 hover:border-orange-600 hover:text-white font-bold"
+        : "border-slate-100 bg-slate-50/50 text-slate-400 hover:bg-orange-600 hover:border-orange-600 hover:text-white font-bold"
       }`}
     >
       {icon && (
@@ -146,7 +146,7 @@ export function InventoryToolbar({
   const activeCount = [siteFilter, quantitySort, dateSort].filter(Boolean).length;
 
   return (
-    <div className="flex flex-wrap items-center gap-3 border border-gray-200 bg-white rounded-md px-1 py-1 transition-all hover:border-gray-200">
+    <div className="flex flex-wrap items-center gap-3 transition-all">
       
       {/* Desktop Toolbar */}
       <div className="hidden sm:flex items-center flex-1">
@@ -186,17 +186,17 @@ export function InventoryToolbar({
             />
         </div>
 
-        <div className="ml-auto flex items-center gap-2 bg-slate-50 border border-gray-100 rounded-sm px-2.5 py-1.5 focus-within:border-gray-300 focus-within:bg-white transition-all w-64 lg:w-80">
-          <Search size={14} className="text-gray-400 shrink-0" strokeWidth={2} />
+        <div className="ml-auto flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-sm px-2.5 py-1.5 focus-within:border-orange-200 focus-within:bg-white transition-all w-64 lg:w-80">
+          <Search size={14} className="text-slate-400 shrink-0" strokeWidth={3} />
           <input 
             type="text" 
             placeholder="Search products, sites..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="bg-transparent border-none outline-none text-xs text-slate-900 placeholder:text-gray-300 w-full font-medium"
+            className="bg-transparent border-none outline-none text-[11px] text-slate-900 placeholder:text-slate-300 w-full font-bold uppercase tracking-tight"
           />
           {search && (
-            <button onClick={() => setSearch("")} className="text-gray-300 hover:text-slate-900 transition-colors">
+            <button onClick={() => setSearch("")} className="text-slate-300 hover:text-slate-900 transition-colors cursor-pointer">
               <X size={14} strokeWidth={2} />
             </button>
           )}
@@ -208,8 +208,8 @@ export function InventoryToolbar({
         <div className="relative" ref={filtersRef}>
           <button
             onClick={() => setFiltersOpen(!filtersOpen)}
-            className={`flex items-center gap-2 px-3 py-1 rounded-sm border transition-all ${
-              filtersOpen ? "bg-orange-500 text-white border-orange-500" : "bg-white text-gray-400 border-gray-100"
+            className={`flex items-center gap-2 px-3 py-1 rounded-sm border transition-all cursor-pointer ${
+              filtersOpen ? "bg-orange-500 text-white border-orange-500" : "bg-white text-slate-400 border-slate-200 shadow-sm"
             } text-[11px] font-black uppercase tracking-widest`}
           >
             <ListFilter size={14} strokeWidth={3} />
@@ -302,7 +302,7 @@ export function InventoryToolbar({
         </div>
 
         {/* Mobile Search */}
-        <div className="flex-1 ml-3 flex items-center gap-2 bg-slate-50 border border-gray-100 rounded-sm px-2.5 py-1.5">
+        <div className="flex-1 ml-3 flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-sm px-2.5 py-1.5">
           <Search size={14} className="text-gray-400 shrink-0" strokeWidth={2} />
           <input 
             type="text" 
