@@ -697,7 +697,7 @@
           </div>
         </div>
 
-        <div className=" overflow-hidden bg-white rounded-md border border-gray-200">
+        <div className=" overflow-hidden bg-white ">
           <TransactionsTable
             displayed={displayed}
             loading={loading}
