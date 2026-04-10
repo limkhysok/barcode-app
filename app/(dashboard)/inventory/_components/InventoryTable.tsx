@@ -7,7 +7,8 @@ import {
   Trash2, 
   Database,
   ChevronRight,
-  MapPin
+  MapPin,
+  Box
 } from "lucide-react";
 
 interface InventoryTableProps {
@@ -56,14 +57,20 @@ export function InventoryTable({
   }
 
   if (error) {
-    return <p className="text-center py-20 text-sm text-red-500 font-black bg-red-50/50 rounded-md border border-red-100 mx-4 uppercase tracking-widest">{error}</p>;
+    return (
+      <div className="flex items-center justify-center py-20 px-4">
+        <p className="max-w-md text-center py-4 text-[11px] font-black text-red-500 bg-red-50/50 rounded-sm border border-red-100 uppercase tracking-widest leading-loose">
+          {error}
+        </p>
+      </div>
+    );
   }
 
   if (displayed.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-3 text-gray-400">
-        <Database className="w-10 h-10 opacity-30" strokeWidth={1.5} />
-        <p className="text-sm font-black uppercase tracking-widest">No Records Found</p>
+      <div className="flex flex-col items-center justify-center py-24 gap-4 text-slate-300">
+        <Database className="w-12 h-12 opacity-20" strokeWidth={1} />
+        <p className="text-[10px] font-black uppercase tracking-[0.2em]">No Records Found</p>
       </div>
     );
   }
@@ -72,120 +79,102 @@ export function InventoryTable({
     '#': 'id',
     'Product': 'product_name',
     'Site': 'site',
-    'Location': 'location',
     'Quantity': 'quantity_on_hand',
-    'Order Date': 'updated_at',
+    'Updated': 'updated_at',
   };
 
   return (
-    <>
-      {/* Mobile Cards */}
-      <div className="sm:hidden space-y-2 px-1 py-1">
-        {displayed.map((r) => (
-          <div
-            key={r.id}
-            className="relative group bg-white border border-gray-200 rounded-sm overflow-hidden hover:shadow-md hover:border-orange-500/30 transition-all duration-300"
-          >
-            <div className="flex flex-col divide-y divide-gray-100">
-              {/* Row 1: ID, Category and Qty */}
-              <div className="p-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-slate-300 text-[10px] font-black tabular-nums">
-                    #{r.id}
-                  </span>
-                  <span className="text-slate-300 text-xs">·</span>
-                  <span className="bg-slate-100 text-slate-900 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">
-                    {r.product_details.category}
-                  </span>
-                </div>
-                <div className="text-right shrink-0">
-                  <div className="flex items-baseline justify-end gap-1.5">
-                    <span className="text-[17px] font-black text-orange-600 tabular-nums leading-none">
-                      {r.quantity_on_hand.toLocaleString()}
-                    </span>
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">quantity</span>
-                  </div>
-                </div>
-              </div>
+    <div className="w-full">
+      {/* ── Mobile Compact Rows (Transactions Concept) ── */}
+      <div className="sm:hidden">
+        {/* Mobile Header */}
+        <div className="px-3 py-1.5 flex items-center gap-2 border-b border-gray-100 bg-white sticky top-0 z-10">
+           <div className="flex items-center gap-3 flex-1 min-w-0">
+             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">#</span>
+             <span className="text-slate-200">·</span>
+             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Record</span>
+           </div>
+           <div className="shrink-0 flex items-center gap-4">
+             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Qty</span>
+             <span className="text-slate-200">·</span>
+             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Updated</span>
+             <span className="w-7" />
+           </div>
+        </div>
 
-              {/* Row 2: Name and Status */}
-              <div className="px-3 py-3 flex items-center justify-between gap-4 bg-slate-50/50">
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-[11px] font-black text-slate-950 truncate uppercase tracking-tight leading-tight group-hover:text-orange-600 transition-colors">
-                    {r.product_details.product_name}
-                  </h3>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <MapPin size={10} className="text-slate-300" />
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.1em]">{r.site} • {r.location}</p>
+        <div className="space-y-0">
+          {displayed.map((r) => (
+            <div
+              key={r.id}
+              className="relative group bg-white border-b border-gray-100 overflow-hidden hover:bg-slate-50/50 cursor-pointer"
+              onClick={() => canEdit && onEdit(r)}
+            >
+              <div className="px-3 py-3 flex items-center gap-2">
+                {/* Left: ID + Name */}
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="text-slate-300 text-[10px] font-black tabular-nums shrink-0">#{r.id}</span>
+                  <div className="flex flex-col min-w-0">
+                    <h3 className="text-[11px] font-black text-slate-900 truncate uppercase tracking-tight">
+                      {r.product_details.product_name}
+                    </h3>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter truncate">
+                        {r.site} · {r.location}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <div className="shrink-0 flex items-center gap-1 relative z-10">
-                  {canEdit && (
-                    <button
-                      onClick={() => onEdit(r)}
-                      className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-white rounded transition-all cursor-pointer"
-                    >
-                      <Edit2 size={14} />
-                    </button>
-                  )}
-                  {canDelete && (
-                    <button
-                      onClick={() => onDelete(r)}
-                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-all cursor-pointer"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  )}
+
+                {/* Right: Qty + Time + Action */}
+                <div className="shrink-0 flex items-center gap-2 relative z-10">
+                  <span className={`text-[12px] font-black tabular-nums leading-none ${r.reorder_status === 'Yes' ? 'text-red-500' : 'text-orange-600'}`}>
+                    {r.quantity_on_hand.toLocaleString()}
+                  </span>
+                  <span className="text-slate-200 shrink-0">·</span>
+                  <span className="text-[9px] font-bold text-slate-400 font-mono tracking-tighter shrink-0" suppressHydrationWarning>
+                    {formatDateTime(r.updated_at).split(' ')[0].split('/').slice(0,2).join('/')} {formatDateTime(r.updated_at).split(' ')[1]}
+                  </span>
+                  <button className="p-1 text-slate-300">
+                     <ChevronRight size={14} strokeWidth={3} />
+                  </button>
                 </div>
               </div>
             </div>
-
-            {canEdit && (
-              <button
-                onClick={() => onEdit(r)}
-                className="absolute inset-0 w-full h-full cursor-pointer z-0 opacity-0"
-              />
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      {/* Desktop Table */}
-      <div className="hidden sm:block overflow-x-auto bg-white border border-gray-100 rounded-sm shadow-sm">
+      {/* ── Desktop Clean Table (Transactions Concept) ── */}
+      <div className="hidden sm:block overflow-x-auto bg-white border border-slate-200 rounded-md">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50/50 border-b border-gray-100 text-left">
+          <thead className="bg-slate-50 border-b border-slate-100">
             <tr>
               {[
-                { label: "#", class: "pl-6" },
+                { label: "#", class: "pl-6 w-16" },
                 { label: "Product" },
-                { label: "Site" },
-                { label: "Location" },
-                { label: "Quantity", class: "text-center" },
-                { label: "Reorder" },
-                { label: "Order Date" },
-                { label: "Actions", class: "pr-6 text-right" }
+                { label: "Site", class: "w-40" },
+                { label: "Quantity", class: "text-center w-32" },
+                { label: "Status", class: "w-32" },
+                { label: "Updated", class: "w-40" },
+                { label: "Actions", class: "pr-6 text-right w-24" }
               ].map((h) => {
                 const canSort = orderingFields[h.label];
                 const isSorting = canSort && (ordering === canSort || ordering === '-' + canSort);
                 const isAsc = isSorting && ordering === canSort;
                 const isDesc = isSorting && ordering === '-' + canSort;
 
-                let justifyClass = "";
-                if (h.class?.includes('center')) justifyClass = "justify-center";
-                else if (h.class?.includes('right')) justifyClass = "justify-end";
-
                 return (
                   <th 
                     key={h.label} 
-                    className={`px-4 py-4 text-[10px] font-black tracking-[0.2em] text-gray-400 uppercase ${h.class ?? ""} ${canSort ? "cursor-pointer select-none" : ""}`}
+                    className={`px-5 py-3 text-[9px] font-black tracking-widest text-slate-400 uppercase ${h.class ?? ""} ${canSort ? "cursor-pointer select-none group/th" : ""}`}
                     onClick={() => canSort && onSort(h.label)}
                   >
-                    <div className={`flex items-center gap-1.5 ${justifyClass}`}>
+                    <div className={`flex items-center gap-1.5 ${h.class?.includes('center') ? 'justify-center' : h.class?.includes('right') ? 'justify-end' : ''}`}>
                       {h.label}
                       {canSort && (
-                        <div className="flex flex-col -space-y-1">
-                           <ChevronRight size={10} className={`-rotate-90 ${isAsc ? "text-orange-500" : "text-gray-200"}`} strokeWidth={4} />
-                           <ChevronRight size={10} className={`rotate-90 ${isDesc ? "text-orange-500" : "text-gray-200"}`} strokeWidth={4} />
+                        <div className="flex flex-col -space-y-1 opacity-20 group-hover/th:opacity-100 transition-opacity">
+                           <ChevronRight size={8} className={`-rotate-90 ${isAsc ? "text-orange-500 opacity-100" : ""}`} strokeWidth={4} />
+                           <ChevronRight size={8} className={`rotate-90 ${isDesc ? "text-orange-500 opacity-100" : ""}`} strokeWidth={4} />
                         </div>
                       )}
                     </div>
@@ -194,53 +183,56 @@ export function InventoryTable({
               })}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 bg-white">
+          <tbody className="divide-y divide-slate-100 bg-white">
             {displayed.map((r) => (
               <tr key={r.id} className="group hover:bg-slate-50/60 transition-colors">
-                <td className="pl-6 px-4 py-4">
+                <td className="pl-6 px-5 py-4">
                   <span className="text-[11px] font-black text-slate-500 tabular-nums">#{r.id}</span>
                 </td>
-                <td className="px-4 py-4">
-                  <span className="text-[13px] font-black text-slate-900 uppercase tracking-tight group-hover:text-orange-600 transition-colors">
-                    {r.product_details.product_name}
-                  </span>
+                <td className="px-5 py-4">
+                  <div className="flex flex-col">
+                    <span className="text-[13px] font-black text-slate-900 uppercase tracking-tight group-hover:text-orange-600 transition-colors">
+                      {r.product_details.product_name}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{r.product_details.category}</span>
+                  </div>
                 </td>
-                <td className="px-4 py-4">
+                <td className="px-5 py-4">
                    <div className="flex items-center gap-1.5">
-                      <MapPin size={12} className="text-gray-300 shrink-0" />
-                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{r.site}</span>
+                      <MapPin size={12} className="text-slate-300 shrink-0" />
+                      <div className="flex flex-col min-w-0">
+                         <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest truncate">{r.site}</span>
+                         <span className="text-[9px] font-bold text-slate-400 uppercase truncate">{r.location}</span>
+                      </div>
                    </div>
                 </td>
-                <td className="px-4 py-4">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">{r.location}</span>
-                </td>
-                <td className="px-4 py-4 text-center">
-                  <span className="text-sm font-black text-slate-950 tabular-nums">
+                <td className="px-5 py-4 text-center">
+                  <span className={`text-[13px] font-black tabular-nums transition-colors ${r.reorder_status === 'Yes' ? 'text-red-500' : 'text-orange-600'}`}>
                     {r.quantity_on_hand.toLocaleString()}
                   </span>
                 </td>
-                <td className="px-4 py-4">
+                <td className="px-5 py-4">
                   {r.reorder_status === "Yes" ? (
-                    <span className="inline-flex items-center gap-1.5 text-[9px] font-black tracking-widest uppercase px-2.5 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-100">
-                      <span className="w-1 h-1 rounded-full bg-red-500" /> LOW STOCK
+                    <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-100">
+                      <span className="w-1 h-1 rounded-full bg-red-500" /> LOW
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 text-[9px] font-black tracking-widest uppercase px-2.5 py-0.5 rounded-full bg-slate-50 text-slate-400 border border-slate-100">
-                      <span className="w-1 h-1 rounded-full bg-slate-300" /> OPTIMAL
+                    <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-slate-50 text-slate-400 border border-slate-100">
+                      <span className="w-1 h-1 rounded-full bg-slate-300" /> OK
                     </span>
                   )}
                 </td>
-                <td className="px-4 py-4">
-                   <div className="flex flex-col">
-                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter leading-tight">{formatDateTime(r.updated_at).split(' ')[0]}</span>
-                      <span className="text-[9px] font-bold text-gray-300 tabular-nums">{formatDateTime(r.updated_at).split(' ')[1]}</span>
+                <td className="px-5 py-4" suppressHydrationWarning>
+                   <div className="flex flex-col gap-0.5">
+                      <span className="text-[11px] font-black text-slate-700 tabular-nums">{formatDateTime(r.updated_at).split(' ')[0]}</span>
+                      <span className="text-[10px] font-bold text-slate-400 tabular-nums">{formatDateTime(r.updated_at).split(' ')[1]}</span>
                    </div>
                 </td>
-                <td className="pr-6 px-4 py-4 text-right">
+                <td className="pr-6 px-5 py-4 text-right">
                   <div className="flex items-center justify-end gap-0.5 opacity-20 group-hover:opacity-100 transition-opacity">
                     {canEdit && (
                       <button
-                        onClick={() => onEdit(r)}
+                        onClick={(e) => { e.stopPropagation(); onEdit(r); }}
                         className="p-1.5 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded transition-all cursor-pointer"
                         title="Edit Record"
                       >
@@ -249,7 +241,7 @@ export function InventoryTable({
                     )}
                     {canDelete && (
                       <button
-                        onClick={() => onDelete(r)}
+                        onClick={(e) => { e.stopPropagation(); onDelete(r); }}
                         className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-all cursor-pointer"
                         title="Delete Record"
                       >
@@ -263,6 +255,6 @@ export function InventoryTable({
           </tbody>
         </table>
       </div>
-    </>
+    </div>
   );
 }
