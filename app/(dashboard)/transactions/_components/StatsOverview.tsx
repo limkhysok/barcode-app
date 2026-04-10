@@ -73,30 +73,32 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
             <span className="text-[9px] font-bold text-slate-500 uppercase">{today} Total</span>
           </div>
 
-          <div className="grid grid-cols-2 division-y division-slate-300">
-            {/* Today Receive - Horizontal */}
-            <div className="flex items-center py-2.5 px-7 bg-white border-r border-slate-200">
-              <div className="flex items-center gap-2.5">
-                <div className="p-1.5 text-black shrink-0">
-                  <TrendingDown size={18} strokeWidth={2.5} className="scale-x-[-1]" />
-                </div>
-                <div>
-                  <p className="text-[9px] font-black text-slate-500 uppercase leading-tight">Item : +{receiveToday}</p>
-                  <p className="text-[9px] font-bold text-slate-500 uppercase leading-tight">Quantity : {receiveTodayQty}</p>
-                </div>
+          <div className="grid grid-cols-2">
+            {/* Today Receive */}
+            <div className="flex flex-col py-3 px-5 gap-1 border-r border-slate-200">
+              {/* Title row */}
+              <div className="flex items-center gap-1">
+                <TrendingDown size={12} strokeWidth={2.5} className="scale-x-[-1] text-green-500 shrink-0" />
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">Receive</p>
+              </div>
+              {/* Count left, Qty right */}
+              <div className="flex items-baseline justify-between">
+                <p className="text-xl font-black text-black leading-none tabular-nums">+{receiveToday}</p>
+                <p className="text-[9px] font-bold text-slate-700 uppercase leading-none">/ {receiveTodayQty}</p>
               </div>
             </div>
 
-            {/* Today Sale - Horizontal */}
-            <div className="flex items-center py-2.5 px-7 bg-white">
-              <div className="flex items-center gap-2.5">
-                <div className="p-1.5 text-black shrink-0">
-                  <TrendingUp size={18} strokeWidth={2.5} />
-                </div>
-                <div>
-                  <p className="text-[9px] font-black text-slate-500 uppercase leading-tight">Item : -{saleToday}</p>
-                  <p className="text-[9px] font-bold text-slate-500 uppercase leading-tight">Quantity : {saleTodayQty}</p>
-                </div>
+            {/* Today Sale */}
+            <div className="flex flex-col py-3 px-5 gap-1">
+              {/* Title row */}
+              <div className="flex items-center gap-1">
+                <TrendingUp size={12} strokeWidth={2.5} className="text-red-500 shrink-0" />
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">Sale</p>
+              </div>
+              {/* Count left, Qty right */}
+              <div className="flex items-baseline justify-between">
+                <p className="text-xl font-black text-black leading-none tabular-nums">-{saleToday}</p>
+                <p className="text-[9px] font-bold text-slate-700 uppercase leading-none">/ {saleTodayQty}</p>
               </div>
             </div>
           </div>
