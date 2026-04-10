@@ -79,7 +79,24 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
   return (
     <>
       {/* Mobile cards */}
-      <div className="sm:hidden space-y-2">
+      <div className="sm:hidden">
+        {/* Column headers */}
+        <div className="px-3 py-1.5 flex items-center gap-2 border-b border-gray-200 bg-slate-50">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">#</span>
+            <span className="text-slate-200">·</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Items</span>
+            <span className="text-slate-200">·</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Type</span>
+          </div>
+          <div className="shrink-0 flex items-center gap-4">
+            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Qty</span>
+            <span className="text-slate-200">·</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Date</span>
+            <span className="w-7" />
+          </div>
+        </div>
+        <div className="space-y-0">
         {displayed.map((t) => {
           const totalQty = t.items.reduce((sum, item) => sum + Math.abs(item.quantity), 0);
           return (
@@ -92,7 +109,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                 {/* Left: ID + Items + Type */}
                 <div className="flex items-center gap-1.5 flex-1 min-w-0">
                   <span className="text-slate-300 text-[10px] font-bold shrink-0">{t.id}</span>
-                  <span className="text-slate-300 shrink-0">·</span>
+                  <span className="text-slate-300 shrink-0"></span>
                   <span className="shrink-0 text-[10px] font-black text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded-full">
                     x{t.items.length} {t.items.length === 1 ? "item" : "items"}
                   </span>
@@ -107,7 +124,15 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
                   </span>
                   <span className="text-slate-300">·</span>
                   <span className="text-[10px] font-bold text-slate-400 font-mono tracking-tighter" suppressHydrationWarning>
-                    {formatDateTime(t.transaction_date).split(' ')[0]} · {formatDateTime(t.transaction_date).split(' ')[1]}
+                    {(() => {
+                      const d = new Date(t.transaction_date);
+                      const day = String(d.getDate()).padStart(2, "0");
+                      const month = String(d.getMonth() + 1).padStart(2, "0");
+                      const h24 = d.getHours();
+                      const ampm = h24 >= 12 ? "PM" : "AM";
+                      const h12 = h24 % 12 || 12;
+                      return `${day}/${month}/ ${h12}${ampm}`;
+                    })()}
                   </span>
                   <button
                     type="button"
@@ -132,6 +157,7 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
             </div>
           );
         })}
+        </div>
       </div>
 
       {/* Desktop — grid view */}
