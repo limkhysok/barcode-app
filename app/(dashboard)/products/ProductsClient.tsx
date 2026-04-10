@@ -82,8 +82,9 @@ export default function ProductsClient({
 
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [costDir] = useState<SortDir>("");
+  const [costDir, setCostDir] = useState<SortDir>("");
   const [reorderDir, setReorderDir] = useState<SortDir>("");
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const filtersRef = useRef<HTMLDivElement>(null);
   const filtersMounted = useRef(false);
@@ -249,30 +250,25 @@ export default function ProductsClient({
     <div className="px-4 py-5 sm:px-5 sm:py-5 space-y-3">
 
       {/* ── Header: Command Center ── */}
-      <div className="flex items-center justify-between border border-gray-200 bg-white rounded-md py-3 px-3 gap-4">
+      <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="flex flex-col">
-            <h1 className="text-[12px] font-black text-slate-950 uppercase tracking-[0.2em] leading-none">Catalog</h1>
-            <div className="flex items-center gap-1.5 leading-none">
-              <svg className="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-              </svg>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none" suppressHydrationWarning>
-                {new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Phnom_Penh" })}
-              </p>
-            </div>
+            <h1 className="text-[12px] font-black text-slate-950 uppercase tracking-[0.2em] leading-none">Product</h1>
           </div>
         </div>
 
-        <button onClick={openCreate}
-          className="flex items-center gap-2.5 px-3.5 py-1.5 sm:px-5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer"
-        >
-          <svg className="w-4 h-4 hidden sm:block" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          <span className="hidden sm:inline">New Product</span>
-          <span className="sm:hidden">New</span>
-        </button>
+        <div className="flex items-center gap-2 sm:justify-end">
+          <button
+            onClick={openCreate}
+            className="flex items-center gap-2.5 px-3.5 py-1 sm:px-5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer"
+          >
+            <svg className="w-4 h-4 hidden sm:block" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            <span className="hidden sm:inline">New Product</span>
+            <span className="sm:hidden">New</span>
+          </button>
+        </div>
       </div>
 
       {/* ── Stats: Category Overview ── */}
@@ -282,6 +278,8 @@ export default function ProductsClient({
       <ProductToolbar
         categoryFilter={categoryFilter}
         setCategoryFilter={setCategoryFilter}
+        costDir={costDir}
+        setCostDir={setCostDir}
         reorderDir={reorderDir}
         setReorderDir={setReorderDir}
         search={search}
@@ -289,10 +287,12 @@ export default function ProductsClient({
         filtersOpen={filtersOpen}
         setFiltersOpen={setFiltersOpen}
         filtersRef={filtersRef}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
       />
 
       {/* Table */}
-      <div className="rounded-md border border-gray-200 overflow-hidden bg-white ">
+      <div className="overflow-hidden bg-white">
         <ProductsTable
           loading={loading}
           error={error}
@@ -304,6 +304,7 @@ export default function ProductsClient({
           onDelete={setDeleteTarget}
           canEdit={canEdit}
           canDelete={canDelete}
+          viewMode={viewMode}
         />
       </div>
 
