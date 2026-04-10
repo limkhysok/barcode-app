@@ -17,27 +17,29 @@ import { ProductToolbar } from "./_components/ProductToolbar";
 
 const REORDER_PRESETS = new Set([5, 10, 15, 20]);
 
-function getSortParam(costDir: SortDir, reorderDir: SortDir): string | undefined {
-  if (costDir === "asc") return "cost_per_unit";
-  if (costDir === "desc") return "-cost_per_unit";
-  if (reorderDir === "asc") return "reorder_level";
-  if (reorderDir === "desc") return "-reorder_level";
-  return undefined;
+function getSortParam(field: string, dir: SortDir): string | undefined {
+  if (!field || !dir) return undefined;
+  return dir === "desc" ? `-${field}` : field;
 }
 
-function sortProducts(products: Product[], costDir: SortDir, reorderDir: SortDir): Product[] {
-  if (!costDir && !reorderDir) return products;
+function sortProducts(products: Product[], field: string, dir: SortDir): Product[] {
+  if (!field || !dir) return products;
   return [...products].sort((a, b) => {
-    if (costDir) {
-      const av = Number.parseFloat(a.cost_per_unit);
-      const bv = Number.parseFloat(b.cost_per_unit);
-      if (av !== bv) return costDir === "asc" ? av - bv : bv - av;
+    let av = (a as any)[field];
+    let bv = (b as any)[field];
+
+    if (field === "cost_per_unit") {
+      av = Number.parseFloat(av);
+      bv = Number.parseFloat(bv);
     }
-    if (reorderDir) {
-      const av = a.reorder_level;
-      const bv = b.reorder_level;
-      if (av !== bv) return reorderDir === "asc" ? av - bv : bv - av;
+
+    if (typeof av === "string" && typeof bv === "string") {
+      const comp = av.localeCompare(bv);
+      return dir === "asc" ? comp : -comp;
     }
+
+    if (av < bv) return dir === "asc" ? -1 : 1;
+    if (av > bv) return dir === "asc" ? 1 : -1;
     return 0;
   });
 }
@@ -80,56 +82,29 @@ export default function ProductsClient({
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Filter States
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [costDir, setCostDir] = useState<SortDir>("");
-  const [reorderDir, setReorderDir] = useState<SortDir>("");
+  const [supplierFilter, setSupplierFilter] = useState("");
+  const [sortField, setSortField] = useState<string>("product_name");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+
+  // Dynamic Options (from all products)
+  const categories = useMemo(() => Array.from(new Set(products.map(p => p.category))).sort(), [products]);
+  const suppliers = useMemo(() => Array.from(new Set(products.map(p => p.supplier))).sort(), [products]);
+
   const [filtersOpen, setFiltersOpen] = useState(false);
   const filtersRef = useRef<HTMLDivElement>(null);
   const filtersMounted = useRef(false);
 
-  // Debounce API filter changes and re-fetch from page 1
-  useEffect(() => {
-    if (!filtersMounted.current) { filtersMounted.current = true; return; }
-    const t = setTimeout(() => {
-      const sorting = getSortParam(costDir, reorderDir);
-
-      const filters: ProductFilters = {
-        search: search.trim() || undefined,
-        category: categoryFilter || undefined,
-        ordering: sorting,
-      };
-      setLoading(true);
-      setError("");
-      getProducts(undefined, filters)
-        .then(setPaginated)
-        .catch(() => setError("Failed to load products."))
-        .finally(() => setLoading(false));
-    }, 300);
-    return () => clearTimeout(t);
-  }, [search, categoryFilter, costDir, reorderDir]);
-
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (filtersRef.current && !filtersRef.current.contains(e.target as Node)) setFiltersOpen(false);
-    }
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  const displayed = useMemo(
-    () => sortProducts(products, costDir, reorderDir),
-    [products, costDir, reorderDir],
-  );
-
   function buildFilters(): ProductFilters {
-    const sorting = getSortParam(costDir, reorderDir);
-
+    const ordering = getSortParam(sortField, sortDir);
     return {
       search: search.trim() || undefined,
       category: categoryFilter || undefined,
-      ordering: sorting,
+      supplier: supplierFilter || undefined,
+      ordering,
     };
   }
 
@@ -141,6 +116,28 @@ export default function ProductsClient({
       .catch(() => setError("Failed to load products."))
       .finally(() => setLoading(false));
   }
+
+  // Debounce API filter changes
+  useEffect(() => {
+    if (!filtersMounted.current) { filtersMounted.current = true; return; }
+    const t = setTimeout(() => {
+      fetchProducts();
+    }, 300);
+    return () => clearTimeout(t);
+  }, [search, categoryFilter, supplierFilter, sortField, sortDir]);
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (filtersRef.current && !filtersRef.current.contains(e.target as Node)) setFiltersOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const displayed = useMemo(
+    () => sortProducts(products, sortField, sortDir),
+    [products, sortField, sortDir],
+  );
 
   function openCreate() {
     setEditing(null);
@@ -278,12 +275,17 @@ export default function ProductsClient({
       <ProductToolbar
         categoryFilter={categoryFilter}
         setCategoryFilter={setCategoryFilter}
-        costDir={costDir}
-        setCostDir={setCostDir}
-        reorderDir={reorderDir}
-        setReorderDir={setReorderDir}
+        supplierFilter={supplierFilter}
+        setSupplierFilter={setSupplierFilter}
+        sortField={sortField}
+        setSortField={setSortField}
+        sortDir={sortDir}
+        setSortDir={setSortDir}
         search={search}
         setSearch={setSearch}
+        categories={categories}
+        suppliers={suppliers}
+        totalResults={paginated.count}
         filtersOpen={filtersOpen}
         setFiltersOpen={setFiltersOpen}
         filtersRef={filtersRef}
@@ -298,8 +300,10 @@ export default function ProductsClient({
           error={error}
           displayed={displayed}
           products={products}
-          costDir={costDir}
-          reorderDir={reorderDir}
+          sortField={sortField}
+          setSortField={setSortField}
+          sortDir={sortDir}
+          setSortDir={setSortDir}
           onEdit={openEdit}
           onDelete={setDeleteTarget}
           canEdit={canEdit}

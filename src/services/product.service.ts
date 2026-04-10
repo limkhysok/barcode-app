@@ -5,6 +5,7 @@ import type { PaginatedProducts, ProductStats } from "@/src/types/api.types";
 export interface ProductFilters {
   search?: string;
   category?: string;
+  supplier?: string;
   ordering?: string;
 }
 
@@ -17,6 +18,7 @@ export async function getProducts(fetcher?: <T>(path: string) => Promise<T>, fil
   const params = new URLSearchParams();
   if (filters?.search) params.set("search", filters.search);
   if (filters?.category) params.set("category", filters.category);
+  if (filters?.supplier) params.set("supplier", filters.supplier);
   if (filters?.ordering) params.set("ordering", filters.ordering);
 
   const path = `/api/v1/products/?${params.toString()}`;
