@@ -456,7 +456,7 @@
                           <span className="text-gray-300 text-xs font-bold">|</span>
                           <input type="text" inputMode="numeric" maxLength={4} value={yyyy} onChange={(e) => handlePart("yyyy", e.target.value.replaceAll(/\D/g, ""))}
                             className="w-10 text-xs font-bold text-gray-600 bg-transparent outline-none text-center" />
-                          <button type="button" onClick={() => pdfDateInputRef.current?.showPicker()} className="ml-auto text-slate-400 hover:text-orange-500 transition-colors">
+                          <button type="button" onClick={() => pdfDateInputRef.current?.showPicker()} className="ml-auto text-slate-400 hover:text-orange-500 transition-colors cursor-pointer">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                             </svg>
@@ -479,7 +479,7 @@
                         type="button"
                         id="pdf-type"
                         onClick={() => setPdfTypeMenuOpen(!pdfTypeMenuOpen)}
-                        className="w-full flex items-center justify-between border border-gray-200 rounded-sm px-2.5 py-2 text-xs font-bold text-gray-600 bg-white hover:border-gray-200 transition-colors focus:outline-none "
+                        className="w-full flex items-center justify-between border border-gray-200 rounded-sm px-2.5 py-2 text-xs font-bold text-gray-600 bg-white hover:border-orange-300 hover:text-orange-500 transition-colors focus:outline-none cursor-pointer"
                       >
                         <span className="uppercase">{pdfType}</span>
                         <svg
@@ -503,7 +503,7 @@
                                   setPdfType(type);
                                   setPdfTypeMenuOpen(false);
                                 }}
-                                className={`w-full flex items-center justify-between px-4 py-2.5 text-[11px] font-black uppercase tracking-wider transition-colors ${pdfType === type
+                                className={`w-full flex items-center justify-between px-4 py-2.5 text-[11px] font-black uppercase tracking-wider transition-colors cursor-pointer ${pdfType === type
                                   ? "bg-slate-50 text-orange-500"
                                   : "text-gray-500 hover:bg-orange-500 hover:text-white"
                                   }`}
@@ -526,7 +526,7 @@
                     type="button"
                     onClick={handlePdfExport}
                     disabled={pdfLoading}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-sm text-[11px] font-black tracking-widest uppercase bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50 transition-all shadow-xl shadow-black/20 active:scale-[0.98]"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-sm text-[11px] font-black tracking-widest uppercase bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl shadow-black/20 active:scale-[0.98] cursor-pointer"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 9.75v6.75m0 0l-3-3m3 3l3-3m-8.25 6a4.5 4.5 0 01-4.5-4.5V15a2.25 2.25 0 002.25 2.25h16.5A2.25 2.25 0 0021 15v1.5a4.5 4.5 0 01-4.5 4.5H6.75z" />
@@ -619,13 +619,13 @@
                     {typeFilter && (
                       <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-1 bg-orange-50 text-orange-500 border border-orange-200 rounded-full">
                         {typeFilter}
-                        <button type="button" onClick={() => setTypeFilter("")} className="text-orange-400 hover:text-orange-600">✕</button>
+                        <button type="button" onClick={() => setTypeFilter("")} className="text-orange-400 hover:text-orange-600 cursor-pointer transition-colors">✕</button>
                       </span>
                     )}
                     {dateFilter && (
                       <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-1 bg-orange-50 text-orange-500 border border-orange-200 rounded-full">
                         {dateFilter}
-                        <button type="button" onClick={() => setDateFilter("")} className="text-orange-400 hover:text-orange-600">✕</button>
+                        <button type="button" onClick={() => setDateFilter("")} className="text-orange-400 hover:text-orange-600 cursor-pointer transition-colors">✕</button>
                       </span>
                     )}
                   </div>
@@ -652,14 +652,14 @@
                   {(typeFilter || dateFilter) && (
                     <button
                       onClick={() => { setTypeFilter(""); setDateFilter(""); }}
-                      className="flex-1 py-2 border border-gray-200 text-gray-400 text-[11px] font-black uppercase rounded hover:border-red-300 hover:text-red-400 transition-all"
+                      className="flex-1 py-2 border border-gray-200 text-gray-400 text-[11px] font-black uppercase rounded hover:border-red-300 hover:text-red-400 transition-all cursor-pointer"
                     >
                       Clear All
                     </button>
                   )}
                   <button
                     onClick={() => setFilterPanelOpen(false)}
-                    className="flex-1 py-2 bg-black text-white text-[11px] font-black uppercase rounded"
+                    className="flex-1 py-2 bg-black text-white text-[11px] font-black uppercase rounded hover:bg-gray-800 transition-all cursor-pointer"
                   >
                     Close
                   </button>
