@@ -10,19 +10,21 @@ import {
   MapPin,
   Calendar,
   Layers,
-  Zap
+  Activity,
+  BarChart3
 } from "lucide-react";
 
 interface InventoryToolbarProps {
   siteFilter: string;
   setSiteFilter: (v: string) => void;
   siteOptions: string[];
+  statusFilter: string;
+  setStatusFilter: (v: string) => void;
   quantitySort: string;
   setQuantitySort: (v: string) => void;
   dateSort: string;
   setDateSort: (v: string) => void;
-  statusSort: string;
-  setStatusSort: (v: string) => void;
+  setOrdering: (v: string) => void;
   search: string;
   setSearch: (v: string) => void;
   filtersOpen: boolean;
@@ -137,19 +139,20 @@ export function InventoryToolbar({
   siteFilter,
   setSiteFilter,
   siteOptions,
+  statusFilter,
+  setStatusFilter,
   quantitySort,
   setQuantitySort,
   dateSort,
   setDateSort,
-  statusSort,
-  setStatusSort,
+  setOrdering,
   search,
   setSearch,
   filtersOpen,
   setFiltersOpen,
   filtersRef,
 }: Readonly<InventoryToolbarProps>) {
-  const activeCount = [siteFilter, quantitySort, dateSort, statusSort].filter(Boolean).length;
+  const activeCount = [siteFilter, statusFilter, quantitySort, dateSort].filter(Boolean).length;
   const isFiltered = activeCount > 0 || search !== "";
 
   // Mobile Filter Button Style
@@ -176,44 +179,45 @@ export function InventoryToolbar({
                ...siteOptions.map(s => ({ key: s, label: s.toUpperCase() }))
              ]}
            />
+           <FilterDropdown 
+             label="All Status" 
+             value={statusFilter} 
+             onChange={setStatusFilter} 
+             icon={Activity}
+             options={[
+               { key: "", label: "ALL STATUS" },
+               { key: "Yes", label: "LOW STOCK" },
+               { key: "No", label: "NORMAL STOCK" }
+             ]}
+           />
         </div>
 
         <div className="flex items-center gap-1 pl-1 border-l border-slate-100">
             <SortToggleButton
-              label="Quantity"
+              label="Qty"
               dir={quantitySort}
               onToggle={() => {
-                if (!quantitySort) setQuantitySort("desc");
-                else if (quantitySort === "desc") setQuantitySort("asc");
+                if (!quantitySort) setQuantitySort("asc");
+                else if (quantitySort === "asc") setQuantitySort("desc");
                 else setQuantitySort("");
               }}
-              icon={<ArrowUpDown size={13} strokeWidth={3} />}
+              icon={<BarChart3 size={13} strokeWidth={3} />}
             />
             <SortToggleButton
               label="Date"
               dir={dateSort}
               onToggle={() => {
-                if (!dateSort) setDateSort("asc");
-                else if (dateSort === "asc") setDateSort("desc");
+                if (!dateSort) setDateSort("desc");
+                else if (dateSort === "desc") setDateSort("asc");
                 else setDateSort("");
               }}
               icon={<Calendar size={13} strokeWidth={3} />}
-            />
-            <SortToggleButton
-              label="Status"
-              dir={statusSort}
-              onToggle={() => {
-                if (!statusSort) setStatusSort("desc");
-                else if (statusSort === "desc") setStatusSort("asc");
-                else setStatusSort("");
-              }}
-              icon={<Zap size={13} strokeWidth={3} />}
             />
         </div>
 
         {isFiltered && (
            <button 
-             onClick={() => { setSiteFilter(""); setQuantitySort(""); setDateSort(""); setStatusSort(""); setSearch(""); }}
+             onClick={() => { setSiteFilter(""); setStatusFilter(""); setOrdering("-updated_at"); setSearch(""); }}
              className="px-3 h-8 text-[10px] font-black uppercase tracking-widest text-slate-300 hover:text-red-500 transition-colors border border-dashed border-slate-200 rounded-sm hover:border-red-200 hover:bg-red-50 cursor-pointer"
            >
              Clear All
@@ -276,6 +280,30 @@ export function InventoryToolbar({
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                   <Activity size={10} /> Reorder Status
+                </span>
+                <div className="flex flex-col gap-1 pr-1">
+                   {[
+                     { key: "", label: "ALL STATUS" },
+                     { key: "Yes", label: "LOW STOCK" },
+                     { key: "No", label: "NORMAL STOCK" }
+                   ].map((s) => {
+                     const isSelected = s.key === statusFilter;
+                     return (
+                       <button
+                         key={s.label}
+                         onClick={() => { setStatusFilter(s.key); setFiltersOpen(false); }}
+                         className={`w-full text-left px-3 py-2 text-[10px] font-black tracking-widest uppercase transition-colors flex items-center justify-between rounded-sm ${isSelected ? "bg-orange-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}
+                       >
+                         {s.label}
+                       </button>
+                     );
+                   })}
+                </div>
+              </div>
+
               <div className="space-y-3">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                    <ArrowUpDown size={10} /> Sort By
@@ -285,8 +313,8 @@ export function InventoryToolbar({
                       label="Qty"
                       dir={quantitySort}
                       onToggle={() => {
-                        if (!quantitySort) setQuantitySort("desc");
-                        else if (quantitySort === "desc") setQuantitySort("asc");
+                        if (!quantitySort) setQuantitySort("asc");
+                        else if (quantitySort === "asc") setQuantitySort("desc");
                         else setQuantitySort("");
                       }}
                     />
@@ -294,18 +322,9 @@ export function InventoryToolbar({
                       label="Date"
                       dir={dateSort}
                       onToggle={() => {
-                        if (!dateSort) setDateSort("asc");
-                        else if (dateSort === "asc") setDateSort("desc");
+                        if (!dateSort) setDateSort("desc");
+                        else if (dateSort === "desc") setDateSort("asc");
                         else setDateSort("");
-                      }}
-                    />
-                    <SortToggleButton
-                      label="Status"
-                      dir={statusSort}
-                      onToggle={() => {
-                        if (!statusSort) setStatusSort("desc");
-                        else if (statusSort === "desc") setStatusSort("asc");
-                        else setStatusSort("");
                       }}
                     />
                 </div>
@@ -313,7 +332,7 @@ export function InventoryToolbar({
 
               <div className="flex gap-2 pt-2 border-t border-slate-50">
                 <button
-                  onClick={() => { setSiteFilter(""); setQuantitySort(""); setDateSort(""); setStatusSort(""); setFiltersOpen(false); }}
+                  onClick={() => { setSiteFilter(""); setStatusFilter(""); setOrdering("-updated_at"); setFiltersOpen(false); }}
                   className="flex-1 py-2 border border-slate-100 text-slate-400 text-[10px] font-black uppercase rounded-sm hover:text-red-500"
                 >
                   Reset

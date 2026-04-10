@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/src/context/AuthContext";
 import type { InventoryRecord, InventoryPayload } from "@/src/types/inventory.types";
-import { getInventory, getInventoryStats, createInventory, updateInventory, deleteInventory } from "@/src/services/inventory.service";
+import { getInventory, createInventory, updateInventory, deleteInventory } from "@/src/services/inventory.service";
 import { getProducts } from "@/src/services/product.service";
 import type { PaginatedInventory, PaginatedProducts } from "@/src/types/api.types";
 
@@ -45,19 +45,21 @@ export default function InventoryClient({
   const products = paginatedProducts.results;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [statsData, setStatsData] = useState<any>(initialStats);
-
-  useEffect(() => {
-    getInventoryStats().then(setStatsData).catch(() => { });
-  }, []);
 
   // -- Filter / sort state --
   const [siteFilter, setSiteFilter] = useState("");
-  const [quantitySort, setQuantitySort] = useState<QuantitySort>("");
-  const [dateSort, setDateSort] = useState<DateSort>("");
-  const [statusSort, setStatusSort] = useState<StatusSort>("");
+  const [statusFilter, setStatusFilter] = useState(""); // "" | "Yes" | "No"
   const [search, setSearch] = useState("");
   const [ordering, setOrdering] = useState<string>("-updated_at");
+
+  // Derive directions for the toolbar from a single source of truth: ordering
+  const getSortDir = (field: string) => {
+    if (!ordering.includes(field)) return "";
+    return ordering.startsWith("-") ? "desc" : "asc";
+  };
+
+  const quantitySort = getSortDir("quantity_on_hand");
+  const dateSort = getSortDir("updated_at");
 
   const [filtersOpen, setFiltersOpen] = useState(false);
   const filtersRef = useRef<HTMLDivElement>(null);
@@ -81,25 +83,18 @@ export default function InventoryClient({
   const [deleteTarget, setDeleteTarget] = useState<InventoryRecord | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  // -- Fetch logic --
-  function fetchInventory(overrideOrdering?: string) {
+  // -- Fetch logic: Reduced to manual reload only --
+  function fetchInventory() {
     setLoading(true);
     setError("");
 
-    getInventory({
-      search: search || undefined,
-      site: siteFilter || undefined,
-      ordering: overrideOrdering ?? ordering,
-    })
+    getInventory()
       .then(setPaginated)
       .catch(() => setError("Failed to load inventory."))
       .finally(() => setLoading(false));
   }
 
-  useEffect(() => {
-    const timer = setTimeout(() => fetchInventory(), 300);
-    return () => clearTimeout(timer);
-  }, [search, siteFilter, quantitySort, dateSort, statusSort]);
+  // No longer re-fetching on every state change. Data is managed locally.
 
   function openCreate() {
     setEditing(null);
@@ -134,7 +129,6 @@ export default function InventoryClient({
       setModalOpen(false);
       fetchInventory();
       getProducts().then(setPaginatedProducts).catch(() => { });
-      getInventoryStats().then(setStatsData).catch(() => { });
     } catch {
       setFormError("FAILED TO SAVE. PLEASE VERIFY INPUTS");
     } finally {
@@ -149,7 +143,6 @@ export default function InventoryClient({
       await deleteInventory(deleteTarget.id);
       setDeleteTarget(null);
       fetchInventory();
-      getInventoryStats().then(setStatsData).catch(() => { });
     } catch {
       setError("FAILED TO DELETE RECORD");
     } finally {
@@ -162,22 +155,66 @@ export default function InventoryClient({
     [records]
   );
 
-  const stats = useMemo(() => {
-    if (statsData) {
-      return {
-        total: statsData.total_records ?? 0,
-        totalQty: statsData.total_quantity_on_hand ?? 0,
-        needsReorder: statsData.needs_reorder ?? 0,
-      };
+  // -- Client-side Filtering & Sorting Logic --
+  const displayed = useMemo(() => {
+    let list = [...records];
+
+    // 1. Search (Name/Barcode)
+    if (search.trim()) {
+      const s = search.toLowerCase();
+      list = list.filter(r =>
+        (r.product_details?.product_name || "").toLowerCase().includes(s) ||
+        (r.product_details?.barcode || "").toLowerCase().includes(s)
+      );
     }
-    const totalQty = records.reduce((s, r) => s + r.quantity_on_hand, 0);
-    const needsReorder = records.filter((r) => r.reorder_status === "Yes").length;
-    return { total: paginated.count ?? 0, totalQty, needsReorder };
-  }, [records, statsData, paginated.count]);
 
-  const displayed = records; // Pagination handled by API, site/search too
+    // 2. Site Filter
+    if (siteFilter) {
+      list = list.filter(r => r.site === siteFilter);
+    }
 
-  function handleSort(colLabel: string) {
+    // 2.5 Status Filter (Reorder)
+    if (statusFilter) {
+      list = list.filter(r => r.reorder_status === statusFilter);
+    }
+
+    // 3. Sorting
+    if (ordering) {
+      const isDesc = ordering.startsWith("-");
+      const field = isDesc ? ordering.substring(1) : ordering;
+
+      list.sort((a: any, b: any) => {
+        let valA: any, valB: any;
+
+        if (field === "product_name") {
+          valA = (a.product_details?.product_name || "").toLowerCase();
+          valB = (b.product_details?.product_name || "").toLowerCase();
+        } else if (field === "updated_at") {
+          valA = new Date(a.updated_at).getTime();
+          valB = new Date(b.updated_at).getTime();
+        } else {
+          valA = a[field];
+          valB = b[field];
+        }
+
+        if (valA < valB) return isDesc ? 1 : -1;
+        if (valA > valB) return isDesc ? -1 : 1;
+        return 0;
+      });
+    }
+
+    return list;
+  }, [records, search, siteFilter, statusFilter, ordering]);
+
+  // Stats always reflect the CURRENTLY displayed/filtered view
+  const stats = useMemo(() => {
+    const total = displayed.length;
+    const totalQty = displayed.reduce((s, r) => s + r.quantity_on_hand, 0);
+    const needsReorder = displayed.filter((r) => r.reorder_status === "Yes").length;
+    return { total, totalQty, needsReorder };
+  }, [displayed]);
+
+  function handleSort(colLabel: string, dir?: string) {
     const orderingFields: Record<string, string> = {
       '#': 'id',
       'Product': 'product_name',
@@ -190,11 +227,18 @@ export default function InventoryClient({
     };
     const field = orderingFields[colLabel];
     if (!field) return;
+
+    if (dir !== undefined) {
+      if (dir === "") setOrdering("");
+      else setOrdering((dir === "desc" ? "-" : "") + field);
+      return;
+    }
+
+    // Toggle logic for table headers (direct click)
     let newOrdering = field;
     if (ordering === field) newOrdering = '-' + field;
-    else if (ordering === '-' + field) newOrdering = field;
+    else if (ordering === '-' + field) newOrdering = "";
     setOrdering(newOrdering);
-    fetchInventory(newOrdering);
   }
 
   return (
@@ -226,14 +270,15 @@ export default function InventoryClient({
         siteFilter={siteFilter}
         setSiteFilter={setSiteFilter}
         siteOptions={siteOptions}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
         quantitySort={quantitySort}
-        setQuantitySort={(v) => setQuantitySort(v as QuantitySort)}
+        setQuantitySort={(v) => handleSort("Quantity", v)}
         dateSort={dateSort}
-        setDateSort={(v) => setDateSort(v as DateSort)}
+        setDateSort={(v) => handleSort("Order Date", v)}
         search={search}
         setSearch={setSearch}
-        statusSort={statusSort}
-        setStatusSort={(v) => setStatusSort(v as StatusSort)}
+        setOrdering={setOrdering}
         filtersOpen={filtersOpen}
         setFiltersOpen={setFiltersOpen}
         filtersRef={filtersRef}
