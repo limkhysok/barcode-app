@@ -295,38 +295,40 @@ export default function InventoryClient({
 
   return (
     <div className="px-4 py-5 sm:px-5 sm:py-5 space-y-3">
-      {/* ── Header: Command Center ── */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="flex flex-col">
-            <h1 className="text-[12px] font-black text-slate-950 uppercase tracking-[0.2em] leading-none">Inventory</h1>
-          </div>
+      {/* HEADER SECTION - Separate Mobile and Desktop Blocks */}
+
+      {/* Mobile-Only Header */}
+      <div className="sm:hidden flex items-center justify-between gap-4">
+        <div className="flex flex-col">
+          <h1 className="text-[14px] font-black text-slate-950 uppercase tracking-[0.2em] leading-none">Inventory</h1>
+          <p className="text-[9px] text-orange-500 font-bold uppercase mt-1">Mobile Dashboard</p>
         </div>
 
         <div className="flex items-center gap-2">
           {canEdit && (
             <div className="relative" ref={exportRef}>
-              <button 
+              <button
                 onClick={() => setExportOpen(!exportOpen)}
-                className="flex items-center gap-2 px-3.5 py-1 rounded-sm text-[11px] font-black uppercase tracking-wider bg-slate-100 text-slate-900 border border-slate-200 hover:bg-slate-200 transition-all cursor-pointer group"
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-sm text-[11px] font-black uppercase tracking-wider border transition-all cursor-pointer ${
+                  exportOpen ? "bg-black text-white border-black" : "bg-white text-gray-500 border-gray-200 active:bg-gray-50"
+                }`}
               >
-                <FileDown size={14} strokeWidth={3} className="text-slate-500 group-hover:text-slate-900" />
-                <span className="hidden sm:inline">Export</span>
+                <FileDown size={14} strokeWidth={3} className={exportOpen ? "text-white" : "text-slate-400"} />
                 <ChevronDown size={10} strokeWidth={3} className={`transition-transform duration-200 ${exportOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {exportOpen && (
-                <div className="absolute top-full right-0 mt-1 w-48 bg-white border border-slate-200 rounded-sm shadow-xl z-60 py-1 animate-in fade-in slide-in-from-top-1">
-                  <button 
+                <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-200 rounded-sm shadow-2xl z-60 py-1 animate-in fade-in slide-in-from-top-2">
+                  <button
                     onClick={() => handleExport("low")}
-                    className="w-full text-left px-4 py-2 text-[10px] font-black text-red-500 hover:bg-red-50 uppercase tracking-widest transition-colors flex items-center justify-between"
+                    className="w-full text-left px-4 py-3 text-[10px] font-black text-red-500 hover:bg-red-50 uppercase tracking-widest transition-colors flex items-center justify-between"
                   >
                     <span>Low Stock Only</span>
                     <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleExport("all")}
-                    className="w-full text-left px-4 py-2 text-[10px] font-black text-slate-600 hover:bg-slate-50 uppercase tracking-widest transition-colors"
+                    className="w-full text-left px-4 py-3 text-[10px] font-black text-slate-600 hover:bg-slate-50 uppercase tracking-widest transition-colors"
                   >
                     All Records
                   </button>
@@ -336,13 +338,66 @@ export default function InventoryClient({
           )}
 
           <button onClick={openCreate}
-            className="flex items-center gap-2.5 px-3.5 py-1 sm:px-5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white active:scale-[0.96] transition-all cursor-pointer"
           >
-            <svg className="w-4 h-4 hidden sm:block" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+            New
+          </button>
+        </div>
+      </div>
+
+      {/* Desktop-Only Header */}
+      <div className="hidden sm:flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="flex flex-col border-l-4 border-orange-500 pl-4">
+            <h1 className="text-[16px] font-black text-slate-950 uppercase tracking-[0.25em] leading-tight">Inventory</h1>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Command Center / Operations</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {canEdit && (
+            <div className="relative" ref={exportRef}>
+              <button 
+                onClick={() => setExportOpen(!exportOpen)}
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-sm text-[11px] font-black uppercase tracking-wider border transition-all cursor-pointer ${
+                  exportOpen ? "bg-black text-white border-black" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                <FileDown size={14} strokeWidth={3} className={exportOpen ? "text-white" : "text-slate-400"} />
+                <span>Export Report</span>
+                <ChevronDown size={10} strokeWidth={3} className={`transition-transform duration-200 ${exportOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {exportOpen && (
+                <div className="absolute top-full right-0 mt-2 w-52 bg-white border border-slate-900/10 rounded-sm shadow-2xl z-60 py-1 animate-in fade-in slide-in-from-top-2">
+                  <button 
+                    onClick={() => handleExport("low")}
+                    className="w-full text-left px-5 py-3 text-[10px] font-black text-red-500 hover:bg-red-50 uppercase tracking-widest transition-colors flex items-center justify-between"
+                  >
+                    <span>Low Stock Only</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                  </button>
+                  <button 
+                    onClick={() => handleExport("all")}
+                    className="w-full text-left px-5 py-3 text-[10px] font-black text-slate-600 hover:bg-slate-50 uppercase tracking-widest transition-colors border-t border-slate-50"
+                  >
+                    Full Inventory Snapshot
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          <button onClick={openCreate}
+            className="flex items-center gap-2.5 px-5 py-1.5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer shadow-lg shadow-orange-500/10"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
-            <span className="hidden sm:inline">New Record</span>
-            <span className="sm:hidden">New</span>
+            <span>New Record</span>
           </button>
         </div>
       </div>

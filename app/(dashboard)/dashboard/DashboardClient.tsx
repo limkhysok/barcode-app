@@ -68,31 +68,39 @@ export default function DashboardClient({ initialStats }: Readonly<DashboardClie
   return (
     <div className="px-4 py-5 sm:px-5 sm:py-5 space-y-3">
 
-      {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-[12px] font-black text-slate-950 uppercase tracking-[0.2em] leading-none">
-            Dashboard
-          </h1>
-          <p className="text-[9px] font-medium text-slate-400 mt-0.5 uppercase tracking-widest">
-            Overview · {lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-          </p>
+      {/* HEADER SECTION - Separate Mobile and Desktop Blocks */}
+
+      {/* Mobile-Only Header */}
+      <div className="sm:hidden flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col">
+            <h1 className="text-[14px] font-black text-slate-950 uppercase tracking-[0.2em] leading-none">Dashboard</h1>
+            <p className="text-[9px] text-orange-500 font-bold uppercase mt-1">Mobile Overview</p>
+          </div>
+          {/* Refresh */}
+          <button
+            type="button"
+            onClick={() => fetchStats(range, customStart || undefined, customEnd || undefined)}
+            disabled={loading}
+            className="flex items-center gap-1.5 px-3 py-1 text-[10px] font-black uppercase tracking-widest border border-gray-200 rounded-sm text-gray-400 active:bg-gray-50 transition-colors disabled:opacity-50 cursor-pointer shrink-0"
+          >
+            <RefreshCw size={10} strokeWidth={3} className={loading ? "animate-spin text-orange-500" : ""} />
+            <span>Sync</span>
+          </button>
         </div>
 
-        {/* Controls */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          {/* Range tabs — scrollable strip on small screens */}
-          <div className="overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="flex flex-col gap-3">
+          <div className="overflow-x-auto scrollbar-none -mx-4 px-4">
             <div className="flex items-center bg-slate-100 rounded-sm p-0.5 gap-0.5 w-fit">
               {RANGE_TABS.map((tab) => (
                 <button
                   key={tab.value}
                   type="button"
                   onClick={() => setRange(tab.value)}
-                  className={`px-2.5 h-6 sm:h-7 text-[9px] sm:text-[10px] font-black uppercase tracking-widest rounded-sm transition-all duration-150 whitespace-nowrap cursor-pointer ${
+                  className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-sm transition-all duration-150 whitespace-nowrap cursor-pointer ${
                     range === tab.value
                       ? "bg-orange-500 text-white shadow-sm"
-                      : "text-slate-400 hover:text-slate-700"
+                      : "text-slate-400 active:text-slate-700"
                   }`}
                 >
                   {tab.label}
@@ -101,34 +109,85 @@ export default function DashboardClient({ initialStats }: Readonly<DashboardClie
             </div>
           </div>
 
-          {/* Custom date pickers */}
           {range === "custom" && (
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <div className="flex items-center gap-2">
               <input
                 type="date"
                 value={customStart}
                 onChange={(e) => setCustomStart(e.target.value)}
-                className="h-7 px-2.5 text-[11px] font-bold border border-slate-200 rounded-sm bg-white text-slate-700 focus:outline-none focus:border-orange-400 cursor-pointer"
+                className="flex-1 h-8 px-2.5 text-[11px] font-bold border border-slate-200 rounded-sm bg-white text-slate-700 focus:outline-none focus:border-orange-400 cursor-pointer"
               />
-              <span className="text-[10px] text-slate-400 font-black uppercase text-center">to</span>
+              <span className="text-[10px] text-slate-400 font-black uppercase">to</span>
               <input
                 type="date"
                 value={customEnd}
                 min={customStart}
                 onChange={(e) => setCustomEnd(e.target.value)}
-                className="h-7 px-2.5 text-[11px] font-bold border border-slate-200 rounded-sm bg-white text-slate-700 focus:outline-none focus:border-orange-400 cursor-pointer"
+                className="flex-1 h-8 px-2.5 text-[11px] font-bold border border-slate-200 rounded-sm bg-white text-slate-700 focus:outline-none focus:border-orange-400 cursor-pointer"
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Desktop-Only Header */}
+      <div className="hidden sm:flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="flex flex-col border-l-4 border-orange-500 pl-4">
+            <h1 className="text-[16px] font-black text-slate-950 uppercase tracking-[0.25em] leading-tight">Overview Dashboard</h1>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Command Center / Logistics Intelligence</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center bg-slate-100/80 rounded-sm p-0.5 gap-0.5">
+            {RANGE_TABS.map((tab) => (
+              <button
+                key={tab.value}
+                type="button"
+                onClick={() => setRange(tab.value)}
+                className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-sm transition-all duration-150 whitespace-nowrap cursor-pointer ${
+                  range === tab.value
+                    ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20"
+                    : "text-slate-400 hover:text-slate-600 hover:bg-white/50"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {range === "custom" && (
+            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-2 duration-300">
+              <input
+                type="date"
+                value={customStart}
+                onChange={(e) => setCustomStart(e.target.value)}
+                className="h-8 px-3 text-[11px] font-bold border border-slate-200 rounded-sm bg-white text-slate-700 focus:outline-none focus:border-orange-400 cursor-pointer hover:border-slate-300 transition-colors"
+              />
+              <span className="text-[9px] text-slate-300 font-black uppercase">to</span>
+              <input
+                type="date"
+                value={customEnd}
+                min={customStart}
+                onChange={(e) => setCustomEnd(e.target.value)}
+                className="h-8 px-3 text-[11px] font-bold border border-slate-200 rounded-sm bg-white text-slate-700 focus:outline-none focus:border-orange-400 cursor-pointer hover:border-slate-300 transition-colors"
               />
             </div>
           )}
 
-          {/* Refresh */}
+          <div className="w-px h-6 bg-slate-200 mx-1" />
+
           <button
             type="button"
             onClick={() => fetchStats(range, customStart || undefined, customEnd || undefined)}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3 h-7 text-[10px] font-black uppercase tracking-widest border border-slate-200 rounded-sm text-slate-400 hover:text-orange-500 hover:border-orange-200 transition-colors disabled:opacity-50 cursor-pointer shrink-0"
+            className="group flex items-center gap-2 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest border border-slate-200 rounded-sm text-slate-400 hover:text-orange-500 hover:border-orange-200 hover:bg-orange-50 transition-all disabled:opacity-50 cursor-pointer shrink-0 active:scale-95"
           >
-            <RefreshCw size={10} strokeWidth={3} className={loading ? "animate-spin" : ""} />
+            <RefreshCw size={12} strokeWidth={3} className={`transition-transform duration-500 ${loading ? "animate-spin" : "group-hover:rotate-180"}`} />
             <span>Refresh</span>
           </button>
         </div>
