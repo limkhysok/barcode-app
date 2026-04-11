@@ -7,32 +7,39 @@ const REORDER_PRESETS = new Set([5, 10, 15, 20]);
 const inputCls =
   "w-full px-2 py-1 rounded-sm border border-gray-200 text-[13px] text-gray-800 placeholder:text-gray-300 outline-none focus:ring-1 focus:border-gray-200 focus:bg-gray-50 transition";
 
-function Field({ label, id, type = "text", value, onChange, placeholder, disabled }: Readonly<{
+function Field({ label, id, type = "text", value, onChange, placeholder, disabled, optional }: Readonly<{
   label: string; id: string; type?: string;
   value: string | number; onChange: (v: string) => void; placeholder?: string; disabled?: boolean;
+  optional?: boolean;
 }>) {
   return (
-    <div className="space-y-1.5">
-      <label htmlFor={id} className="flex items-center gap-1.5 text-[10px] font-black tracking-widest uppercase text-gray-400">
-        {label}
-        {disabled && <span className="ml-1 normal-case tracking-normal font-normal text-gray-300">(locked)</span>}
-      </label>
+    <div className="space-y-1.5 focus-within:translate-x-1 transition-transform duration-200">
+      <div className="flex items-center justify-between">
+        <label htmlFor={id} className={`flex items-center gap-1.5 text-[10px] font-black tracking-widest uppercase ${optional ? "text-gray-300" : "text-gray-400"}`}>
+          {label}
+          {disabled && <span className="ml-1 normal-case tracking-normal font-normal text-gray-300">(locked)</span>}
+        </label>
+        <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm ${optional ? "text-slate-300 bg-slate-50" : "text-orange-500 bg-orange-50"}`}>
+          {optional ? "Optional" : "Required"}
+        </span>
+      </div>
       <input
-        id={id} type={type} placeholder={placeholder} value={value} required={!disabled} disabled={disabled}
+        id={id} type={type} placeholder={placeholder} value={value} required={!disabled && !optional} disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className={`${inputCls} ${disabled ? "opacity-50 cursor-not-allowed text-gray-400" : ""}`}
+        className={`${inputCls} ${disabled ? "opacity-50 cursor-not-allowed text-gray-400" : "focus:border-orange-500 focus:bg-white focus:shadow-sm"}`}
       />
     </div>
   );
 }
 
-function ModalSelect({ label, id, value, options, onChange, placeholder }: Readonly<{
+function ModalSelect({ label, id, value, options, onChange, placeholder, optional }: Readonly<{
   label: string;
   id: string;
   value: string | number;
   options: { value: string | number; label: string }[];
   onChange: (v: string) => void;
   placeholder?: string;
+  optional?: boolean;
 }>) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -48,48 +55,58 @@ function ModalSelect({ label, id, value, options, onChange, placeholder }: Reado
   const selected = options.find((o) => String(o.value) === String(value));
 
   return (
-    <div className="space-y-1.5" ref={ref}>
-      <label className="text-[10px] font-black tracking-widest uppercase text-gray-400">
-        {label}
-      </label>
+    <div
+      className={`space-y-1.5 focus-within:translate-x-1 transition-transform duration-200 ${open ? "relative z-[60]" : "relative z-0"}`}
+      ref={ref}
+    >
+      <div className="flex items-center justify-between">
+        <label className={`text-[10px] font-black tracking-widest uppercase ${optional ? "text-gray-300" : "text-gray-400"}`}>
+          {label}
+        </label>
+        <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm ${optional ? "text-slate-300 bg-slate-50" : "text-orange-500 bg-orange-50"}`}>
+          {optional ? "Optional" : "Required"}
+        </span>
+      </div>
       <div className="relative">
         <button
           type="button"
           onClick={() => setOpen(!open)}
-          className={`w-full px-2 py-1.5 rounded-sm border text-[13px] text-left flex items-center justify-between transition group ${
-            open ? "border-black bg-gray-50" : "border-gray-200 bg-white"
+          className={`w-full px-2 py-1.5 rounded-sm border text-[13px] text-left flex items-center justify-between transition-all duration-200 group ${
+            open ? "border-orange-500 bg-white shadow-sm" : "border-gray-200 bg-white"
           }`}
         >
-          <span className={`${selected ? "text-gray-900 font-medium" : "text-gray-300"}`}>
+          <span className={`${selected ? "text-gray-900 font-bold uppercase tracking-tight" : "text-gray-300 font-medium"}`}>
             {selected ? selected.label : placeholder || "Select…"}
           </span>
           <ChevronDown
             size={14}
-            className={`transition-transform duration-200 ${open ? "rotate-180" : ""} text-gray-400 group-hover:text-black`}
+            className={`transition-transform duration-300 ${open ? "rotate-180 text-orange-600" : "text-gray-400 group-hover:text-black"}`}
             strokeWidth={3}
           />
         </button>
 
         {open && (
-          <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-black shadow-xl rounded-sm overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
-            <ul className="max-h-60 overflow-y-auto">
+          <div className="absolute z-[100] top-full left-0 right-0 mt-2 bg-white border border-slate-900 shadow-2xl rounded-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <ul className="max-h-64 overflow-y-auto no-scrollbar scrollbar-none divide-y divide-slate-100">
               {options.map((o) => (
-                <li key={String(o.value)}>
+                <li key={String(o.value)} className="border-b border-slate-50 last:border-b-0">
                   <button
                     type="button"
                     onClick={() => {
                       onChange(String(o.value));
                       setOpen(false);
                     }}
-                    className={`w-full text-left px-3 py-2 text-[11px] font-black tracking-widest uppercase flex items-center justify-between transition-colors ${
+                    className={`w-full text-left px-4 py-3 flex items-center justify-between transition-all duration-150 group/opt ${
                       String(value) === String(o.value)
-                        ? "bg-slate-50 text-orange-500 border-l-2 border-orange-500"
-                        : "text-gray-500 hover:bg-orange-500 hover:text-white"
+                        ? "bg-orange-500 text-white"
+                        : "text-slate-600 hover:bg-orange-50"
                     }`}
                   >
-                    {o.label}
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${String(value) === String(o.value) ? "text-white" : "text-slate-700"}`}>
+                      {o.label}
+                    </span>
                     {String(value) === String(o.value) && (
-                      <Check size={12} strokeWidth={3.5} className="text-orange-500 group-hover:text-white" />
+                      <Check size={14} strokeWidth={3} className="text-white" />
                     )}
                   </button>
                 </li>
@@ -145,7 +162,7 @@ export function ProductModal({
   };
 
   const currentPic = form.product_picture;
-  
+
   let previewUrl: string | null = null;
   if (currentPic instanceof File) {
     previewUrl = URL.createObjectURL(currentPic);
@@ -177,13 +194,16 @@ export function ProductModal({
           </button>
         </div>
 
-        <form onSubmit={onSave} className="flex-1 overflow-y-auto p-5 space-y-4 bg-white min-h-0">
+        <form onSubmit={onSave} className="flex-1 overflow-y-auto p-5 space-y-4 bg-white min-h-0 pb-32">
           {/* Image Upload Field */}
           <div className="space-y-2">
-            <label className="text-[10px] font-black tracking-widest uppercase text-gray-400 flex items-center gap-2">
-              <ImageIcon size={12} />
-              Product Picture
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-black tracking-widest uppercase text-gray-400 flex items-center gap-2">
+                <ImageIcon size={12} />
+                Product Picture
+              </label>
+              <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest bg-slate-50 px-1.5 py-0.5 rounded-sm">Optional</span>
+            </div>
             <div className="flex items-center gap-4">
               <div className="relative group w-24 h-24 rounded-sm border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden transition-colors hover:border-orange-500/30">
                 {previewUrl ? (
