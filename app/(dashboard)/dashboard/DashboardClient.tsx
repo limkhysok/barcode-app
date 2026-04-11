@@ -32,7 +32,7 @@ interface DashboardClientProps {
 }
 
 export default function DashboardClient({ initialStats }: Readonly<DashboardClientProps>) {
-  const [range, setRange]             = useState<RangeLabel>("today");
+  const [range, setRange]             = useState<RangeLabel>("week");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd]     = useState("");
   const [stats, setStats]             = useState<DashboardStats | null>(initialStats);

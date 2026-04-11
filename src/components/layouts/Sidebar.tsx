@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   LayoutDashboard,
@@ -9,7 +9,9 @@ import {
   Database,
   ArrowLeftRight,
   ChevronLeft,
+  LogOut,
 } from "lucide-react";
+import { useAuth } from "@/src/context/AuthContext";
 
 const EXPANDED_W = 210;
 const COLLAPSED_W = 68;
@@ -58,43 +60,138 @@ function NavItem({
   onClick?: () => void;
 }>) {
   const pathname = usePathname();
-  const active = pathname === href;
+  const active = pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <Link
-      href={href}
-      onClick={onClick}
-      title={isCollapsed ? label : undefined}
-      className={`
-        flex items-center w-full transition-all duration-300 select-none group relative
-        ${active
-          ? "bg-slate-50 text-orange-600 border-r-2 border-orange-600"
-          : "text-slate-400 hover:bg-slate-50 hover:text-slate-900"
-        }
-      `}
-      style={{
-        padding: isCollapsed ? "12px 0" : "12px 20px",
-        justifyContent: isCollapsed ? "center" : "flex-start",
-        gap: isCollapsed ? 0 : 12,
-        transition: `padding ${easing}, gap ${easing}`,
-      }}
-    >
-      <div className={`shrink-0 transition-transform duration-300 ${active ? "scale-110" : "group-hover:scale-110"}`}>
-        {icon}
-      </div>
-      <span
-        className={`text-[11px] font-black uppercase tracking-[0.15em] leading-none ${active ? "opacity-100" : "opacity-80"}`}
+    <div className="relative group">
+      <Link
+        href={href}
+        onClick={onClick}
+        aria-current={active ? "page" : undefined}
+        className={`
+          flex items-center w-full transition-all duration-300 select-none relative
+          ${active
+            ? "bg-slate-50 text-orange-600 border-r-2 border-orange-600"
+            : "text-slate-400 hover:bg-slate-50 hover:text-slate-900"
+          }
+        `}
         style={{
-          maxWidth: isCollapsed ? 0 : 140,
-          opacity: isCollapsed ? 0 : 1,
-          overflow: "hidden",
-          whiteSpace: "nowrap",
-          transition: `max-width ${easing}, opacity ${easing}`,
+          padding: isCollapsed ? "12px 0" : "12px 20px",
+          justifyContent: isCollapsed ? "center" : "flex-start",
+          gap: isCollapsed ? 0 : 12,
+          transition: `padding ${easing}, gap ${easing}`,
         }}
       >
-        {label}
-      </span>
-    </Link>
+        <div className={`shrink-0 transition-transform duration-300 ${active ? "scale-110" : "group-hover:scale-110"}`}>
+          {icon}
+        </div>
+        <span
+          className={`text-[11px] font-black uppercase tracking-[0.15em] leading-none ${active ? "opacity-100" : "opacity-80"}`}
+          style={{
+            maxWidth: isCollapsed ? 0 : 140,
+            opacity: isCollapsed ? 0 : 1,
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            transition: `max-width ${easing}, opacity ${easing}`,
+          }}
+        >
+          {label}
+        </span>
+      </Link>
+
+      {/* Tooltip — shown only when collapsed */}
+      {isCollapsed && (
+        <div className="
+          pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50
+          px-2.5 py-1.5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest
+          rounded-sm whitespace-nowrap shadow-lg
+          opacity-0 group-hover:opacity-100 transition-opacity duration-150
+        ">
+          {label}
+          <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-900" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── UserFooter ───────────────────────────────────────────────────────────────
+
+const ROLE_LABELS: Record<string, string> = { superadmin: "Super Admin", boss: "Boss", staff: "Staff" };
+
+function UserFooter({ isCollapsed }: Readonly<{ isCollapsed: boolean }>) {
+  const { user, role, logout } = useAuth();
+  const router = useRouter();
+
+  const initials = user?.username ? user.username.slice(0, 2).toUpperCase() : "??";
+  const roleLabel = ROLE_LABELS[role] ?? "Staff";
+
+  function handleLogout() {
+    logout();
+    router.replace("/login");
+  }
+
+  return (
+    <div className="border-t border-slate-100 shrink-0">
+      {/* User row */}
+      <div
+        className="flex items-center gap-3 overflow-hidden"
+        style={{
+          justifyContent: isCollapsed ? "center" : "flex-start",
+          padding: isCollapsed ? "12px 0" : "12px 16px",
+          transition: `padding ${easing}`,
+        }}
+      >
+        <div className="w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center shrink-0">
+          <span className="text-[9px] font-black text-white leading-none">{initials}</span>
+        </div>
+
+        <div
+          className="flex-1 min-w-0"
+          style={{
+            opacity: isCollapsed ? 0 : 1,
+            maxWidth: isCollapsed ? 0 : 120,
+            overflow: "hidden",
+            transition: `opacity ${easing}, max-width ${easing}`,
+          }}
+        >
+          <p className="text-[10px] font-black text-slate-800 uppercase tracking-widest truncate leading-none">
+            {user?.username ?? "—"}
+          </p>
+          <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5 leading-none">
+            {roleLabel}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleLogout}
+          title="Logout"
+          className={`shrink-0 w-6 h-6 flex items-center justify-center rounded-sm text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer ${
+            isCollapsed ? "hidden" : ""
+          }`}
+        >
+          <LogOut size={13} strokeWidth={2.5} />
+        </button>
+      </div>
+
+      {/* Collapsed logout */}
+      {isCollapsed && (
+        <div className="relative group flex justify-center pb-3">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-8 h-8 flex items-center justify-center rounded-sm text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+          >
+            <LogOut size={14} strokeWidth={2.5} />
+          </button>
+          <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 px-2.5 py-1.5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-sm whitespace-nowrap shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+            {"Logout"}
+            <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-900" />
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -110,13 +207,13 @@ function SidebarContent({
       {/* ── Brand Section ── */}
       <div
         className="flex items-center px-5 h-18 border-b border-slate-200 overflow-hidden shrink-0 bg-white"
-        style={{ 
-          justifyContent: isCollapsed ? "center" : "flex-start", 
+        style={{
+          justifyContent: isCollapsed ? "center" : "flex-start",
           padding: isCollapsed ? "0" : "0 20px",
-          gap: isCollapsed ? 0 : 12
+          gap: isCollapsed ? 0 : 12,
         }}
       >
-        <div className="w-10 h-10 flex items-center justify-center shrink-0 ">
+        <div className="w-10 h-10 flex items-center justify-center shrink-0">
           <Image src="/ctk.svg" alt="CTK" width={24} height={24} priority />
         </div>
         <div
@@ -124,7 +221,7 @@ function SidebarContent({
           style={{
             opacity: isCollapsed ? 0 : 1,
             maxWidth: isCollapsed ? 0 : 120,
-            transition: `opacity ${easing}, max-width ${easing}`
+            transition: `opacity ${easing}, max-width ${easing}`,
           }}
         >
           <span className="text-[14px] font-black text-slate-950 uppercase tracking-widest">CTK</span>
@@ -160,19 +257,8 @@ function SidebarContent({
         </div>
       </div>
 
-      {/* ── Footer / Status ── */}
-      <div
-        className="p-4 border-t border-slate-50 shrink-0"
-        style={{ opacity: isCollapsed ? 0 : 1, transition: `opacity ${easing}` }}
-      >
-        <div className="bg-slate-50 rounded-sm p-3 border border-slate-100">
-          <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">Status</p>
-          <div className="flex items-center gap-2 mt-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-[10px] font-black text-slate-700 uppercase tracking-tight">Connected</span>
-          </div>
-        </div>
-      </div>
+      {/* ── User Footer ── */}
+      <UserFooter isCollapsed={isCollapsed} />
     </div>
   );
 }
