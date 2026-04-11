@@ -71,24 +71,26 @@ const InventoryPicker: React.FC<InventoryPickerProps> = ({ inventory, value, onC
         ref={inputRef}
         type="text"
         autoComplete="off"
-        placeholder="Search Name/Barcode"
+        placeholder="Search product name or barcode..."
         value={search}
         onFocus={handleFocus}
         onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
-        className="w-full text-[11px] pr-1 py-1.5 outline-none transition placeholder:text-gray-500 text-gray-900 text-left"
+        className="w-full text-[11px] pr-1 py-1.5 outline-none transition placeholder:text-gray-400 text-gray-900 text-left bg-transparent focus:text-orange-600 font-semibold"
       />
 
       {open && (
         <div
-          className="bg-white border border-black rounded-sm shadow-lg overflow-hidden"
+          className="bg-white border border-slate-950/10 rounded-sm shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
           style={{ position: "fixed", top: dropPos.top, left: dropPos.left, width: dropPos.width, zIndex: 9999 }}
         >
-          <ul className="max-h-52 overflow-y-auto">
+          <ul className="max-h-64 overflow-y-auto no-scrollbar scrollbar-none">
             {filtered.length === 0 && (
-              <li className="px-4 py-3 text-xs text-gray-400 font-medium">No records found.</li>
+              <li className="px-5 py-6 text-center">
+                <p className="text-[10px] font-black uppercase text-slate-300 tracking-widest">No matching results</p>
+              </li>
             )}
             {filtered.map((r) => (
-              <li key={r.id} className="border-b border-black last:border-b-0">
+              <li key={r.id} className="border-b border-slate-50 last:border-b-0">
                 <button
                   type="button"
                   onClick={() => {
@@ -96,21 +98,27 @@ const InventoryPicker: React.FC<InventoryPickerProps> = ({ inventory, value, onC
                     setSearch(`${r.product_details.product_name} (stock: ${r.quantity_on_hand})`);
                     setOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2.5 text-[11px] font-semibold tracking-wide flex items-start gap-3 transition ${value === r.id ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
+                  className={`w-full text-left px-5 py-3 flex items-start gap-4 transition-all duration-150 ${value === r.id ? "bg-orange-500 text-white" : "text-slate-700 hover:bg-orange-50"
                     }`}
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate">
-                      {r.product_details.product_name}
-                      {r.product_details.barcode && (
-                        <span className={`ml-1.5 font-mono font-normal ${value === r.id ? "text-white/60" : "text-gray-400"}`}>
-                          ({r.product_details.barcode})
-                        </span>
-                      )}
-                    </p>
-                    <p className={`text-[10px] truncate font-normal ${value === r.id ? "text-white/60" : "text-gray-400"}`}>
-                      {r.site} · {r.location} · Qty: {r.quantity_on_hand}
-                    </p>
+                    <div className="flex items-center justify-between gap-2 overflow-hidden">
+                      <p className={`text-[12px] font-black uppercase tracking-tight truncate ${value === r.id ? "text-white" : "text-slate-900"}`}>
+                        {r.product_details.product_name}
+                      </p>
+                      <span className={`text-[9px] font-black uppercase shrink-0 ${value === r.id ? "text-white/60" : "text-orange-500"}`}>
+                        {r.quantity_on_hand} IN STOCK
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`text-[9px] font-mono tracking-wider ${value === r.id ? "text-white/70" : "text-slate-400"}`}>
+                        {r.product_details.barcode || "NO-BARCODE"}
+                      </span>
+                      <span className="w-1 h-1 rounded-full bg-slate-300 mx-0.5" />
+                      <span className={`text-[9px] font-bold uppercase tracking-widest truncate ${value === r.id ? "text-white/70" : "text-slate-400"}`}>
+                        {r.site} · {r.location}
+                      </span>
+                    </div>
                   </div>
                 </button>
               </li>

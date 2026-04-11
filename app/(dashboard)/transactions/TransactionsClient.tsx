@@ -82,17 +82,23 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   const [pdfType, setPdfType] = useState<"Receive" | "Sale">("Receive");
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
-  const pdfPanelRef = useRef<HTMLDivElement>(null);
+  const [pdfTypeMenuOpen, setPdfTypeMenuOpen] = useState(false);
+  const pdfPanelRefMobile = useRef<HTMLDivElement>(null);
+  const pdfPanelRefDesktop = useRef<HTMLDivElement>(null);
 
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const filterPanelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handler(e: MouseEvent) {
-      if (pdfPanelRef.current && !pdfPanelRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        (pdfPanelRefMobile.current && !pdfPanelRefMobile.current.contains(target)) &&
+        (pdfPanelRefDesktop.current && !pdfPanelRefDesktop.current.contains(target))
+      ) {
         setPdfPanelOpen(false);
       }
-      if (filterPanelRef.current && !filterPanelRef.current.contains(e.target as Node)) {
+      if (filterPanelRef.current && !filterPanelRef.current.contains(target)) {
         setFilterPanelOpen(false);
       }
     }
@@ -398,43 +404,61 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <div className="relative" ref={pdfPanelRef}>
-            <button
-              onClick={() => { setPdfPanelOpen(!pdfPanelOpen); setPdfError(""); }}
-              className={`w-full flex items-center justify-center gap-2 py-1.5 px-2 rounded-sm text-[11px] font-black uppercase tracking-wider border transition-all ${pdfPanelOpen ? "bg-black text-white border-black" : "bg-white text-gray-500 border-gray-200 active:bg-gray-50"}`}
-            >
-              <span>Report</span>
-            </button>
-            {pdfPanelOpen && (
-              <div className="absolute left-0 mt-2 z-50 w-full min-w-[240px] bg-white border border-gray-200 rounded-sm shadow-2xl p-4 space-y-4">
-                <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-                  <span className="text-[10px] font-black uppercase text-gray-400">PDF Options</span>
-                  <button onClick={() => setPdfPanelOpen(false)} className="text-gray-300 hover:text-black">✕</button>
-                </div>
-                <div className="space-y-3">
-                  <div>
-                    <label htmlFor="mobile-pdf-date" className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 cursor-pointer">Date Filter</label>
-                    <input id="mobile-pdf-date" type="date" value={pdfDate} onChange={(e) => setPdfDate(e.target.value)} className="w-full text-xs font-bold p-2 border border-gray-200 rounded-sm" />
-                  </div>
-                  <div>
-                    <label htmlFor="mobile-pdf-type" className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 cursor-pointer">Type</label>
-                    <select id="mobile-pdf-type" value={pdfType} onChange={(e) => setPdfType(e.target.value as any)} className="w-full text-xs font-bold p-2 border border-gray-200 rounded-sm">
-                      <option value="Receive">Receive</option>
-                      <option value="Sale">Sale</option>
-                    </select>
-                  </div>
-                  <button onClick={handlePdfExport} disabled={pdfLoading} className="w-full py-2.5 bg-orange-500 text-white text-[11px] font-black uppercase rounded-sm">
-                    {pdfLoading ? "Processing..." : "Export PDF"}
-                  </button>
-                </div>
+        <div className="grid grid-cols-2 gap-2 relative" ref={pdfPanelRefMobile}>
+          <button
+            onClick={() => { setPdfPanelOpen(!pdfPanelOpen); setPdfError(""); }}
+            className={`w-full flex items-center justify-center gap-2 py-1.5 px-3 rounded-sm text-[11px] font-black uppercase tracking-wider border transition-all cursor-pointer ${pdfPanelOpen ? "bg-black text-white border-black" : "bg-white text-gray-500 border-gray-200 active:bg-gray-50"}`}
+          >
+            <span>Report</span>
+          </button>
+
+          {pdfPanelOpen && (
+            <div className="absolute right-0 top-full mt-2 z-50 w-[260px] bg-white border border-gray-200 rounded-sm shadow-2xl p-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                <span className="text-[10px] font-black uppercase text-gray-400">PDF Options</span>
+                <button onClick={() => setPdfPanelOpen(false)} className="text-gray-300 hover:text-black">✕</button>
               </div>
-            )}
-          </div>
+              <div className="space-y-3">
+                <div>
+                  <label htmlFor="mobile-pdf-date" className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 cursor-pointer">Date Filter</label>
+                  <input id="mobile-pdf-date" type="date" value={pdfDate} onChange={(e) => setPdfDate(e.target.value)} className="w-full text-xs font-bold p-2 border border-gray-200 rounded-sm" />
+                </div>
+                <div className="relative">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5">Type</p>
+                  <button
+                    type="button"
+                    onClick={() => setPdfTypeMenuOpen(!pdfTypeMenuOpen)}
+                    className="w-full flex items-center justify-between gap-2 px-3 py-2 border border-gray-200 rounded-sm bg-white text-xs font-bold text-gray-700 active:border-orange-500 transition-all"
+                  >
+                    <span className="uppercase">{pdfType}</span>
+                    <svg className={`w-3 h-3 transition-transform duration-200 ${pdfTypeMenuOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                  </button>
+                  {pdfTypeMenuOpen && (
+                    <div className="absolute top-full left-0 right-0 z-[60] mt-1 bg-white border border-gray-200 rounded-sm shadow-xl overflow-hidden py-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                      {(["Receive", "Sale"] as const).map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => { setPdfType(t); setPdfTypeMenuOpen(false); }}
+                          className={`w-full text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest flex items-center justify-between transition-colors ${pdfType === t ? "bg-orange-50 text-orange-500" : "text-gray-600 hover:bg-gray-50"}`}
+                        >
+                          {t}
+                          {pdfType === t && <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <button onClick={handlePdfExport} disabled={pdfLoading} className="w-full py-2.5 bg-orange-500 text-white text-[11px] font-black uppercase rounded-sm">
+                  {pdfLoading ? "Processing..." : "Export PDF"}
+                </button>
+              </div>
+            </div>
+          )}
 
           <button
             onClick={() => { setFormError(""); setModalOpen(true); }}
-            className="w-full flex items-center justify-center gap-2 py-1 px-1.5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white active:scale-[0.98] transition-all"
+            className="w-full flex items-center justify-center gap-2 py-1 px-1.5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white active:scale-[0.98] transition-all cursor-pointer"
           >
             <span>New</span>
           </button>
@@ -455,7 +479,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
         <div className="flex items-center gap-3">
           {/* Export Control */}
-          <div className="relative" ref={pdfPanelRef}>
+          <div className="relative" ref={pdfPanelRefDesktop}>
             <button
               onClick={() => { setPdfPanelOpen(!pdfPanelOpen); setPdfError(""); }}
               className={`flex items-center gap-2.5 px-4 py-2 rounded-sm text-[11px] font-black uppercase tracking-wider border transition-all duration-200 cursor-pointer ${pdfPanelOpen ? "border-black bg-black text-white" : "border-slate-200 bg-white text-slate-700 hover:border-orange-500 hover:text-orange-500"}`}
@@ -474,11 +498,35 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label htmlFor="desktop-pdf-type" className="text-[9px] font-black text-slate-400 uppercase tracking-widest block cursor-pointer">Transaction Category</label>
-                    <select id="desktop-pdf-type" value={pdfType} onChange={(e) => setPdfType(e.target.value as any)} className="w-full text-[12px] font-bold p-2.5 border border-slate-200 rounded-sm focus:border-orange-500 outline-none transition-all appearance-none bg-white">
-                      <option value="Receive">RECEIVE (Restock)</option>
-                      <option value="Sale">SALE (Outbound)</option>
-                    </select>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Transaction Category</p>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setPdfTypeMenuOpen(!pdfTypeMenuOpen)}
+                        className="w-full flex items-center justify-between gap-2.5 px-3 py-2.5 border border-slate-200 rounded-sm bg-white text-[12px] font-bold text-slate-900 focus:border-orange-500 transition-all outline-none"
+                      >
+                        <span className="uppercase tracking-widest">{pdfType === "Receive" ? "RECEIVE (RESTOCK)" : "SALE (OUTBOUND)"}</span>
+                        <svg className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${pdfTypeMenuOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                      </button>
+                      {pdfTypeMenuOpen && (
+                        <div className="absolute top-full left-0 right-0 z-[110] mt-1.5 bg-white border border-slate-200 rounded-sm shadow-2xl overflow-hidden py-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                          {[
+                            { id: "Receive", label: "RECEIVE (Restock)" },
+                            { id: "Sale", label: "SALE (Outbound)" },
+                          ].map((cat) => (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              onClick={() => { setPdfType(cat.id as any); setPdfTypeMenuOpen(false); }}
+                              className={`w-full text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-between transition-colors ${pdfType === cat.id ? "bg-orange-500 text-white" : "text-slate-600 hover:bg-slate-50"}`}
+                            >
+                              {cat.label}
+                              {pdfType === cat.id && <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   {pdfError && <p className="text-[10px] text-red-500 font-bold uppercase tracking-tight bg-red-50 p-2 rounded-sm border border-red-100">{pdfError}</p>}
                   <button onClick={handlePdfExport} disabled={pdfLoading} className="w-full py-3 bg-orange-500 text-white text-[11px] font-black uppercase tracking-widest rounded-sm shadow-lg shadow-orange-500/30 hover:bg-orange-600 transition-all flex items-center justify-center gap-2">
@@ -677,22 +725,41 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
         if (!t) return null;
         return (
           <>
-            <button type="button" aria-label="Close menu" className="fixed inset-0 z-9998 cursor-default bg-transparent border-0 p-0" onClick={() => setMenuOpenId(null)} />
+            <button
+              type="button"
+              className="fixed inset-0 z-9998 bg-transparent cursor-default w-full h-full border-none outline-none"
+              onClick={() => setMenuOpenId(null)}
+              aria-label="Close menu"
+            />
             <div
               style={{ position: "fixed", top: menuPos.top, left: menuPos.left, zIndex: 9999 }}
-              className="bg-white border border-gray-300 rounded-sm py-0 w-20 overflow-hidden"
+              className="bg-white border border-slate-950/10 rounded-sm shadow-2xl overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-200 min-w-32"
             >
               <button type="button" onClick={() => { setViewTarget(t); setMenuOpenId(null); }}
-                className="w-full text-left px-4 py-2 text-[12px] font-black text-gray-700 hover:bg-slate-50 transition">View</button>
+                className="w-full text-left px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-700 hover:bg-orange-500 hover:text-white transition-colors flex items-center gap-2.5">
+                <svg className="w-3.5 h-3.5 opacity-50" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                View Details
+              </button>
               {canEdit && (
                 <button type="button" onClick={() => { setEditTarget(t); setMenuOpenId(null); }}
-                  className="w-full text-left px-4 py-2 text-[12px] font-black text-gray-700 hover:bg-slate-50 transition">Edit</button>
+                  className="w-full text-left px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-700 hover:bg-orange-500 hover:text-white transition-colors flex items-center gap-2.5">
+                  <svg className="w-3.5 h-3.5 opacity-50" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
+                  Edit
+                </button>
               )}
               <button type="button" onClick={() => { handlePrint(t); setMenuOpenId(null); }}
-                className="w-full text-left px-4 py-2 text-[12px] font-black text-gray-700 hover:bg-slate-50 transition">Print</button>
+                className="w-full text-left px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-700 hover:bg-orange-500 hover:text-white transition-colors flex items-center gap-2.5">
+                <svg className="w-3.5 h-3.5 opacity-50" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 3.99A.75.75 0 017.5 3.75h9a.75.75 0 01.75.75v3h-10.5v-3zM3 16.25v-3a3 3 0 013-3h12a3 3 0 013 3v3a.75.75 0 01-.75.75H18v3.75a.75.75 0 01-.75.75H6.75a.75.75 0 01-.75-.75V17H3.75a.75.75 0 01-.75-.75zM9 15.75v3h6v-3H9z" /></svg>
+                Print PDF
+              </button>
               {canDelete && (
-                <button type="button" onClick={() => { setDeleteTarget(t); setMenuOpenId(null); }}
-                  className="w-full text-left px-4 py-2 text-[12px] font-black text-red-500 hover:bg-red-50 transition">Delete</button>
+                <div className="border-t border-slate-50 mt-1 pt-1">
+                  <button type="button" onClick={() => { setDeleteTarget(t); setMenuOpenId(null); }}
+                    className="w-full text-left px-4 py-2 text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500 hover:text-white transition-colors flex items-center gap-2.5">
+                    <svg className="w-3.5 h-3.5 opacity-50" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z" clipRule="evenodd" /></svg>
+                    Delete
+                  </button>
+                </div>
               )}
             </div>
           </>
