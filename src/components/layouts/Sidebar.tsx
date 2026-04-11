@@ -7,7 +7,8 @@ import {
   LayoutDashboard,
   Package,
   Database,
-  ChevronLeft
+  ArrowLeftRight,
+  ChevronLeft,
 } from "lucide-react";
 
 const EXPANDED_W = 210;
@@ -17,9 +18,14 @@ const easing = "0.4s cubic-bezier(0.4, 0, 0.2, 1)";
 
 const navItems = [
   {
+    label: "Dashboard",
+    href: "/dashboard",
+    icon: <LayoutDashboard size={20} />,
+  },
+  {
     label: "Transactions",
     href: "/transactions",
-    icon: <LayoutDashboard size={20} />,
+    icon: <ArrowLeftRight size={20} />,
   },
   {
     label: "Products",
@@ -103,7 +109,7 @@ function SidebarContent({
 
       {/* ── Brand Section ── */}
       <div
-        className="flex items-center px-5 h-[72px] border-b border-slate-200 overflow-hidden shrink-0 bg-white"
+        className="flex items-center px-5 h-18 border-b border-slate-200 overflow-hidden shrink-0 bg-white"
         style={{ 
           justifyContent: isCollapsed ? "center" : "flex-start", 
           padding: isCollapsed ? "0" : "0 20px",
@@ -121,7 +127,7 @@ function SidebarContent({
             transition: `opacity ${easing}, max-width ${easing}`
           }}
         >
-          <span className="text-[14px] font-black text-slate-950 uppercase tracking-[0.1em]">CTK</span>
+          <span className="text-[14px] font-black text-slate-950 uppercase tracking-widest">CTK</span>
           <span className="text-[8px] font-black text-orange-600 uppercase tracking-widest mt-1">Spare Parts</span>
         </div>
       </div>
@@ -183,7 +189,7 @@ function CollapseToggle({
       onClick={onToggleCollapse}
       aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       className="
-        absolute top-[72px] -right-3.5 z-30 hidden md:flex
+        absolute top-18 -right-3.5 z-30 hidden md:flex
         items-center justify-center w-7 h-7 rounded-full
         bg-white text-slate-400 border border-slate-200
         hover:text-orange-600 hover:border-orange-200

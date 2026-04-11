@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import type { SortDir } from "./ProductsTable";
-import { Search, X, ChevronDown, LayoutGrid, Filter, Tag, Users } from "lucide-react";
+import { Search, X, ChevronDown, Filter, Tag, Users } from "lucide-react";
 
 interface ProductToolbarProps {
   categoryFilter: string;
@@ -26,19 +26,19 @@ interface ProductToolbarProps {
 }
 
 // Reusable Dropdown Component
-function DropdownFilter({ 
-  label, 
-  value, 
-  onChange, 
-  options, 
-  icon: Icon 
-}: { 
-  label: string; 
-  value: string; 
-  onChange: (v: string) => void; 
+function DropdownFilter({
+  label,
+  value,
+  onChange,
+  options,
+  icon: Icon
+}: Readonly<{
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
   options: string[];
-  icon: any;
-}) {
+  icon: React.ElementType;
+}>) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -62,7 +62,7 @@ function DropdownFilter({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`px-2.5 py-1 rounded-sm border text-[11px] font-black transition-all duration-150 focus:outline-none flex items-center gap-2.5 group ${buttonStyles} min-w-[140px] h-8`}
+        className={`px-2.5 py-1 rounded-sm border text-[11px] font-black transition-all duration-150 focus:outline-none flex items-center gap-2.5 group ${buttonStyles} min-w-35 h-8`}
       >
         <div className={`transition-colors duration-200 ${isActive ? "text-white" : "text-gray-400 group-hover:text-white"}`}>
           <Icon size={14} strokeWidth={3} />
@@ -75,7 +75,7 @@ function DropdownFilter({
       </button>
 
       {open && (
-        <div className="absolute z-100 left-0 mt-1 min-w-[200px] bg-white border border-gray-100 rounded-sm shadow-xl animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden max-h-64 overflow-y-auto">
+        <div className="absolute z-100 left-0 mt-1 min-w-50 bg-white border border-gray-100 rounded-sm shadow-xl animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden max-h-64 overflow-y-auto">
           <ul className="divide-y divide-gray-50">
             <li>
               <button
@@ -132,6 +132,10 @@ export function ProductToolbar({
     setSortField("product_name");
     setSortDir("asc");
   };
+
+  let mobileFilterBtnClass = "bg-white text-gray-400 border-gray-200";
+  if (filtersOpen) mobileFilterBtnClass = "bg-orange-500 text-white border-orange-500";
+  else if (isFiltered) mobileFilterBtnClass = "bg-orange-50 text-orange-500 border-orange-300";
 
   return (
     <div className="flex flex-col gap-3">
@@ -216,10 +220,7 @@ export function ProductToolbar({
         <div className="sm:hidden relative" ref={filtersRef}>
           <button
             onClick={() => setFiltersOpen(!filtersOpen)}
-            className={`flex items-center gap-2 px-3 h-8 rounded-sm border text-[11px] font-black tracking-widest transition-all cursor-pointer ${
-              filtersOpen ? "bg-orange-500 text-white border-orange-500" : 
-              isFiltered ? "bg-orange-50 text-orange-500 border-orange-300" : "bg-white text-gray-400 border-gray-200"
-            }`}
+            className={`flex items-center gap-2 px-3 h-8 rounded-sm border text-[11px] font-black tracking-widest transition-all cursor-pointer ${mobileFilterBtnClass}`}
           >
             <Filter size={14} strokeWidth={3} />
             <span>FILTER</span>

@@ -316,7 +316,7 @@ export default function InventoryClient({
               </button>
 
               {exportOpen && (
-                <div className="absolute top-full right-0 mt-1 w-48 bg-white border border-slate-200 rounded-sm shadow-xl z-[60] py-1 animate-in fade-in slide-in-from-top-1">
+                <div className="absolute top-full right-0 mt-1 w-48 bg-white border border-slate-200 rounded-sm shadow-xl z-60 py-1 animate-in fade-in slide-in-from-top-1">
                   <button 
                     onClick={() => handleExport("low")}
                     className="w-full text-left px-4 py-2 text-[10px] font-black text-red-500 hover:bg-red-50 uppercase tracking-widest transition-colors flex items-center justify-between"
