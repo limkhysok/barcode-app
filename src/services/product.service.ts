@@ -68,12 +68,32 @@ export async function getProduct(id: number, fetcher?: <T>(path: string) => Prom
 }
 
 export async function createProduct(payload: ProductPayload): Promise<Product> {
+  if (payload.product_picture instanceof File) {
+    const formData = new FormData();
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, (value instanceof Blob || typeof value === 'string') ? value : String(value));
+      }
+    });
+    const { data } = await api.post<Product>("/api/v1/products/", formData);
+    return data;
+  }
   const { data } = await api.post<Product>("/api/v1/products/", payload);
   return data;
 }
 
 export async function updateProduct(id: number, payload: Partial<ProductPayload>): Promise<Product> {
-  const { data } = await api.put<Product>(`/api/v1/products/${id}/`, payload);
+  if (payload.product_picture instanceof File || payload.product_picture === "") {
+    const formData = new FormData();
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, (value instanceof Blob || typeof value === 'string') ? value : String(value));
+      }
+    });
+    const { data } = await api.patch<Product>(`/api/v1/products/${id}/`, formData);
+    return data;
+  }
+  const { data } = await api.patch<Product>(`/api/v1/products/${id}/`, payload);
   return data;
 }
 

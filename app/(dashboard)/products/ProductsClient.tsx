@@ -91,8 +91,8 @@ export default function ProductsClient({
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
   // Dynamic Options (from all products)
-  const categories = useMemo(() => Array.from(new Set(products.map(p => p.category))).sort(), [products]);
-  const suppliers = useMemo(() => Array.from(new Set(products.map(p => p.supplier))).sort(), [products]);
+  const categories = useMemo(() => Array.from(new Set(products.map(p => p.category))).sort((a, b) => a.localeCompare(b)), [products]);
+  const suppliers = useMemo(() => Array.from(new Set(products.map(p => p.supplier))).sort((a, b) => a.localeCompare(b)), [products]);
 
   const [filtersOpen, setFiltersOpen] = useState(false);
   const filtersRef = useRef<HTMLDivElement>(null);
@@ -158,6 +158,7 @@ export default function ProductsClient({
       cost_per_unit: Number.parseFloat(product.cost_per_unit),
       reorder_level: product.reorder_level,
       supplier: product.supplier,
+      product_picture: product.product_picture,
     });
     setFormError("");
     setModalOpen(true);

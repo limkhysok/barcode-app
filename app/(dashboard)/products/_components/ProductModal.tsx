@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import type { Product, ProductPayload } from "@/src/types/product.types";
-import { ChevronDown, Check } from "lucide-react";
+import { ChevronDown, Check, Image as ImageIcon, X, Package } from "lucide-react";
 
 const REORDER_PRESETS = new Set([5, 10, 15, 20]);
 
@@ -133,6 +133,27 @@ export function ProductModal({
   if (saving) saveLabel = "Saving…";
   else if (editing) saveLabel = "Save Changes";
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setForm((f) => ({ ...f, product_picture: file }));
+    }
+  };
+
+  const removePicture = () => {
+    setForm((f) => ({ ...f, product_picture: "" }));
+  };
+
+  const currentPic = form.product_picture;
+  
+  let previewUrl: string | null = null;
+  if (currentPic instanceof File) {
+    previewUrl = URL.createObjectURL(currentPic);
+  } else if (typeof currentPic === 'string' && currentPic !== "") {
+    previewUrl = `${process.env.NEXT_PUBLIC_API_URL}${currentPic}`;
+  }
+
+
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
       <div className="bg-white rounded-t-sm sm:rounded-sm shadow-2xl w-full sm:max-w-lg flex flex-col max-h-[90vh] overflow-hidden">
@@ -157,6 +178,54 @@ export function ProductModal({
         </div>
 
         <form onSubmit={onSave} className="flex-1 overflow-y-auto p-5 space-y-4 bg-white min-h-0">
+          {/* Image Upload Field */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-black tracking-widest uppercase text-gray-400 flex items-center gap-2">
+              <ImageIcon size={12} />
+              Product Picture
+            </label>
+            <div className="flex items-center gap-4">
+              <div className="relative group w-24 h-24 rounded-sm border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden transition-colors hover:border-orange-500/30">
+                {previewUrl ? (
+                  <div className="relative w-full h-full">
+                    <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={removePicture}
+                      className="absolute top-1 right-1 p-1 bg-black/50 text-white rounded-full hover:bg-black transition-colors"
+                    >
+                      <X size={12} strokeWidth={3} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-1 opacity-20">
+                    <Package size={24} strokeWidth={1} />
+                    <span className="text-[8px] font-black uppercase text-center">No Pic</span>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  title="Upload picture"
+                />
+              </div>
+              <div className="flex-1 space-y-1">
+                <p className="text-[11px] font-bold text-gray-600 uppercase tracking-tight">
+                  {(() => {
+                    if (currentPic instanceof File) return currentPic.name;
+                    if (previewUrl) return "Current Picture";
+                    return "No Picture Selected";
+                  })()}
+                </p>
+                <p className="text-[9px] text-gray-400 leading-tight">
+                  Click the box to upload a new image. JPG, PNG accepted. Max 5MB.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Product Name" id="product_name" value={form.product_name} placeholder="Engine Oil Filter"
               onChange={(v) => setForm((f) => ({ ...f, product_name: v }))} />

@@ -11,6 +11,8 @@ import {
   Check
 } from "lucide-react";
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
+
 const inputCls =
   "w-full px-3 py-1.5 rounded-sm border border-slate-200 text-[13px] text-slate-800 placeholder:text-slate-300 outline-none focus:ring-2 focus:border-transparent bg-slate-50 focus:bg-white transition";
 const ringStyle = { "--tw-ring-color": "#FA4900" } as React.CSSProperties;
@@ -223,6 +225,17 @@ function FilterableProductSelect({
                     className={`w-full text-left px-3 py-2 text-[11px] font-semibold tracking-wide flex items-center justify-between gap-2 transition ${active ? "bg-black text-white" : "text-slate-700 hover:bg-slate-50"
                       }`}
                   >
+                    <div className="w-8 h-8 rounded-sm bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
+                      {p.product_picture ? (
+                        <img
+                          src={`${BASE_URL}${p.product_picture}`}
+                          alt={p.product_name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Package size={14} className="text-slate-200" />
+                      )}
+                    </div>
                     <span className="truncate uppercase font-black">{p.product_name}</span>
                     <span className={`ml-auto font-mono text-[10px] shrink-0 font-bold ${active ? "text-white/60" : "text-gray-400"}`}>{p.barcode}</span>
                   </button>
@@ -322,8 +335,19 @@ export function InventoryModal({
             if (!selectedProduct) return null;
             const needsReorder = form.quantity_on_hand <= selectedProduct.reorder_level;
             return (
-              <div className="grid grid-cols-1 gap-3 px-4 py-3.5 bg-slate-50 border border-black rounded-sm">
-                <div>
+              <div className="grid grid-cols-[80px_1fr] gap-4 px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-sm">
+                <div className="w-20 h-20 rounded-sm bg-white border border-slate-200 flex items-center justify-center overflow-hidden">
+                  {selectedProduct.product_picture ? (
+                    <img
+                      src={`${BASE_URL}${selectedProduct.product_picture}`}
+                      alt={selectedProduct.product_name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Package size={24} className="text-slate-100" />
+                  )}
+                </div>
+                <div className="flex flex-col justify-center gap-2">
                   <p className="text-[9px] font-bold tracking-widest uppercase text-gray-400 mb-1.5 leading-none">Status Assessment</p>
                   <div className="flex items-center justify-between">
                     <span className={`inline-flex items-center gap-1.5 text-[10px] font-black tracking-widest uppercase px-3 py-1 rounded-full border ${needsReorder ? "bg-red-50 text-red-600 border-red-100" : "bg-green-50 text-green-600 border-green-100"

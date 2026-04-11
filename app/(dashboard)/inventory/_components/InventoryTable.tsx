@@ -7,8 +7,11 @@ import {
   Trash2, 
   Database,
   ChevronRight,
-  MapPin
+  MapPin,
+  Package
 } from "lucide-react";
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 interface InventoryTableProps {
   loading: boolean;
@@ -117,6 +120,17 @@ export function InventoryTable({
                   aria-label={`Edit ${r.product_details.product_name}`}
                 >
                   <span className="text-slate-300 text-[10px] font-black tabular-nums shrink-0 group-hover/btn:text-orange-500 transition-colors">#{r.id}</span>
+                  <div className="w-8 h-8 rounded-sm bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
+                    {r.product_details.product_picture ? (
+                      <img
+                        src={`${BASE_URL}${r.product_details.product_picture}`}
+                        alt={r.product_details.product_name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Package size={14} className="text-slate-200" />
+                    )}
+                  </div>
                   <div className="flex flex-col min-w-0">
                     <h3 className="text-[11px] font-black text-slate-900 truncate uppercase tracking-tight group-hover/btn:text-orange-600 transition-colors">
                       {r.product_details.product_name}
@@ -155,6 +169,7 @@ export function InventoryTable({
             <tr>
               {[
                 { label: "#", class: "pl-6 w-16" },
+                { label: "Pic", class: "w-16" },
                 { label: "Product" },
                 { label: "Site", class: "w-40" },
                 { label: "Quantity", class: "text-center w-32" },
@@ -192,6 +207,19 @@ export function InventoryTable({
               <tr key={r.id} className="group hover:bg-slate-50/60 transition-colors">
                 <td className="pl-6 px-5 py-4">
                   <span className="text-[11px] font-black text-slate-500 tabular-nums">#{r.id}</span>
+                </td>
+                <td className="px-5 py-4 whitespace-nowrap">
+                  <div className="w-10 h-10 rounded-sm bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden">
+                    {r.product_details.product_picture ? (
+                      <img
+                        src={`${BASE_URL}${r.product_details.product_picture}`}
+                        alt={r.product_details.product_name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Package size={16} className="text-slate-200" />
+                    )}
+                  </div>
                 </td>
                 <td className="px-5 py-4">
                   <div className="flex flex-col">

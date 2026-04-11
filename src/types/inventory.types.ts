@@ -6,6 +6,7 @@ export interface InventoryProductDetails {
   supplier: string;
   cost_per_unit: string;
   reorder_level: number;
+  product_picture: string | null;
 }
 
 

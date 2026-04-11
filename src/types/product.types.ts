@@ -6,6 +6,7 @@ export interface Product {
   cost_per_unit: string;
   reorder_level: number;
   supplier: string;
+  product_picture: string | null;
   created_at: string;
   updated_at: string;
   created_by: number;
@@ -18,4 +19,5 @@ export interface ProductPayload {
   cost_per_unit: number;
   reorder_level: number;
   supplier: string;
+  product_picture?: File | string | null;
 }

@@ -2,7 +2,9 @@
 
 import React from "react";
 import type { Product } from "@/src/types/product.types";
-import { Edit2, Trash2, Database, ArrowUp, ArrowDown } from "lucide-react";
+import { Edit2, Trash2, Database, ArrowUp, ArrowDown, Image as ImageIcon, Package } from "lucide-react";
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 export type SortDir = "asc" | "desc" | "";
 
@@ -21,6 +23,47 @@ interface ProductsTableProps {
   canDelete: boolean;
   viewMode?: "list" | "grid";
 }
+
+const SortIcon = ({ field, sortField, sortDir }: { field: string; sortField: string; sortDir: SortDir }) => {
+  if (sortField !== field || !sortDir) return null;
+  return sortDir === "asc" ? (
+    <ArrowUp size={10} className="ml-1.5 text-orange-500" strokeWidth={3} />
+  ) : (
+    <ArrowDown size={10} className="ml-1.5 text-orange-500" strokeWidth={3} />
+  );
+};
+
+const Header = ({
+  label,
+  field,
+  className,
+  sortField,
+  sortDir,
+  handleSort,
+}: {
+  label: string;
+  field?: string;
+  className?: string;
+  sortField: string;
+  sortDir: SortDir;
+  handleSort: (f: string) => void;
+}) => {
+  const isSortable = !!field;
+  const isActive = sortField === field && sortDir !== "";
+  return (
+    <th
+      onClick={() => isSortable && field && handleSort(field)}
+      className={`px-5 py-4 text-left text-[9px] font-black tracking-widest uppercase transition-all duration-200 select-none ${
+        isSortable ? "cursor-pointer hover:bg-slate-100/50" : ""
+      } ${isActive ? "text-orange-600 bg-orange-50/30" : "text-slate-400"} ${className || ""}`}
+    >
+      <div className="flex items-center">
+        {label}
+        {isSortable && field && <SortIcon field={field} sortField={sortField} sortDir={sortDir} />}
+      </div>
+    </th>
+  );
+};
 
 export function ProductsTable({
   loading,
@@ -47,27 +90,6 @@ export function ProductsTable({
       setSortField(field);
       setSortDir("asc");
     }
-  };
-
-  const SortIcon = ({ field }: { field: string }) => {
-    if (sortField !== field || !sortDir) return null;
-    return sortDir === "asc" ? <ArrowUp size={10} className="ml-1.5 text-orange-500" strokeWidth={3} /> : <ArrowDown size={10} className="ml-1.5 text-orange-500" strokeWidth={3} />;
-  };
-
-  const Header = ({ label, field, className }: { label: string; field?: string; className?: string }) => {
-    const isSortable = !!field;
-    const isActive = sortField === field && sortDir !== "";
-    return (
-      <th
-        onClick={() => isSortable && handleSort(field!)}
-        className={`px-5 py-4 text-left text-[9px] font-black tracking-widest uppercase transition-all duration-200 select-none ${isSortable ? "cursor-pointer hover:bg-slate-100/50" : ""} ${isActive ? "text-orange-600 bg-orange-50/30" : "text-slate-400"} ${className || ""}`}
-      >
-        <div className="flex items-center">
-          {label}
-          {isSortable && <SortIcon field={field!} />}
-        </div>
-      </th>
-    );
   };
 
   if (loading) {
@@ -125,6 +147,18 @@ export function ProductsTable({
                     {p.category}
                   </span>
                   <span className="text-slate-300 shrink-0">·</span>
+                  <div className="w-8 h-8 rounded-sm bg-slate-100 flex items-center justify-center overflow-hidden shrink-0 border border-slate-100">
+                    {p.product_picture ? (
+                      <img
+                        src={`${BASE_URL}${p.product_picture}`}
+                        alt={p.product_name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Package size={14} className="text-slate-300" />
+                    )}
+                  </div>
+                  <span className="text-slate-300 shrink-0">·</span>
                   <span className="text-[10px] font-black text-slate-900 truncate uppercase">{p.product_name}</span>
                 </div>
                 <div className="shrink-0 flex items-center gap-2 relative z-10">
@@ -169,6 +203,22 @@ export function ProductsTable({
               <div className="px-4 py-2.5 flex items-center justify-between border-b border-slate-100 bg-slate-50/50">
                 <span className="text-[10px] font-black text-slate-400 tabular-nums">#{p.id}</span>
                 <span className="text-[10px] font-bold text-slate-300 tracking-tighter font-mono uppercase">{p.barcode}</span>
+              </div>
+
+              {/* Image Section */}
+              <div className="aspect-video w-full bg-slate-50 flex items-center justify-center border-b border-slate-100 overflow-hidden relative group-hover:bg-slate-100 transition-colors">
+                {p.product_picture ? (
+                  <img
+                    src={`${BASE_URL}${p.product_picture}`}
+                    alt={p.product_name}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-2 opacity-20">
+                    <ImageIcon size={32} strokeWidth={1} />
+                    <span className="text-[8px] font-black uppercase tracking-[0.2em]">No Preview</span>
+                  </div>
+                )}
               </div>
 
               {/* Body */}
@@ -224,13 +274,14 @@ export function ProductsTable({
           <table className="w-full text-sm">
             <thead className="bg-slate-50/50 border-b border-slate-100">
               <tr>
-                <Header label="#" field="id" />
-                <Header label="Barcode" field="barcode" />
-                <Header label="Product Name" field="product_name" />
-                <Header label="Category" field="category" />
-                <Header label="Reorder" field="reorder_level" />
-                <Header label="Supplier" field="supplier" />
-                <Header label="Actions" />
+                <Header label="#" field="id" sortField={sortField} sortDir={sortDir} handleSort={handleSort} />
+                <Header label="Pic" sortField={sortField} sortDir={sortDir} handleSort={handleSort} />
+                <Header label="Barcode" field="barcode" sortField={sortField} sortDir={sortDir} handleSort={handleSort} />
+                <Header label="Product Name" field="product_name" sortField={sortField} sortDir={sortDir} handleSort={handleSort} />
+                <Header label="Category" field="category" sortField={sortField} sortDir={sortDir} handleSort={handleSort} />
+                <Header label="Reorder" field="reorder_level" sortField={sortField} sortDir={sortDir} handleSort={handleSort} />
+                <Header label="Supplier" field="supplier" sortField={sortField} sortDir={sortDir} handleSort={handleSort} />
+                <Header label="Actions" sortField={sortField} sortDir={sortDir} handleSort={handleSort} />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
@@ -238,6 +289,19 @@ export function ProductsTable({
                 <tr key={p.id} className="group hover:bg-slate-50/50 transition-colors">
                   <td className="px-5 py-4">
                     <span className="text-[11px] font-black text-slate-500 tabular-nums">#{p.id}</span>
+                  </td>
+                  <td className="px-5 py-4 whitespace-nowrap">
+                    <div className="w-10 h-10 rounded-sm bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden">
+                      {p.product_picture ? (
+                        <img
+                          src={`${BASE_URL}${p.product_picture}`}
+                          alt={p.product_name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Package size={16} className="text-slate-200" />
+                      )}
+                    </div>
                   </td>
                   <td className="px-5 py-4 whitespace-nowrap">
                     <span className="text-[10px] font-mono font-bold text-slate-300 uppercase tracking-tighter tabular-nums">{p.barcode}</span>
