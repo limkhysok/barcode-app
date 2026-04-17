@@ -216,8 +216,8 @@ export const ViewTransactionModal: React.FC<ViewModalProps> = ({ viewTarget, onC
                       </div>
                     </div>
                   );
-                })}
-              </div>
+                })
+                }</div>
             </div>
             <div className="border border-black border-t-0 bg-slate-50">
               <div className="grid grid-cols-2 divide-x divide-black/10">
@@ -575,62 +575,80 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                 {items.map((item, idx) => {
                   const rec = allInventory.find((r) => r.id === item.inventory);
                   return (
-                    <div key={item.id} className="flex items-center gap-4 sm:gap-4 px-2 py-1.5 hover:bg-slate-50/60 transition-colors group/item">
-                      <span className="hidden sm:inline-block w-5 shrink-0 text-[10px] font-black text-gray-700 text-center">{String(idx + 1).padStart(2, "0")}</span>
-                      <div className="flex-1 sm:w-64 sm:shrink-0 min-w-0">
-                        <InventoryPicker
-                          inventory={allInventory}
-                          value={item.inventory}
-                          onChange={(id) => updateItem(idx, { inventory: id, quantity: item.quantity || 1 })}
-                          excludeIds={selectedInvIds}
-                        />
-                      </div>
-                      <div className="w-24 shrink-0 min-w-0">
-                        <span className="text-[11px] font-mono text-gray-800 truncate block">{rec?.product_details.barcode ?? "—"}</span>
-                      </div>
-                      <div className="w-13 sm:w-28 shrink-0">
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() => updateItem(idx, { quantity: Math.max(1, (item.quantity || 1) - 1) })}
-                            className="w-6 h-6 flex items-center justify-center rounded-sm bg-slate-100 text-gray-500 hover:bg-black hover:text-white transition-all active:scale-90"
-                          >
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12h-15" />
-                            </svg>
-                          </button>
-
-                          <div className="flex-1 flex items-center justify-center px-1 py-1 rounded-sm border focus-within:border-black bg-slate-50 focus-within:bg-white transition-all">
-                            <input
-                              type="number"
-                              min={1}
-                              placeholder="1"
-                              value={item.quantity || ""}
-                              onChange={(e) => updateItem(idx, { quantity: Math.abs(Number.parseInt(e.target.value) || 0) })}
-                              className="w-full bg-transparent outline-none text-[10px] font-black tabular-nums text-center placeholder:text-gray-300 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            />
+                    <div key={item.id} className="p-3 sm:p-0 sm:px-2 sm:py-1.5 hover:bg-slate-50/60 transition-colors group/item relative">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                        <span className="hidden sm:inline-block w-5 shrink-0 text-[10px] font-black text-gray-700 text-center">{String(idx + 1).padStart(2, "0")}</span>
+                        <div className="flex-1 sm:w-64 sm:shrink-0 min-w-0">
+                          <InventoryPicker
+                            inventory={allInventory}
+                            value={item.inventory}
+                            onChange={(id) => updateItem(idx, { inventory: id, quantity: item.quantity || 1 })}
+                            excludeIds={selectedInvIds}
+                          />
+                        </div>
+                        {/* Mobile Metadata Container */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 flex-1">
+                          {/* Stock/Barcode line */}
+                          <div className="flex items-center gap-2 text-[10px] font-mono text-gray-500">
+                            <span className="sm:hidden font-black text-[8px] uppercase tracking-tighter text-gray-400">INFO:</span>
+                            <span className={rec ? "text-gray-900 font-bold" : ""}>
+                              {rec ? `${rec.quantity_on_hand ?? 0} Unit(s)` : "STOCK: —"}
+                            </span>
+                            <span className="text-gray-200">|</span>
+                            <span className="truncate w-32 sm:w-24 block">
+                              {rec?.product_details.barcode ?? "BC: —"}
+                            </span>
                           </div>
+                          {/* Qty Controls */}
+                          <div className="flex items-center justify-between sm:justify-end gap-3 sm:w-32 mt-1 sm:mt-0">
+                            <span className="sm:hidden text-[9px] font-black uppercase text-gray-400">Quantity</span>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => updateItem(idx, { quantity: Math.max(1, (item.quantity || 1) - 1) })}
+                                className="w-8 h-8 sm:w-6 sm:h-6 flex items-center justify-center rounded-sm bg-slate-100 text-gray-500 hover:bg-black hover:text-white transition-all active:scale-90"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12h-15" />
+                                </svg>
+                              </button>
 
+                              <div className="flex-1 flex items-center justify-center px-1 py-1 rounded-sm border focus-within:border-black bg-slate-50 focus-within:bg-white transition-all">
+                                <input
+                                  type="number"
+                                  min={1}
+                                  placeholder="1"
+                                  value={item.quantity || ""}
+                                  onChange={(e) => updateItem(idx, { quantity: Math.abs(Number.parseInt(e.target.value) || 0) })}
+                                  className="w-full bg-transparent outline-none text-[12px] sm:text-[10px] font-black tabular-nums text-center placeholder:text-gray-300 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => updateItem(idx, { quantity: (item.quantity || 1) + 1 })}
+                                className="w-8 h-8 sm:w-6 sm:h-6 flex items-center justify-center rounded-sm bg-slate-100 text-gray-500 hover:bg-black hover:text-white transition-all active:scale-90"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                        {/* Remove Action */}
+                        <div className="absolute top-3 right-3 sm:static">
                           <button
                             type="button"
-                            onClick={() => updateItem(idx, { quantity: (item.quantity || 1) + 1 })}
-                            className="w-6 h-6 flex items-center justify-center rounded-sm bg-slate-100 text-gray-500 hover:bg-black hover:text-white transition-all active:scale-90"
+                            onClick={() => removeItem(idx)}
+                            className="p-1.5 sm:p-1 rounded-sm text-gray-300 hover:text-red-600 hover:bg-red-50 transition-all active:scale-95"
                           >
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            <svg className="w-4 h-4 sm:w-3 sm:h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                           </button>
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => removeItem(idx)}
-                        className="w-5 shrink-0 p-1 rounded-sm text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all active:scale-95"
-                      >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
                     </div>
                   );
                 })}
@@ -992,62 +1010,80 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
                 {editItems.map((item, idx) => {
                   const rec = allEditInventory.find((r) => r.id === item.inventory);
                   return (
-                    <div key={item.id} className="flex items-center gap-1 sm:gap-2 px-3 py-2 hover:bg-slate-50/60 transition-colors group/item">
-                      <span className="hidden sm:inline-block w-5 shrink-0 text-[10px] font-black text-gray-300 text-center">{String(idx + 1).padStart(2, "0")}</span>
-                      <div className="flex-1 sm:w-64 sm:shrink-0 min-w-0">
-                        <InventoryPicker
-                          inventory={allEditInventory}
-                          value={item.inventory}
-                          onChange={(id) => updateEditItem(idx, { inventory: id, quantity: item.quantity || 1 })}
-                          excludeIds={editSelectedInvIds}
-                        />
-                      </div>
-                      <div className="w-24 shrink-0 min-w-0">
-                        <span className="text-[11px] font-mono text-gray-800 truncate block">{rec?.product_details.barcode ?? "—"}</span>
-                      </div>
-                      <div className="w-13 sm:w-28 shrink-0">
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() => updateEditItem(idx, { quantity: Math.max(1, (item.quantity || 1) - 1) })}
-                            className="w-6 h-6 flex items-center justify-center rounded-sm bg-slate-100 text-gray-500 hover:bg-black hover:text-white transition-all active:scale-90"
-                          >
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12h-15" />
-                            </svg>
-                          </button>
-
-                          <div className="flex-1 flex items-center justify-center px-1 py-1 rounded-sm border focus-within:border-black bg-slate-50 focus-within:bg-white transition-all">
-                            <input
-                              type="number"
-                              min={1}
-                              placeholder="1"
-                              value={item.quantity || ""}
-                              onChange={(e) => updateEditItem(idx, { quantity: Math.abs(Number.parseInt(e.target.value) || 0) })}
-                              className="w-full bg-transparent outline-none text-[10px] font-black tabular-nums text-center placeholder:text-gray-300 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                            />
+                    <div key={item.id} className="p-3 sm:p-0 sm:px-2 sm:py-1.5 hover:bg-slate-50/60 transition-colors group/item relative">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                        <span className="hidden sm:inline-block w-5 shrink-0 text-[10px] font-black text-gray-300 text-center">{String(idx + 1).padStart(2, "0")}</span>
+                        <div className="flex-1 sm:w-64 sm:shrink-0 min-w-0">
+                          <InventoryPicker
+                            inventory={allEditInventory}
+                            value={item.inventory}
+                            onChange={(id) => updateEditItem(idx, { inventory: id, quantity: item.quantity || 1 })}
+                            excludeIds={editSelectedInvIds}
+                          />
+                        </div>
+                        {/* Mobile Metadata Container */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 flex-1">
+                          {/* Stock/Barcode line */}
+                          <div className="flex items-center gap-2 text-[10px] font-mono text-gray-500">
+                            <span className="sm:hidden font-black text-[8px] uppercase tracking-tighter text-gray-400">INFO:</span>
+                            <span className={rec ? "text-gray-900 font-bold" : ""}>
+                              {rec ? `${rec.quantity_on_hand ?? 0} Unit(s)` : "STOCK: —"}
+                            </span>
+                            <span className="text-gray-200">|</span>
+                            <span className="truncate w-32 sm:w-24 block">
+                              {rec?.product_details.barcode ?? "BC: —"}
+                            </span>
                           </div>
+                          {/* Qty Controls */}
+                          <div className="flex items-center justify-between sm:justify-end gap-3 sm:w-32 mt-1 sm:mt-0">
+                            <span className="sm:hidden text-[9px] font-black uppercase text-gray-400">Quantity</span>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => updateEditItem(idx, { quantity: Math.max(1, (item.quantity || 1) - 1) })}
+                                className="w-8 h-8 sm:w-6 sm:h-6 flex items-center justify-center rounded-sm bg-slate-100 text-gray-500 hover:bg-black hover:text-white transition-all active:scale-90"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12h-15" />
+                                </svg>
+                              </button>
 
+                              <div className="flex-1 flex items-center justify-center px-1 py-1 rounded-sm border focus-within:border-black bg-slate-50 focus-within:bg-white transition-all">
+                                <input
+                                  type="number"
+                                  min={1}
+                                  placeholder="1"
+                                  value={item.quantity || ""}
+                                  onChange={(e) => updateEditItem(idx, { quantity: Math.abs(Number.parseInt(e.target.value) || 0) })}
+                                  className="w-full bg-transparent outline-none text-[12px] sm:text-[10px] font-black tabular-nums text-center placeholder:text-gray-300 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => updateEditItem(idx, { quantity: (item.quantity || 1) + 1 })}
+                                className="w-8 h-8 sm:w-6 sm:h-6 flex items-center justify-center rounded-sm bg-slate-100 text-gray-500 hover:bg-black hover:text-white transition-all active:scale-90"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                        {/* Remove Action */}
+                        <div className="absolute top-3 right-3 sm:static">
                           <button
                             type="button"
-                            onClick={() => updateEditItem(idx, { quantity: (item.quantity || 1) + 1 })}
-                            className="w-6 h-6 flex items-center justify-center rounded-sm bg-slate-100 text-gray-500 hover:bg-black hover:text-white transition-all active:scale-90"
+                            onClick={() => removeEditItem(idx)}
+                            className="p-1.5 sm:p-1 rounded-sm text-gray-300 hover:text-red-600 hover:bg-red-50 transition-all active:scale-95"
                           >
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            <svg className="w-4 h-4 sm:w-3 sm:h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                           </button>
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => removeEditItem(idx)}
-                        className="w-5 shrink-0 p-1 rounded-sm text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all active:scale-95"
-                      >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
                     </div>
                   );
                 })}
@@ -1100,7 +1136,8 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
               Cancel
             </button>
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
               disabled={saving}
               className="px-8 py-1.5 rounded-sm text-[11px] font-black tracking-widest uppercase text-white bg-black active:scale-[0.98] transition disabled:opacity-60 shadow-lg transform hover:-translate-y-0.5 cursor-pointer"
             >
