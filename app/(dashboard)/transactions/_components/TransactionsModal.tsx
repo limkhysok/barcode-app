@@ -63,8 +63,8 @@ function useCameraScanner(readerId: string, onScan: (decodedText: string) => Pro
 
     if (isProcessingRef.current) return;
 
-    // Suppression logic: Ignore the same code if scanned less than 1.5s ago
-    if (lastScannedRef.current?.code === code && now - lastScannedRef.current.time < 1500) {
+    // Suppression logic: Ignore the same code if scanned less than 2.5s ago
+    if (lastScannedRef.current?.code === code && now - lastScannedRef.current.time < 2500) {
       return;
     }
 
@@ -101,7 +101,7 @@ function useCameraScanner(readerId: string, onScan: (decodedText: string) => Pro
         html5QrCodeRef.current = qr;
         await qr.start(
           { facingMode: "environment" },
-          { fps: 20, qrbox: { width: 250, height: 150 } },
+          { fps: 10, qrbox: { width: 250, height: 150 } },
           handleCameraScan,
           () => { } // ignore errors
         );
@@ -330,14 +330,16 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
         setExtraRecords(prev => [...prev, targetRecord]);
       }
 
+      const productName = scanRes.product?.product_name || targetRecord.product_details?.product_name || "Unknown";
+
+      let alreadyExists = false;
       setItems((prev) => {
         const currentItems = [...prev];
         const existingIdx = currentItems.findIndex((i) => i.inventory === invId);
 
         if (existingIdx >= 0) {
-          return currentItems.map((item, i) =>
-            i === existingIdx ? { ...item, quantity: item.quantity + 1 } : item
-          );
+          alreadyExists = true;
+          return currentItems;
         }
 
         const emptyIdx = currentItems.findIndex((i) => i.inventory === 0);
@@ -350,15 +352,14 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
         return [...currentItems, { id: getNextItemId(), inventory: invId, quantity: 1 }];
       });
 
-      const productName = scanRes.product?.product_name || targetRecord.product_details?.product_name || "Unknown";
-      setScanFeedback({ ok: true, msg: `+1 × ${productName} (${targetRecord.site})` });
+      if (alreadyExists) {
+        setScanFeedback({ ok: true, msg: `${productName} is already in the list` });
+      } else {
+        setScanFeedback({ ok: true, msg: `Added: ${productName} (${targetRecord.site})` });
+      }
     } catch (err: any) {
-      console.error("Scan error:", err);
-      const isNotFound = err?.response?.status === 404;
-      setScanFeedback({
-        ok: false,
-        msg: isNotFound ? "Product not found in Inventory" : `System Error: Unable to scan "${q}"`
-      });
+      console.error("Unexpected scan error:", err);
+      setScanFeedback({ ok: false, msg: `System Error: Unable to scan "${q}"` });
     }
   };
 
@@ -526,13 +527,13 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
             </div>
 
             {isCameraOpen && (
-              <div className={`relative w-full aspect-[4/3] bg-black rounded-sm overflow-hidden border-2 transition-colors duration-200 animate-in fade-in zoom-in-95 ${lastScanSuccess ? "border-green-500" : "border-black"}`}>
+              <div className={`relative w-full aspect-4/3 bg-black rounded-sm overflow-hidden border-2 transition-colors duration-200 animate-in fade-in zoom-in-95 ${lastScanSuccess ? "border-green-500" : "border-black"}`}>
                 <div id="reader-new" className="w-full h-full" />
                 {lastScanSuccess && <div className="absolute inset-0 bg-green-500/10 pointer-events-none animate-pulse" />}
-                <div className="absolute inset-0 pointer-events-none border-[40px] border-black/30" />
+                <div className="absolute inset-0 pointer-events-none border-40 border-black/30" />
                 <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                   <div className="w-48 h-32 border-2 border-orange-500 rounded-sm shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] flex items-center justify-center">
-                    <div className="w-full h-[1px] bg-orange-500/50 animate-[scanline_2s_linear_infinite]" />
+                    <div className="w-full h-px bg-orange-500/50 animate-[scanline_2s_linear_infinite]" />
                   </div>
                 </div>
                 <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 text-white text-[8px] font-bold uppercase tracking-widest rounded-full flex items-center gap-1.5">
@@ -706,7 +707,7 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
               disabled={saving}
               className="px-8 py-1.5 rounded-sm text-[11px] font-black tracking-widest uppercase text-white bg-black active:scale-[0.98] transition disabled:opacity-60 shadow-lg transform hover:-translate-y-0.5 cursor-pointer flex items-center justify-center"
             >
-              {saving ? "Creating..." : "Create Transaction"}
+              {saving ? "Creating..." : "Create"}
             </button>
 
           </div>
@@ -757,14 +758,16 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
         setExtraRecords(prev => [...prev, targetRecord]);
       }
 
+      const productName = scanRes.product?.product_name || targetRecord.product_details?.product_name || "Unknown";
+
+      let alreadyExists = false;
       setEditItems((prev) => {
         const currentItems = [...prev];
         const existingIdx = currentItems.findIndex((i) => i.inventory === invId);
 
         if (existingIdx >= 0) {
-          return currentItems.map((item, i) =>
-            i === existingIdx ? { ...item, quantity: item.quantity + 1 } : item
-          );
+          alreadyExists = true;
+          return currentItems;
         }
 
         const emptyIdx = currentItems.findIndex((i) => i.inventory === 0);
@@ -777,15 +780,14 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
         return [...currentItems, { id: getNextItemId(), inventory: invId, quantity: 1 }];
       });
 
-      const productName = scanRes.product?.product_name || targetRecord.product_details?.product_name || "Unknown";
-      setScanFeedback({ ok: true, msg: `+1 × ${productName} (${targetRecord.site})` });
+      if (alreadyExists) {
+        setScanFeedback({ ok: true, msg: `${productName} is already in the list` });
+      } else {
+        setScanFeedback({ ok: true, msg: `Added: ${productName} (${targetRecord.site})` });
+      }
     } catch (err: any) {
-      console.error("Scan error:", err);
-      const isNotFound = err?.response?.status === 404;
-      setScanFeedback({
-        ok: false,
-        msg: isNotFound ? "Product not found in Inventory" : `System Error: Unable to scan "${q}"`
-      });
+      console.error("Unexpected scan error:", err);
+      setScanFeedback({ ok: false, msg: `System Error: Unable to scan "${q}"` });
     }
   };
 
@@ -954,13 +956,13 @@ export const EditTransactionModal: React.FC<EditModalProps> = ({ editTarget, onC
             </div>
 
             {isCameraOpen && (
-              <div className={`relative w-full aspect-[4/3] bg-black rounded-sm overflow-hidden border-2 transition-colors duration-200 animate-in fade-in zoom-in-95 ${lastScanSuccess ? "border-green-500" : "border-black"}`}>
+              <div className={`relative w-full aspect-4/3 bg-black rounded-sm overflow-hidden border-2 transition-colors duration-200 animate-in fade-in zoom-in-95 ${lastScanSuccess ? "border-green-500" : "border-black"}`}>
                 <div id="reader-edit" className="w-full h-full" />
                 {lastScanSuccess && <div className="absolute inset-0 bg-green-500/10 pointer-events-none animate-pulse" />}
-                <div className="absolute inset-0 pointer-events-none border-[40px] border-black/30" />
+                <div className="absolute inset-0 pointer-events-none border-40 border-black/30" />
                 <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                   <div className="w-48 h-32 border-2 border-orange-500 rounded-sm shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] flex items-center justify-center">
-                    <div className="w-full h-[1px] bg-orange-500/50 animate-[scanline_2s_linear_infinite]" />
+                    <div className="w-full h-px bg-orange-500/50 animate-[scanline_2s_linear_infinite]" />
                   </div>
                 </div>
                 <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 text-white text-[8px] font-bold uppercase tracking-widest rounded-full flex items-center gap-1.5">

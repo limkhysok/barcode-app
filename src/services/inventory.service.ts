@@ -40,8 +40,15 @@ export async function getInventoryStats(fetcher?: <T>(path: string) => Promise<T
 }
 
 export async function scanBarcode(barcode: string): Promise<ScanResult> {
-  const { data } = await api.get<ScanResult>("/api/v1/inventory/scan/", { params: { barcode } });
-  return data;
+  try {
+    const { data } = await api.get<ScanResult>("/api/v1/inventory/scan/", { params: { barcode } });
+    return data;
+  } catch (err: any) {
+    if (err?.response?.status === 404) {
+      return { found: false, inventory: [], detail: err.response.data?.detail || "Not found" };
+    }
+    throw err;
+  }
 }
 
 export async function createInventory(payload: InventoryPayload): Promise<InventoryRecord> {
