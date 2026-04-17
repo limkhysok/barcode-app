@@ -17,32 +17,21 @@ import { ProductToolbar } from "./_components/ProductToolbar";
 
 const REORDER_PRESETS = new Set([5, 10, 15, 20]);
 
+type ApiErr = { response?: { data?: Record<string, unknown>; status?: number }; code?: string };
+
+function getFieldError(data: Record<string, unknown>): string {
+  const firstKey = Object.keys(data)[0];
+  const raw = data[firstKey];
+  if (Array.isArray(raw)) return String(raw[0]);
+  if (typeof raw === "string") return raw;
+  return "Failed to save. Please check your inputs.";
+}
+
 function getSortParam(field: string, dir: SortDir): string | undefined {
   if (!field || !dir) return undefined;
   return dir === "desc" ? `-${field}` : field;
 }
 
-function sortProducts(products: Product[], field: string, dir: SortDir): Product[] {
-  if (!field || !dir) return products;
-  return [...products].sort((a, b) => {
-    let av = (a as any)[field];
-    let bv = (b as any)[field];
-
-    if (field === "cost_per_unit") {
-      av = Number.parseFloat(av);
-      bv = Number.parseFloat(bv);
-    }
-
-    if (typeof av === "string" && typeof bv === "string") {
-      const comp = av.localeCompare(bv);
-      return dir === "asc" ? comp : -comp;
-    }
-
-    if (av < bv) return dir === "asc" ? -1 : 1;
-    if (av > bv) return dir === "asc" ? 1 : -1;
-    return 0;
-  });
-}
 
 const emptyForm: ProductPayload = {
   barcode: "",
@@ -67,7 +56,6 @@ export default function ProductsClient({
   const [paginated, setPaginated] = useState<PaginatedProducts>(initialPaginated);
   const products = paginated.results;
 
-  const [stats] = useState<ProductStats | null>(initialStats);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -134,10 +122,7 @@ export default function ProductsClient({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const displayed = useMemo(
-    () => sortProducts(products, sortField, sortDir),
-    [products, sortField, sortDir],
-  );
+  const displayed = products;
 
   function openCreate() {
     setEditing(null);
@@ -188,25 +173,24 @@ export default function ProductsClient({
       setSaving(false);
       setModalOpen(false);
       fetchProducts();
-    } catch (err: any) {
+    } catch (err: unknown) {
       setSaving(false);
-      const data = err?.response?.data;
-      const status = err?.response?.status;
+      const apiErr = err as ApiErr;
+      const data = apiErr?.response?.data;
+      const status = apiErr?.response?.status;
       if (status === 409) {
-        const msg = data?.detail ?? "A product with this barcode already exists.";
+        const msg = (data?.detail as string | undefined) ?? "A product with this barcode already exists.";
         setFormError(msg);
         toast.error("Duplicate Barcode", { description: msg });
       } else if (status === 404) {
-        const msg = data?.detail ?? "This product no longer exists. Please refresh the page.";
+        const msg = (data?.detail as string | undefined) ?? "This product no longer exists. Please refresh the page.";
         setFormError(msg);
         toast.error("Product Not Found", { description: msg });
       } else if (status === 400 && data) {
-        const firstKey = Object.keys(data)[0];
-        const raw = data[firstKey];
-        const msg = Array.isArray(raw) ? raw[0] : (raw ?? "Failed to save. Please check your inputs.");
+        const msg = getFieldError(data);
         setFormError(msg);
         toast.error("Validation Error", { description: msg });
-      } else if (err?.code === "ECONNABORTED" || !err?.response) {
+      } else if (apiErr?.code === "ECONNABORTED" || !apiErr?.response) {
         setFormError("Request timed out. Please try again.");
         toast.error("Connection Error", { description: "The server took too long to respond. Please try again." });
       } else {
@@ -227,15 +211,16 @@ export default function ProductsClient({
       setDeleteTarget(null);
       setDeleting(false);
       fetchProducts();
-    } catch (err: any) {
-      const data = err?.response?.data;
-      const status = err?.response?.status;
+    } catch (err: unknown) {
+      const apiErr = err as ApiErr;
+      const data = apiErr?.response?.data;
+      const status = apiErr?.response?.status;
       if (status === 404) {
         setDeleteTarget(null);
         fetchProducts();
       } else if (status === 409) {
         toast.error("Cannot Delete Product", {
-          description: data?.detail ?? "This product has linked transactions and cannot be removed.",
+          description: (data?.detail as string | undefined) ?? "This product has linked transactions and cannot be removed.",
         });
       } else {
         toast.error("Delete Failed", { description: "Something went wrong. Please try again." });
@@ -294,7 +279,7 @@ export default function ProductsClient({
       </div>
 
       {/* ── Stats: Category Overview ── */}
-      <StatsOverview stats={stats} products={products} />
+      <StatsOverview stats={initialStats} products={products} />
 
       {/* ── Toolbar: Advanced Filters ── */}
       <ProductToolbar

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Transaction, TransactionPayload } from "@/src/types/transaction.types";
 import type { InventoryRecord } from "@/src/types/inventory.types";
 import { getTransactions, createTransaction, updateTransaction, deleteTransaction, getTransactionStats, type TransactionStats } from "@/src/services/transaction.service";
@@ -77,7 +77,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [pdfPanelOpen, setPdfPanelOpen] = useState(false);
-  const [pdfAutoDate] = useState(true);
+  const pdfAutoDate = true;
   const [pdfDate, setPdfDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [pdfType, setPdfType] = useState<"Receive" | "Sale">("Receive");
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -113,11 +113,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
     return () => window.removeEventListener("scroll", onScroll, true);
   }, [menuOpenId]);
 
-  useEffect(() => {
-    fetchAll();
-  }, [typeFilter]);
-
-  function fetchAll() {
+  const fetchAll = useCallback(() => {
     setLoading(true);
     setError("");
     Promise.all([
@@ -133,7 +129,11 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
       })
       .catch(() => setError("Failed to load data."))
       .finally(() => setLoading(false));
-  }
+  }, [typeFilter]);
+
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
 
   const exportTemplateAsPdf = async (items: TemplateItem[], txType: "Sale" | "Receive") => {
     setPendingExportItems(items);
@@ -161,7 +161,9 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
         doc.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, pdfW, pdfH);
       }
       const pdfBlob = doc.output("blob");
-      window.open(URL.createObjectURL(pdfBlob), "_blank");
+      const url = URL.createObjectURL(pdfBlob);
+      window.open(url, "_blank");
+      URL.revokeObjectURL(url);
     } catch (err) {
       console.error("Export failed", err);
     } finally {
@@ -178,7 +180,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
       fetchAll();
       getInventory().then(setPaginatedInventory).catch(() => { });
       if (andExport) {
-        const templateItems: TemplateItem[] = payload.items.map((i: any) => {
+        const templateItems: TemplateItem[] = payload.items.map((i) => {
           const rec = inventory.find((r) => r.id === i.inventory);
           return {
             barcode: rec?.product_details.barcode ?? "",
@@ -224,8 +226,6 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
       await deleteTransaction(deleteTarget.id);
       setDeleteTarget(null);
       fetchAll();
-    } catch {
-      setDeleting(false);
     } finally {
       setDeleting(false);
     }
@@ -239,44 +239,17 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
   const handlePrint = async (t: Transaction) => {
     if (!t) return;
-    const printItems = t.items.map((item) => {
+    const printItems: TemplateItem[] = t.items.map((item) => {
       const rec = inventory.find((r: InventoryRecord) => r.id === item.inventory);
       return {
         barcode: rec?.product_details.barcode ?? "",
         product_name: item.product_name,
         unit: "Pcs",
-        quantity: item.quantity,
+        quantity: Math.abs(item.quantity),
       };
     });
-    setPendingExportItems(printItems);
-    setPendingExportType(t.transaction_type);
-    await waitTwoFrames();
-    try {
-      const face = new FontFace("KantumruyPro", "url(/fonts/KantumruyPro-Regular.ttf)");
-      document.fonts.add(await face.load());
-      await document.fonts.ready;
-    } catch (err) {
-      console.error("Font loading error:", err);
-    }
-    const html2canvas = (await import("html2canvas")).default;
-    const { default: jsPDF } = await import("jspdf");
-    const doc = new jsPDF({ orientation: "portrait", format: "a4", unit: "mm", compress: true });
-    const pdfW = doc.internal.pageSize.getWidth();
-    const pdfH = doc.internal.pageSize.getHeight();
-    const pageNodes = Array.from(templateRef.current?.children ?? []) as HTMLElement[];
-    for (let i = 0; i < pageNodes.length; i++) {
-      const pageNode = pageNodes[i];
-      const canvas = await html2canvas(pageNode, {
-        scale: 3, useCORS: true, backgroundColor: "#ffffff",
-        logging: false, width: pageNode.scrollWidth, height: pageNode.scrollHeight,
-      });
-      if (i > 0) doc.addPage();
-      doc.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, pdfW, pdfH);
-    }
-    const pdfBlob = doc.output("blob");
-    window.open(URL.createObjectURL(pdfBlob), "_blank");
     setMenuOpenId(null);
-    setPendingExportItems([]);
+    await exportTemplateAsPdf(printItems, t.transaction_type);
   };
 
 
@@ -413,7 +386,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
           </button>
 
           {pdfPanelOpen && (
-            <div className="absolute right-0 top-full mt-2 z-50 w-[260px] bg-white border border-gray-200 rounded-sm shadow-2xl p-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute right-0 top-full mt-2 z-50 w-65 bg-white border border-gray-200 rounded-sm shadow-2xl p-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="flex items-center justify-between border-b border-gray-100 pb-2">
                 <span className="text-[10px] font-black uppercase text-gray-400">PDF Options</span>
                 <button onClick={() => setPdfPanelOpen(false)} className="text-gray-300 hover:text-black">✕</button>
@@ -434,7 +407,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
                     <svg className={`w-3 h-3 transition-transform duration-200 ${pdfTypeMenuOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                   </button>
                   {pdfTypeMenuOpen && (
-                    <div className="absolute top-full left-0 right-0 z-[60] mt-1 bg-white border border-gray-200 rounded-sm shadow-xl overflow-hidden py-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="absolute top-full left-0 right-0 z-60 mt-1 bg-white border border-gray-200 rounded-sm shadow-xl overflow-hidden py-1 animate-in fade-in slide-in-from-top-1 duration-200">
                       {(["Receive", "Sale"] as const).map((t) => (
                         <button
                           key={t}
@@ -488,7 +461,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
               <span>Print</span>
             </button>
             {pdfPanelOpen && (
-              <div className="absolute right-0 z-[100] mt-3 w-80 bg-white border border-slate-200 rounded-sm shadow-2xl p-5 animate-in fade-in zoom-in-95 duration-200">
+              <div className="absolute right-0 z-100 mt-3 w-80 bg-white border border-slate-200 rounded-sm shadow-2xl p-5 animate-in fade-in zoom-in-95 duration-200">
                 <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Report Configuration</h3>
                 <div className="space-y-4">
                   <div className="space-y-1.5">
@@ -509,7 +482,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
                         <svg className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${pdfTypeMenuOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                       </button>
                       {pdfTypeMenuOpen && (
-                        <div className="absolute top-full left-0 right-0 z-[110] mt-1.5 bg-white border border-slate-200 rounded-sm shadow-2xl overflow-hidden py-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                        <div className="absolute top-full left-0 right-0 z-110 mt-1.5 bg-white border border-slate-200 rounded-sm shadow-2xl overflow-hidden py-1 animate-in fade-in slide-in-from-top-1 duration-200">
                           {[
                             { id: "Receive", label: "RECEIVE (Restock)" },
                             { id: "Sale", label: "SALE (Outbound)" },
@@ -517,7 +490,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
                             <button
                               key={cat.id}
                               type="button"
-                              onClick={() => { setPdfType(cat.id as any); setPdfTypeMenuOpen(false); }}
+                              onClick={() => { setPdfType(cat.id as "Receive" | "Sale"); setPdfTypeMenuOpen(false); }}
                               className={`w-full text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-between transition-colors ${pdfType === cat.id ? "bg-orange-500 text-white" : "text-slate-600 hover:bg-slate-50"}`}
                             >
                               {cat.label}

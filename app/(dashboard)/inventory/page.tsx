@@ -21,7 +21,6 @@ export default async function InventoryPage({
     <InventoryClient
       initialPaginatedRecords={paginatedRecords}
       initialPaginatedProducts={paginatedProducts}
-      initialStats={null}
     />
   );
 }

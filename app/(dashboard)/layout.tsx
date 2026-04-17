@@ -13,26 +13,15 @@ export default function DashboardLayout({ children }: Readonly<{ children: React
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  // Auto-collapse on tablet, expand on desktop
+  // Auto-collapse sidebar on tablet, expand on desktop; close mobile drawer on resize
   useEffect(() => {
     function handleResize() {
       const w = window.innerWidth;
-      if (w >= 1024) {
-        setSidebarCollapsed(false);
-      } else if (w >= 768) {
-        setSidebarCollapsed(true);
-      }
+      if (w >= 1024) setSidebarCollapsed(false);
+      else if (w >= 768) setSidebarCollapsed(true);
+      if (w >= 768) setSidebarOpen(false);
     }
     handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  // Close mobile drawer on route change / resize to desktop
-  useEffect(() => {
-    function handleResize() {
-      if (window.innerWidth >= 768) setSidebarOpen(false);
-    }
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);

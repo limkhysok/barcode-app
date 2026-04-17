@@ -1,19 +1,23 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/context/AuthContext";
 
 export default function LoginPage() {
-  const { login } = useAuth();
-  const router    = useRouter();
+  const { login, user } = useAuth();
+  const router          = useRouter();
 
   const [username, setUsername]         = useState("");
   const [password, setPassword]         = useState("");
   const [error, setError]               = useState("");
   const [loading, setLoading]           = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (user) router.push("/transactions");
+  }, [user, router]);
 
   async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
@@ -22,8 +26,13 @@ export default function LoginPage() {
     try {
       await login({ username, password });
       router.push("/transactions");
-    } catch {
-      setError("Invalid username or password. Please try again.");
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      setError(
+        status === 401
+          ? "Invalid username or password."
+          : "Something went wrong. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -47,7 +56,7 @@ export default function LoginPage() {
 
           <h1 className="text-xl font-bold text-gray-900">Login</h1>
 
-          <form onSubmit={handleSubmit} className="space-y-4" suppressHydrationWarning>
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <label htmlFor="username" className="text-xs font-bold tracking-widest uppercase text-gray-500">
                 Username
@@ -60,7 +69,6 @@ export default function LoginPage() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 className="w-full px-4 py-3 rounded-none border border-gray-300 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition"
-                suppressHydrationWarning
               />
             </div>
 
@@ -77,13 +85,11 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="w-full px-4 py-3 pr-11 rounded-none border border-gray-300 text-sm outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition"
-                  suppressHydrationWarning
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-700 transition"
-                  tabIndex={-1}
                 >
                   {showPassword ? (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">

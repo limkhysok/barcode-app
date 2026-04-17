@@ -14,11 +14,9 @@ import { InventoryModal } from "./_components/InventoryModal";
 import { DeleteConfirmModal } from "./_components/DeleteConfirmModal";
 import { FileDown, ChevronDown } from "lucide-react";
 import * as XLSX from "xlsx";
-// no lucide imports needed currently for this line if they are all SVGs
+import { toast } from "sonner";
 
-type QuantitySort = "asc" | "desc" | "";
-type DateSort = "asc" | "desc" | "";
-type StatusSort = "asc" | "desc" | "";
+type SortDir = "asc" | "desc" | "";
 
 const emptyForm: InventoryPayload = {
   product: 0,
@@ -30,11 +28,9 @@ const emptyForm: InventoryPayload = {
 export default function InventoryClient({
   initialPaginatedRecords,
   initialPaginatedProducts,
-  initialStats,
 }: Readonly<{
   initialPaginatedRecords: PaginatedInventory;
   initialPaginatedProducts: PaginatedProducts;
-  initialStats?: any;
 }>) {
   const { role } = useAuth();
   const canEdit = role === "boss" || role === "superadmin";
@@ -55,7 +51,7 @@ export default function InventoryClient({
   const [ordering, setOrdering] = useState<string>("-updated_at");
 
   // Derive directions for the toolbar from a single source of truth: ordering
-  const getSortDir = (field: string) => {
+  const getSortDir = (field: string): SortDir => {
     if (!ordering.includes(field)) return "";
     return ordering.startsWith("-") ? "desc" : "asc";
   };
@@ -136,8 +132,10 @@ export default function InventoryClient({
     try {
       if (editing) {
         await updateInventory(editing.id, form);
+        toast.success("Record Updated", { description: "Inventory record has been saved." });
       } else {
         await createInventory(form);
+        toast.success("Record Created", { description: "New inventory record has been added." });
       }
       setModalOpen(false);
       fetchInventory();
@@ -156,8 +154,9 @@ export default function InventoryClient({
       await deleteInventory(deleteTarget.id);
       setDeleteTarget(null);
       fetchInventory();
+      toast.success("Record Deleted", { description: "Inventory record has been removed." });
     } catch {
-      setError("FAILED TO DELETE RECORD");
+      toast.error("Delete Failed", { description: "Failed to delete record. Please try again." });
     } finally {
       setDeleting(false);
     }
@@ -188,15 +187,12 @@ export default function InventoryClient({
     const sheetName = mode === "low" ? "Reorder Report" : "Inventory Snapshot";
     XLSX.utils.book_append_sheet(wb, ws, sheetName);
     
-    const maxWidths = data.reduce((acc: any, row: any) => {
-      Object.keys(row).forEach((key, i) => {
-        const val = String(row[key]);
-        const width = Math.max(acc[i] || 0, val.length, key.length);
-        acc[i] = width;
-      });
-      return acc;
-    }, []);
-    ws['!cols'] = maxWidths.map((w: number) => ({ wch: w + 5 }));
+    type ExportRow = (typeof data)[number];
+    const keys = Object.keys(data[0]) as (keyof ExportRow)[];
+    const maxWidths = keys.map((key) =>
+      Math.max(key.length, ...data.map((row) => String(row[key]).length))
+    );
+    ws['!cols'] = maxWidths.map((w) => ({ wch: w + 5 }));
 
     const fileName = mode === "low" ? `LowStock_Report_${new Date().toISOString().split('T')[0]}.xlsx` : `Inventory_Full_${new Date().toISOString().split('T')[0]}.xlsx`;
     XLSX.writeFile(wb, fileName);
