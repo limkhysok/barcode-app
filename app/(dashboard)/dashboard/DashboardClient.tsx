@@ -141,7 +141,7 @@ export default function DashboardClient({ initialStats }: Readonly<DashboardClie
           </button>
         </div>
 
-        <div className="overflow-x-auto scrollbar-none -mx-4 px-4">
+        <div className="overflow-x-auto scrollbar-none -mx-2 px-2">
           <div className="flex items-center bg-slate-100 rounded-sm p-0.5 gap-0.5 w-fit">
             <RangeTabs value={range} onChange={setRange} />
           </div>

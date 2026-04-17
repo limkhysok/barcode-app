@@ -74,7 +74,7 @@ export function StatsOverview({ stats }: Readonly<StatsOverviewProps>) {
         {/* Box: Total Records */}
         <div className="rounded-md border border-slate-200 bg-white p-4 transition-all duration-300 hover:border-orange-500/30">
           <div className="flex items-start justify-between pb-2">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 leading-none">Total Records</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 leading-none">Total Products</p>
             <Database className="h-8 w-8 text-orange-600/80" strokeWidth={1.5} />
           </div>
           <div className="space-y-1">
@@ -92,7 +92,7 @@ export function StatsOverview({ stats }: Readonly<StatsOverviewProps>) {
         {/* Box: Unit Volume */}
         <div className="rounded-md border border-slate-200 bg-white p-4 transition-all duration-300 hover:border-orange-500/30">
           <div className="flex items-start justify-between pb-2">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 leading-none">Unit Volume</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 leading-none">Total Quantity</p>
             <Package className="h-8 w-8 text-orange-600/80" strokeWidth={1.5} />
           </div>
           <div className="space-y-1">
