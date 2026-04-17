@@ -29,6 +29,7 @@ function getNextItemId() { return ++itemIdCounter; }
 const emptyItem = (): ItemDraft => ({ id: getNextItemId(), inventory: 0, quantity: 1 });
 import InventoryPicker from "./InventoryPicker";
 import { scanBarcode } from "@/src/services/inventory.service";
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
 
 // ─── ViewTransactionModal ───────────────────────────────────────────────────
 
@@ -206,6 +207,11 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
   const scanInputRef = React.useRef<HTMLInputElement>(null);
   const [extraRecords, setExtraRecords] = React.useState<InventoryRecord[]>([]);
 
+  // Camera Scanner State
+  const [isCameraOpen, setIsCameraOpen] = React.useState(false);
+  const [cameraError, setCameraError] = React.useState<string | null>(null);
+  const html5QrCodeRef = React.useRef<Html5Qrcode | null>(null);
+
   // Combined inventory sources: the prop-provided paginated list + any missing items fetched via scanning
   const allInventory = React.useMemo(() => {
     const merged = [...inventory];
@@ -229,8 +235,62 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
       setScanInput("");
       setScanFeedback(null);
       setExtraRecords([]); // Clear cache on close
+      stopCamera();
     }
   }, [isOpen]);
+
+  const startCamera = async () => {
+    setCameraError(null);
+    setIsCameraOpen(true);
+    // Give DOM a moment to render the #reader div
+    setTimeout(async () => {
+      try {
+        const qr = new Html5Qrcode("reader-new", {
+          verbose: false,
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.QR_CODE,
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.CODE_39,
+          ],
+        });
+        html5QrCodeRef.current = qr;
+        await qr.start(
+          { facingMode: "environment" },
+          { fps: 15, qrbox: { width: 250, height: 150 } },
+          (decodedText) => {
+            handleScanBarcodeWithValue(decodedText);
+            // Optionally close camera after success, but usually better to keep it open for multiple scans
+          },
+          () => { } // ignore errors
+        );
+      } catch (err: any) {
+        console.error("Camera start error:", err);
+        setCameraError(err.message || "Could not start camera.");
+        setIsCameraOpen(false);
+      }
+    }, 100);
+  };
+
+  const stopCamera = async () => {
+    const qr = html5QrCodeRef.current;
+    if (qr?.isScanning) {
+      try {
+        await qr.stop();
+        qr.clear();
+      } catch (e) {
+        console.warn("Stop scanner error", e);
+      }
+    }
+    html5QrCodeRef.current = null;
+    setIsCameraOpen(false);
+  };
+
+  const toggleCamera = () => {
+    if (isCameraOpen) stopCamera();
+    else startCamera();
+  };
 
   if (!isOpen) return null;
 
@@ -360,41 +420,86 @@ export const NewTransactionModal: React.FC<NewModalProps> = ({ isOpen, onClose, 
                 <span className={`text-[12px] font-black tracking-widest uppercase ${txType === "Sale" ? "text-red-600" : "text-gray-300"}`}>Sale</span>
               </div>
             </div>
-            <div className="group relative">
-              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-focus-within:bg-[#FA4900] transition-colors" />
+            <div className="flex items-center gap-2">
+              <div className="group relative flex-1">
+                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                  <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-focus-within:bg-[#FA4900] transition-colors" />
+                </div>
+                <input
+                  ref={scanInputRef}
+                  type="text"
+                  autoComplete="off"
+                  autoFocus
+                  id="barcode-scan-input"
+                  placeholder="SCAN BARCODE..."
+                  value={scanInput}
+                  onChange={(e) => {
+                    setScanInput(e.target.value);
+                    setScanFeedback(null);
+                  }}
+                  onKeyDown={(e) => {
+                    const value = (e.target as HTMLInputElement).value.trim();
+                    if (e.key === "Enter" || e.key === "Tab") {
+                      e.preventDefault();
+                      if (value !== "") handleScanBarcodeWithValue(value);
+                    }
+                  }}
+                  className="w-full pl-9 pr-12 py-1.5 rounded-sm border-2 border-black text-[12px] bg-white text-black outline-none focus:border-[#FA4900] transition-all placeholder:text-gray-300 font-mono tracking-widest uppercase"
+                />
+                <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                  <svg className="w-5 h-5 text-gray-800" viewBox="0 0 24 24" fill="none">
+                    <rect x="2" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
+                    <rect x="7" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
+                    <rect x="12" y="4" width="2" height="16" rx="0.5" fill="currentColor" />
+                    <rect x="18" y="4" width="1" height="16" rx="0.5" fill="currentColor" />
+                    <rect x="21" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
+                  </svg>
+                </div>
               </div>
-              <input
-                ref={scanInputRef}
-                type="text"
-                autoComplete="off"
-                autoFocus
-                id="barcode-scan-input"
-                placeholder="SCAN BARCODE..."
-                value={scanInput}
-                onChange={(e) => {
-                  setScanInput(e.target.value);
-                  setScanFeedback(null);
-                }}
-                onKeyDown={(e) => {
-                  const value = (e.target as HTMLInputElement).value.trim();
-                  if (e.key === "Enter" || e.key === "Tab") {
-                    e.preventDefault();
-                    if (value !== "") handleScanBarcodeWithValue(value);
-                  }
-                }}
-                className="w-full pl-9 pr-12 py-1.5 rounded-sm border-2 border-black text-[12px] bg-white text-black outline-none focus:border-[#FA4900] transition-all placeholder:text-gray-300 font-mono tracking-widest uppercase"
-              />
-              <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                <svg className="w-5 h-5 text-gray-800" viewBox="0 0 24 24" fill="none">
-                  <rect x="2" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
-                  <rect x="7" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
-                  <rect x="12" y="4" width="2" height="16" rx="0.5" fill="currentColor" />
-                  <rect x="18" y="4" width="1" height="16" rx="0.5" fill="currentColor" />
-                  <rect x="21" y="4" width="1.5" height="16" rx="0.5" fill="currentColor" />
-                </svg>
-              </div>
+
+              <button
+                type="button"
+                onClick={toggleCamera}
+                className={`shrink-0 p-2 rounded-sm transition-all shadow-md group/cam ${isCameraOpen ? "bg-red-600 text-white" : "bg-black text-white hover:bg-gray-800 active:scale-95"}`}
+                title={isCameraOpen ? "Close Camera" : "Open Camera Scanner"}
+              >
+                {isCameraOpen ? (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5 group-hover/cam:scale-110 transition-transform" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                  </svg>
+                )}
+              </button>
             </div>
+
+            {isCameraOpen && (
+              <div className="relative w-full aspect-[4/3] bg-black rounded-sm overflow-hidden border-2 border-black animate-in fade-in zoom-in-95 duration-300">
+                <div id="reader-new" className="w-full h-full" />
+                <div className="absolute inset-0 pointer-events-none border-[40px] border-black/30" />
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                  <div className="w-48 h-32 border-2 border-orange-500 rounded-sm shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] flex items-center justify-center">
+                    <div className="w-full h-[1px] bg-orange-500/50 animate-[scanline_2s_linear_infinite]" />
+                  </div>
+                </div>
+                <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 text-white text-[8px] font-bold uppercase tracking-widest rounded-full flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                  <span>Live Stream</span>
+                </div>
+              </div>
+            )}
+
+            {cameraError && (
+              <p className="text-[10px] font-bold text-red-500 bg-red-50 border border-red-200 px-3 py-1 flex items-center gap-2">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+                {cameraError}
+              </p>
+            )}
             {scanFeedback && (
               <p className={`text-[10px] font-bold tracking-widest uppercase px-4 py-2 border flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200 ${scanFeedback.ok ? "text-green-600 bg-green-50 border-green-200" : "text-red-600 bg-red-50 border-red-200"}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${scanFeedback.ok ? "bg-green-500" : "bg-red-500"}`} />
