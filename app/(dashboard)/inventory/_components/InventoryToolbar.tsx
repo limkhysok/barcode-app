@@ -65,7 +65,7 @@ function FilterDropdown({ label, value, options, onChange, icon: Icon }: Readonl
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`px-2.5 py-1 rounded-sm border text-[11px] font-black transition-all duration-150 focus:outline-none flex items-center gap-2.5 group ${buttonStyles} min-w-[140px] h-8`}
+        className={`px-2.5 py-1 rounded-sm border text-[11px] font-black transition-all duration-150 focus:outline-none flex items-center gap-2.5 group ${buttonStyles} min-w-35 h-8`}
       >
         <div className={`transition-colors duration-200 ${isActive ? "text-white" : "text-slate-400 group-hover:text-white"}`}>
           <Icon size={14} strokeWidth={3} />
@@ -78,7 +78,7 @@ function FilterDropdown({ label, value, options, onChange, icon: Icon }: Readonl
       </button>
 
       {open && (
-        <div className="absolute z-100 left-0 mt-1 min-w-[200px] bg-white border border-slate-100 rounded-sm shadow-xl animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden max-h-64 overflow-y-auto">
+        <div className="absolute z-100 left-0 mt-1 min-w-50 bg-white border border-slate-100 rounded-sm shadow-xl animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden max-h-64 overflow-y-auto">
           <ul className="divide-y divide-gray-50">
             {options.map((o) => (
               <li key={o.key}>
@@ -125,7 +125,7 @@ function SortToggleButton({ label, dir, onToggle, icon }: Readonly<{ label: stri
           {icon}
         </div>
       )}
-      <span className="truncate flex-1 tracking-[0.1em] uppercase font-black">{label}</span>
+      <span className="truncate flex-1 tracking-widest uppercase font-black">{label}</span>
       <div className={`transition-transform duration-300 shrink-0 ${isDesc && isSelected ? "rotate-180" : "rotate-0 opacity-40 group-hover:opacity-100"}`}>
         <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3.5} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
@@ -179,15 +179,16 @@ export function InventoryToolbar({
                ...siteOptions.map(s => ({ key: s, label: s.toUpperCase() }))
              ]}
            />
-           <FilterDropdown 
-             label="All Status" 
-             value={statusFilter} 
-             onChange={setStatusFilter} 
+           <FilterDropdown
+             label="All Status"
+             value={statusFilter}
+             onChange={setStatusFilter}
              icon={Activity}
              options={[
                { key: "", label: "ALL STATUS" },
-               { key: "Yes", label: "LOW STOCK" },
-               { key: "No", label: "NORMAL STOCK" }
+               { key: "No", label: "GOOD" },
+               { key: "Yes", label: "LOW" },
+               { key: "no_stock", label: "NO STOCK" },
              ]}
            />
         </div>
@@ -287,8 +288,9 @@ export function InventoryToolbar({
                 <div className="flex flex-col gap-1 pr-1">
                    {[
                      { key: "", label: "ALL STATUS" },
-                     { key: "Yes", label: "LOW STOCK" },
-                     { key: "No", label: "NORMAL STOCK" }
+                     { key: "No", label: "GOOD" },
+                     { key: "Yes", label: "LOW" },
+                     { key: "no_stock", label: "NO STOCK" },
                    ].map((s) => {
                      const isSelected = s.key === statusFilter;
                      return (

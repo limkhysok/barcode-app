@@ -77,6 +77,28 @@ export function InventoryTable({
     );
   }
 
+  function getStockStatus(r: InventoryRecord) {
+    if (r.quantity_on_hand === 0) {
+      return (
+        <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-100">
+          <span className="w-1 h-1 rounded-full bg-red-500" /> NO STOCK
+        </span>
+      );
+    }
+    if (r.reorder_status === "Yes") {
+      return (
+        <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-yellow-50 text-yellow-600 border border-yellow-100">
+          <span className="w-1 h-1 rounded-full bg-yellow-400" /> LOW
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-green-50 text-green-600 border border-green-100">
+        <span className="w-1 h-1 rounded-full bg-green-500" /> GOOD
+      </span>
+    );
+  }
+
   const orderingFields: Record<string, string> = {
     '#': 'id',
     'Product': 'product_name',
@@ -171,8 +193,10 @@ export function InventoryTable({
                 { label: "#", class: "pl-6 w-16" },
                 { label: "Pic", class: "w-16" },
                 { label: "Product" },
+                { label: "Barcode", class: "w-36" },
                 { label: "Site", class: "w-40" },
                 { label: "Quantity", class: "text-center w-32" },
+                { label: "Reorder Lvl", class: "text-center w-32" },
                 { label: "Status", class: "w-32" },
                 { label: "Updated", class: "w-40" },
                 { label: "Actions", class: "pr-6 text-right w-24" }
@@ -230,6 +254,11 @@ export function InventoryTable({
                   </div>
                 </td>
                 <td className="px-5 py-4">
+                  <span className="text-[11px] font-mono font-bold text-slate-600 tracking-wider">
+                    {r.product_details.barcode || "—"}
+                  </span>
+                </td>
+                <td className="px-5 py-4">
                    <div className="flex items-center gap-1.5">
                       <MapPin size={12} className="text-slate-300 shrink-0" />
                       <div className="flex flex-col min-w-0">
@@ -243,16 +272,13 @@ export function InventoryTable({
                     {r.quantity_on_hand.toLocaleString()}
                   </span>
                 </td>
+                <td className="px-5 py-4 text-center">
+                  <span className="text-[13px] font-black tabular-nums text-slate-500">
+                    {r.product_details.reorder_level.toLocaleString()}
+                  </span>
+                </td>
                 <td className="px-5 py-4">
-                  {r.reorder_status === "Yes" ? (
-                    <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-100">
-                      <span className="w-1 h-1 rounded-full bg-red-500" /> LOW
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-slate-50 text-slate-400 border border-slate-100">
-                      <span className="w-1 h-1 rounded-full bg-slate-300" /> OK
-                    </span>
-                  )}
+                  {getStockStatus(r)}
                 </td>
                 <td className="px-5 py-4" suppressHydrationWarning>
                    <div className="flex flex-col gap-0.5">

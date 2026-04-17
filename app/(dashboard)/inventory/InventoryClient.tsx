@@ -230,8 +230,10 @@ export default function InventoryClient({
     }
 
     // 2.5 Status Filter (Reorder)
-    if (statusFilter) {
-      list = list.filter(r => r.reorder_status === statusFilter);
+    if (statusFilter === "no_stock") {
+      list = list.filter(r => r.quantity_on_hand === 0);
+    } else if (statusFilter) {
+      list = list.filter(r => r.quantity_on_hand > 0 && r.reorder_status === statusFilter);
     }
 
     // 3. Sorting
