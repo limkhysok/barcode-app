@@ -56,7 +56,7 @@ function ModalSelect({ label, id, value, options, onChange, placeholder, optiona
 
   return (
     <div
-      className={`space-y-1.5 focus-within:translate-x-1 transition-transform duration-200 ${open ? "relative z-[60]" : "relative z-0"}`}
+      className={`space-y-1.5 focus-within:translate-x-1 transition-transform duration-200 ${open ? "relative z-60" : "relative z-0"}`}
       ref={ref}
     >
       <div className="flex items-center justify-between">
@@ -86,7 +86,7 @@ function ModalSelect({ label, id, value, options, onChange, placeholder, optiona
         </button>
 
         {open && (
-          <div className="absolute z-[100] top-full left-0 right-0 mt-2 bg-white border border-slate-900 shadow-2xl rounded-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute z-100 top-full left-0 right-0 mt-2 bg-white border border-slate-900 shadow-2xl rounded-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <ul className="max-h-64 overflow-y-auto no-scrollbar scrollbar-none divide-y divide-slate-100">
               {options.map((o) => (
                 <li key={String(o.value)} className="border-b border-slate-50 last:border-b-0">

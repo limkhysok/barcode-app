@@ -25,6 +25,13 @@ const emptyForm: InventoryPayload = {
   quantity_on_hand: 0,
 };
 
+function validateInventoryForm(form: InventoryPayload): string {
+  if (!form.product || form.product <= 0) return "Please select a product.";
+  if (!form.site.trim()) return "Site is required.";
+  if (form.quantity_on_hand < 0) return "Quantity on hand cannot be negative.";
+  return "";
+}
+
 export default function InventoryClient({
   initialPaginatedRecords,
   initialPaginatedProducts,
@@ -126,7 +133,8 @@ export default function InventoryClient({
 
   async function handleSave(e: React.SyntheticEvent) {
     e.preventDefault();
-    if (!form.product) { setFormError("PLEASE SELECT A PRODUCT"); return; }
+    const validationError = validateInventoryForm(form);
+    if (validationError) { setFormError(validationError); return; }
     setSaving(true);
     setFormError("");
     try {

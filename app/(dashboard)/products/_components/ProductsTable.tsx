@@ -230,7 +230,7 @@ export function ProductsTable({
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{p.supplier}</span>
                 </div>
 
-                <span className="text-sm font-black text-slate-900 uppercase leading-tight group-hover:text-orange-600 transition-colors line-clamp-2 min-h-[2.5rem]">
+                <span className="text-sm font-black text-slate-900 uppercase leading-tight group-hover:text-orange-600 transition-colors line-clamp-2 min-h-10">
                   {p.product_name}
                 </span>
 

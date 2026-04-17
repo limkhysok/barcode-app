@@ -7,6 +7,7 @@ import type { Product, ProductPayload } from "@/src/types/product.types";
 import { getProducts, createProduct, updateProduct, deleteProduct } from "@/src/services/product.service";
 import type { ProductFilters } from "@/src/services/product.service";
 import type { PaginatedProducts, ProductStats } from "@/src/types/api.types";
+import { type ApiError, getFieldError } from "@/src/types/error.types";
 
 // Components
 import { StatsOverview } from "./_components/StatsOverview";
@@ -17,19 +18,19 @@ import { ProductToolbar } from "./_components/ProductToolbar";
 
 const REORDER_PRESETS = new Set([5, 10, 15, 20]);
 
-type ApiErr = { response?: { data?: Record<string, unknown>; status?: number }; code?: string };
-
-function getFieldError(data: Record<string, unknown>): string {
-  const firstKey = Object.keys(data)[0];
-  const raw = data[firstKey];
-  if (Array.isArray(raw)) return String(raw[0]);
-  if (typeof raw === "string") return raw;
-  return "Failed to save. Please check your inputs.";
-}
-
 function getSortParam(field: string, dir: SortDir): string | undefined {
   if (!field || !dir) return undefined;
   return dir === "desc" ? `-${field}` : field;
+}
+
+function validateProductForm(form: ProductPayload): string {
+  if (!form.product_name.trim()) return "Product name is required.";
+  if (!form.barcode.trim()) return "Barcode is required.";
+  if (!form.category) return "Category is required.";
+  if (!form.supplier.trim()) return "Supplier is required.";
+  if (form.cost_per_unit <= 0) return "Cost per unit must be greater than 0.";
+  if (form.reorder_level < 1) return "Reorder level must be at least 1.";
+  return "";
 }
 
 
@@ -151,6 +152,8 @@ export default function ProductsClient({
 
   async function handleSave(e: React.SyntheticEvent) {
     e.preventDefault();
+    const validationError = validateProductForm(form);
+    if (validationError) { setFormError(validationError); return; }
     setSaving(true);
     setFormError("");
     try {
@@ -175,7 +178,7 @@ export default function ProductsClient({
       fetchProducts();
     } catch (err: unknown) {
       setSaving(false);
-      const apiErr = err as ApiErr;
+      const apiErr = err as ApiError;
       const data = apiErr?.response?.data;
       const status = apiErr?.response?.status;
       if (status === 409) {
@@ -212,7 +215,7 @@ export default function ProductsClient({
       setDeleting(false);
       fetchProducts();
     } catch (err: unknown) {
-      const apiErr = err as ApiErr;
+      const apiErr = err as ApiError;
       const data = apiErr?.response?.data;
       const status = apiErr?.response?.status;
       if (status === 404) {

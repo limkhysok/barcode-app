@@ -19,12 +19,22 @@ export default function LoginPage() {
     if (user) router.push("/transactions");
   }, [user, router]);
 
+  function validate(): string {
+    if (!username.trim()) return "Username is required.";
+    if (username.trim().length < 3) return "Username must be at least 3 characters.";
+    if (!password) return "Password is required.";
+    if (password.length < 4) return "Password must be at least 4 characters.";
+    return "";
+  }
+
   async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
+    const validationError = validate();
+    if (validationError) { setError(validationError); return; }
     setError("");
     setLoading(true);
     try {
-      await login({ username, password });
+      await login({ username: username.trim(), password });
       router.push("/transactions");
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
