@@ -642,7 +642,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
           })()}
         </div>
 
-        <div className="ml-auto hidden sm:flex items-center gap-0 bg-slate-100 border border-gray-100 rounded-sm overflow-hidden h-8">
+        <div className="ml-auto hidden lg:flex items-center gap-0 bg-slate-100 border border-gray-100 rounded-sm overflow-hidden h-8">
           {(["list", "grid"] as const).map((mode) => (
             <button
               key={mode}
