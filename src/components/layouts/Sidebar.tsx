@@ -74,7 +74,7 @@ function NavItem({
           }
         `}
         style={{
-          padding: isCollapsed ? "9px 0" : "9px 16px",
+          padding: isCollapsed ? "10px 0" : "12px 16px",
           justifyContent: isCollapsed ? "center" : "flex-start",
           gap: isCollapsed ? 0 : 10,
           transition: `padding ${easing}, gap ${easing}`,
@@ -128,11 +128,11 @@ function SidebarContent({
         style={{
           justifyContent: isCollapsed ? "center" : "flex-start",
           padding: isCollapsed ? "0" : "0 16px",
-          gap: isCollapsed ? 0 : 12,
+          gap: isCollapsed ? 0 : 8,
         }}
       >
-        <div className="w-8 h-8 flex items-center justify-center shrink-0">
-          <Image src="/ctk.svg" alt="CTK" width={22} height={22} priority />
+        <div className="flex items-center justify-center shrink-0 w-6">
+          <Image src="/ctk.svg" alt="CTK" width={16} height={22} priority style={{ height: "auto" }} />
         </div>
         <div
           className="flex flex-col leading-none"
@@ -142,14 +142,14 @@ function SidebarContent({
             transition: `opacity ${easing}, max-width ${easing}`,
           }}
         >
-          <span className="text-[13px] font-black text-slate-950 uppercase tracking-tighter">CTK</span>
-          <span className="text-[7px] font-black text-orange-600 uppercase tracking-[0.2em] mt-0.5">Spare Parts</span>
+          <p className="text-[17px] font-black tracking-tight uppercase text-slate-950">CTK</p>
+          <p className="text-[7px] font-bold tracking-[0.4em] uppercase text-orange-600 mt-0.1 opacity-90">Spare Parts</p>
         </div>
       </div>
 
       {/* ── Navigation List ── */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-none no-scrollbar pt-6">
-        <div className="space-y-1">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-none no-scrollbar pt-3">
+        <div className="space-y-0">
           <p
             className="text-[8px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-4 px-5"
             style={{
@@ -160,7 +160,7 @@ function SidebarContent({
               transition: `max-width ${easing}, opacity ${easing}`,
             }}
           >
-            System
+            Menu
           </p>
           {navItems.map(({ label, href, icon }) => (
             <NavItem

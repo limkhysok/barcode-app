@@ -334,9 +334,8 @@ export default function InventoryClient({
             <div className="relative" ref={exportRef}>
               <button
                 onClick={() => setExportOpen(!exportOpen)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-sm text-[11px] font-black uppercase tracking-wider border transition-all cursor-pointer ${
-                  exportOpen ? "bg-black text-white border-black" : "bg-white text-gray-500 border-gray-200 active:bg-gray-50"
-                }`}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-sm text-[11px] font-black uppercase tracking-wider border transition-all cursor-pointer ${exportOpen ? "bg-black text-white border-black" : "bg-white text-gray-500 border-gray-200 active:bg-gray-50"
+                  }`}
               >
                 <FileDown size={14} strokeWidth={3} className={exportOpen ? "text-white" : "text-slate-400"} />
                 <ChevronDown size={10} strokeWidth={3} className={`transition-transform duration-200 ${exportOpen ? 'rotate-180' : ''}`} />
@@ -401,9 +400,8 @@ export default function InventoryClient({
             <div className="relative" ref={exportRef}>
               <button
                 onClick={() => setExportOpen(!exportOpen)}
-                className={`flex items-center gap-2 px-4 py-1.5 rounded-sm text-[11px] font-black uppercase tracking-wider border transition-all cursor-pointer ${
-                  exportOpen ? "bg-black text-white border-black" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                }`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-sm text-[11px] font-black uppercase tracking-wider border transition-all cursor-pointer ${exportOpen ? "bg-black text-white border-black" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                  }`}
               >
                 <FileDown size={14} strokeWidth={3} className={exportOpen ? "text-white" : "text-slate-400"} />
                 <span>Export Report</span>
@@ -445,7 +443,7 @@ export default function InventoryClient({
           )}
 
           <button onClick={openCreate}
-            className="flex items-center gap-2.5 px-5 py-1.5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer shadow-lg shadow-orange-500/10"
+            className="flex items-center gap-2.5 px-5 py-2 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer shadow-lg shadow-orange-500/10"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

@@ -44,10 +44,10 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
 
   return (
     <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100">
-      <div className="h-12.5 px-4 md:px-6 flex items-center justify-between gap-4">
+      <div className="h-12.5 px-2 md:px-6 flex items-center justify-between gap-4">
 
         {/* Left Section */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-0">
           <button
             onClick={onMenuClick}
             className="md:hidden p-2 rounded-md text-slate-500 hover:text-slate-950 hover:bg-slate-50 transition-all active:scale-90"
@@ -57,12 +57,12 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
           </button>
 
           <Link href="/dashboard" className="md:hidden flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 flex items-center justify-center shrink-0">
-              <Image src="/ctk.svg" alt="CTK" width={22} height={22} priority />
+            <div className="flex items-center justify-center shrink-0 w-6">
+              <Image src="/ctk.svg" alt="CTK" width={16} height={22} priority style={{ height: "auto" }} />
             </div>
             <div className="flex flex-col leading-none">
-              <p className="text-[12px] font-black tracking-tighter uppercase text-slate-950">CTK</p>
-              <p className="text-[7px] font-black tracking-[0.2em] uppercase text-orange-600 mt-0.5">Spare Parts</p>
+              <p className="text-[17px] font-black tracking-tight uppercase text-slate-950">CTK</p>
+              <p className="text-[7px] font-bold tracking-[0.4em] uppercase text-orange-600 mt-0.1 opacity-90">Spare Parts</p>
             </div>
           </Link>
         </div>
