@@ -22,22 +22,22 @@ const navItems = [
   {
     label: "Dashboard",
     href: "/dashboard",
-    icon: <LayoutDashboard size={20} />,
+    icon: <LayoutDashboard size={17} />,
   },
   {
     label: "Transactions",
     href: "/transactions",
-    icon: <ArrowLeftRight size={20} />,
+    icon: <ArrowLeftRight size={17} />,
   },
   {
     label: "Products",
     href: "/products",
-    icon: <Package size={20} />,
+    icon: <Package size={17} />,
   },
   {
     label: "Inventory",
     href: "/inventory",
-    icon: <Database size={20} />,
+    icon: <Database size={17} />,
   },
 ];
 
@@ -76,9 +76,9 @@ function NavItem({
           }
         `}
         style={{
-          padding: isCollapsed ? "12px 0" : "12px 20px",
+          padding: isCollapsed ? "9px 0" : "9px 16px",
           justifyContent: isCollapsed ? "center" : "flex-start",
-          gap: isCollapsed ? 0 : 12,
+          gap: isCollapsed ? 0 : 10,
           transition: `padding ${easing}, gap ${easing}`,
         }}
       >
@@ -131,19 +131,20 @@ function UserFooter({ isCollapsed }: Readonly<{ isCollapsed: boolean }>) {
     router.replace("/login");
   }
 
+
   return (
-    <div className="border-t border-slate-100 shrink-0">
+    <div className="border-t border-slate-100 shrink-0 bg-slate-50/30">
       {/* User row */}
       <div
         className="flex items-center gap-3 overflow-hidden"
         style={{
           justifyContent: isCollapsed ? "center" : "flex-start",
-          padding: isCollapsed ? "12px 0" : "12px 16px",
+          padding: isCollapsed ? "12px 0" : "12px 14px",
           transition: `padding ${easing}`,
         }}
       >
-        <div className="w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center shrink-0">
-          <span className="text-[9px] font-black text-white leading-none">{initials}</span>
+        <div className="w-7 h-7 rounded-sm bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shrink-0 shadow-sm border border-orange-400/20">
+          <span className="text-[10px] font-black text-white leading-none tracking-tighter">{initials}</span>
         </div>
 
         <div
@@ -156,9 +157,9 @@ function UserFooter({ isCollapsed }: Readonly<{ isCollapsed: boolean }>) {
           }}
         >
           <p className="text-[10px] font-black text-slate-800 uppercase tracking-widest truncate leading-none">
-            {user?.username ?? "—"}
+            {user?.username ?? "User"}
           </p>
-          <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5 leading-none">
+          <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest mt-1 leading-none">
             {roleLabel}
           </p>
         </div>
@@ -167,25 +168,25 @@ function UserFooter({ isCollapsed }: Readonly<{ isCollapsed: boolean }>) {
           type="button"
           onClick={handleLogout}
           title="Logout"
-          className={`shrink-0 w-6 h-6 flex items-center justify-center rounded-sm text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer ${
+          className={`shrink-0 w-6 h-6 flex items-center justify-center rounded-md text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all duration-200 cursor-pointer group/exit ${
             isCollapsed ? "hidden" : ""
           }`}
         >
-          <LogOut size={13} strokeWidth={2.5} />
+          <LogOut size={13} strokeWidth={2.5} className="group-hover/exit:translate-x-0.5 transition-transform" />
         </button>
       </div>
 
       {/* Collapsed logout */}
       {isCollapsed && (
-        <div className="relative group flex justify-center pb-3">
+        <div className="relative group flex justify-center pb-4">
           <button
             type="button"
             onClick={handleLogout}
-            className="w-8 h-8 flex items-center justify-center rounded-sm text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+            className="w-8 h-8 flex items-center justify-center rounded-md text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer"
           >
             <LogOut size={14} strokeWidth={2.5} />
           </button>
-          <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 px-2.5 py-1.5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-sm whitespace-nowrap shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+          <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 px-2.5 py-1.5 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest rounded-sm whitespace-nowrap shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150">
             {"Logout"}
             <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-900" />
           </div>
@@ -206,15 +207,15 @@ function SidebarContent({
 
       {/* ── Brand Section ── */}
       <div
-        className="flex items-center px-5 h-12.5 border-b border-slate-200 overflow-hidden shrink-0 bg-white"
+        className="flex items-center px-4 h-12.5 border-b border-slate-100 overflow-hidden shrink-0 bg-white"
         style={{
           justifyContent: isCollapsed ? "center" : "flex-start",
-          padding: isCollapsed ? "0" : "0 20px",
+          padding: isCollapsed ? "0" : "0 16px",
           gap: isCollapsed ? 0 : 12,
         }}
       >
-        <div className="w-10 h-10 flex items-center justify-center shrink-0">
-          <Image src="/ctk.svg" alt="CTK" width={24} height={24} priority />
+        <div className="w-8 h-8 flex items-center justify-center shrink-0">
+          <Image src="/ctk.svg" alt="CTK" width={22} height={22} priority />
         </div>
         <div
           className="flex flex-col leading-none"
@@ -224,8 +225,8 @@ function SidebarContent({
             transition: `opacity ${easing}, max-width ${easing}`,
           }}
         >
-          <span className="text-[14px] font-black text-slate-950 uppercase tracking-widest">CTK</span>
-          <span className="text-[8px] font-black text-orange-600 uppercase tracking-widest mt-1">Spare Parts</span>
+          <span className="text-[13px] font-black text-slate-950 uppercase tracking-tighter">CTK</span>
+          <span className="text-[7px] font-black text-orange-600 uppercase tracking-[0.2em] mt-0.5">Spare Parts</span>
         </div>
       </div>
 
@@ -233,7 +234,7 @@ function SidebarContent({
       <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-none no-scrollbar pt-6">
         <div className="space-y-1">
           <p
-            className="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em] mb-4 px-5"
+            className="text-[8px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-4 px-5"
             style={{
               maxWidth: isCollapsed ? 0 : 160,
               opacity: isCollapsed ? 0 : 1,
@@ -242,7 +243,7 @@ function SidebarContent({
               transition: `max-width ${easing}, opacity ${easing}`,
             }}
           >
-            Terminal
+            System
           </p>
           {navItems.map(({ label, href, icon }) => (
             <NavItem
@@ -275,8 +276,8 @@ function CollapseToggle({
       onClick={onToggleCollapse}
       aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       className="
-        absolute top-18 -right-3.5 z-30 hidden md:flex
-        items-center justify-center w-7 h-7 rounded-full
+        absolute top-12.5 -right-3 z-30 hidden md:flex
+        items-center justify-center w-6 h-6 rounded-full
         bg-white text-slate-400 border border-slate-200
         hover:text-orange-600 hover:border-orange-200
         active:scale-95 transition-all duration-300
