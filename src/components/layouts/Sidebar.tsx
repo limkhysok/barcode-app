@@ -13,8 +13,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/src/context/AuthContext";
 
-const EXPANDED_W = 210;
-const COLLAPSED_W = 68;
+const EXPANDED_W = 180;
+const COLLAPSED_W = 50;
 const MOBILE_W = 240;
 const easing = "0.4s cubic-bezier(0.4, 0, 0.2, 1)";
 
@@ -206,7 +206,7 @@ function SidebarContent({
 
       {/* ── Brand Section ── */}
       <div
-        className="flex items-center px-5 h-18 border-b border-slate-200 overflow-hidden shrink-0 bg-white"
+        className="flex items-center px-5 h-12.5 border-b border-slate-200 overflow-hidden shrink-0 bg-white"
         style={{
           justifyContent: isCollapsed ? "center" : "flex-start",
           padding: isCollapsed ? "0" : "0 20px",

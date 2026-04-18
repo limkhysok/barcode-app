@@ -39,6 +39,28 @@ function formatDateTime(dateStr: string): string {
   return `${day}/${month}/${year} ${time}`;
 }
 
+function StockBadge({ r }: Readonly<{ r: InventoryRecord }>) {
+  if (r.quantity_on_hand === 0) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-100">
+        <span className="w-1 h-1 rounded-full bg-red-500" /> NO STOCK
+      </span>
+    );
+  }
+  if (r.reorder_status === "LOW") {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-yellow-50 text-yellow-600 border border-yellow-100">
+        <span className="w-1 h-1 rounded-full bg-yellow-400" /> LOW
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-green-50 text-green-600 border border-green-100">
+      <span className="w-1 h-1 rounded-full bg-green-500" /> GOOD
+    </span>
+  );
+}
+
 export function InventoryTable({
   loading,
   error,
@@ -79,28 +101,6 @@ export function InventoryTable({
     );
   }
 
-  function getStockStatus(r: InventoryRecord) {
-    if (r.quantity_on_hand === 0) {
-      return (
-        <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-100">
-          <span className="w-1 h-1 rounded-full bg-red-500" /> NO STOCK
-        </span>
-      );
-    }
-    if (r.reorder_status === "LOW") {
-      return (
-        <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-yellow-50 text-yellow-600 border border-yellow-100">
-          <span className="w-1 h-1 rounded-full bg-yellow-400" /> LOW
-        </span>
-      );
-    }
-    return (
-      <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-green-50 text-green-600 border border-green-100">
-        <span className="w-1 h-1 rounded-full bg-green-500" /> GOOD
-      </span>
-    );
-  }
-
   const orderingFields: Record<string, string> = {
     '#': 'id',
     'Product': 'product_name',
@@ -108,292 +108,339 @@ export function InventoryTable({
     'Quantity': 'quantity_on_hand',
     'Status': 'reorder_status',
     'Updated': 'updated_at',
-    'Order Date': 'updated_at',
   };
 
-  if (viewMode === "grid") {
-    return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-        {displayed.map((r) => (
-          <div
-            key={r.id}
-            className="group relative bg-white border border-slate-200 rounded-md overflow-hidden hover:border-orange-300 hover:shadow-md transition-all duration-200"
-          >
-            {/* Image */}
-            <div className="relative w-full aspect-square bg-slate-50 border-b border-slate-100 flex items-center justify-center overflow-hidden">
-              {r.product_details.product_picture ? (
-                <img
-                  src={`${BASE_URL}${r.product_details.product_picture}`}
-                  alt={r.product_details.product_name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <Package size={32} className="text-slate-200" strokeWidth={1} />
-              )}
-              {/* Status badge top-right */}
-              <div className="absolute top-2 right-2">
-                {getStockStatus(r)}
-              </div>
-              {/* Actions overlay */}
-              {(canEdit || canDelete) && (
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  {canEdit && (
-                    <button
-                      onClick={() => onEdit(r)}
-                      className="p-2 rounded-sm bg-white text-slate-700 hover:text-orange-500 hover:bg-orange-50 transition-all active:scale-95"
-                      title="Edit Record"
-                    >
-                      <Edit2 size={14} strokeWidth={2.5} />
-                    </button>
-                  )}
-                  {canDelete && (
-                    <button
-                      onClick={() => onDelete(r)}
-                      className="p-2 rounded-sm bg-white text-slate-700 hover:text-red-500 hover:bg-red-50 transition-all active:scale-95"
-                      title="Delete Record"
-                    >
-                      <Trash2 size={14} strokeWidth={2.5} />
-                    </button>
-                  )}
+  // ── Mobile: compact rows ──
+  const mobileRows = (
+    <div className="sm:hidden divide-y divide-gray-100">
+      {displayed.map((r) => {
+        const isLow = r.reorder_status === "LOW" && r.quantity_on_hand > 0;
+        const isOut = r.quantity_on_hand === 0;
+        let accentClass = "border-l-green-400";
+        let qtyClass = "text-orange-600 bg-orange-50";
+        if (isOut) { accentClass = "border-l-red-500"; qtyClass = "text-red-500 bg-red-50"; }
+        else if (isLow) { accentClass = "border-l-yellow-400"; qtyClass = "text-yellow-600 bg-yellow-50"; }
+
+        return (
+          <div key={r.id} className={`group bg-white border-l-2 ${accentClass} hover:bg-slate-50 transition-colors`}>
+            <div className="px-3 py-3 flex items-center gap-3">
+              {/* Left: id + name + site */}
+              <button
+                onClick={() => onEdit(r)}
+                className="flex-1 min-w-0 text-left cursor-pointer"
+                aria-label={`Edit ${r.product_details.product_name}`}
+              >
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span className="text-[9px] font-black text-slate-300 tabular-nums shrink-0">#{r.id}</span>
+                  <h3 className="text-[12px] font-black text-slate-900 truncate uppercase tracking-tight group-hover:text-orange-600 transition-colors">
+                    {r.product_details.product_name}
+                  </h3>
                 </div>
-              )}
-            </div>
+                <div className="flex items-center gap-1">
+                  <MapPin size={9} className="text-slate-300 shrink-0" />
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter truncate">
+                    {r.site} · {r.location}
+                  </span>
+                </div>
+              </button>
 
-            {/* Info */}
-            <div className="p-3 space-y-1.5">
-              <div>
-                <p className="text-[11px] font-black text-slate-900 uppercase tracking-tight truncate group-hover:text-orange-600 transition-colors">
-                  {r.product_details.product_name}
-                </p>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter truncate">
-                  {r.product_details.category}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-1">
-                <MapPin size={9} className="text-slate-300 shrink-0" />
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter truncate">
-                  {r.site} · {r.location}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between pt-1 border-t border-slate-50">
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Qty</span>
-                <span className={`text-[14px] font-black tabular-nums leading-none ${r.reorder_status === "No" ? "text-orange-600" : "text-red-500"}`}>
+              {/* Right: qty chip + date */}
+              <div className="shrink-0 flex flex-col items-end gap-0.5">
+                <span className={`text-[13px] font-black tabular-nums leading-none px-2 py-0.5 rounded-sm ${qtyClass}`}>
                   {r.quantity_on_hand.toLocaleString()}
+                </span>
+                <span className="text-[9px] font-bold text-slate-400 tabular-nums tracking-tighter" suppressHydrationWarning>
+                  {formatDateTime(r.updated_at).split(' ')[0].split('/').slice(0, 2).join('/')} {formatDateTime(r.updated_at).split(' ')[1]}
                 </span>
               </div>
             </div>
           </div>
-        ))}
-      </div>
-    );
-  }
+        );
+      })}
+    </div>
+  );
+
+  // ── Tablet: 2-col cards ──
+  const tabletGrid = (
+    <div className="hidden sm:grid lg:hidden grid-cols-2 gap-3 p-3">
+      {displayed.map((r) => (
+        <div key={r.id} className="group bg-white border border-slate-200 rounded-sm overflow-hidden flex flex-col transition-all duration-300 hover:border-orange-500/30 hover:shadow-lg hover:shadow-orange-500/5">
+          {/* Header */}
+          <div className="px-3 py-2 flex items-center justify-between border-b border-slate-100 bg-slate-50/50">
+            <span className="text-[9px] font-black text-slate-400 tabular-nums">#{r.id}</span>
+            <StockBadge r={r} />
+          </div>
+
+          {/* Image */}
+          <div className="aspect-video w-full bg-slate-50 flex items-center justify-center border-b border-slate-100 overflow-hidden group-hover:bg-slate-100 transition-colors">
+            {r.product_details.product_picture ? (
+              <img
+                src={`${BASE_URL}${r.product_details.product_picture}`}
+                alt={r.product_details.product_name}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+            ) : (
+              <Package size={28} className="text-slate-200" strokeWidth={1} />
+            )}
+          </div>
+
+          {/* Body */}
+          <div className="px-3 py-3 flex-1 flex flex-col gap-2">
+            <div>
+              <p className="text-[12px] font-black text-slate-900 uppercase tracking-tight truncate group-hover:text-orange-600 transition-colors">
+                {r.product_details.product_name}
+              </p>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter truncate">
+                {r.product_details.category}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <MapPin size={9} className="text-slate-300 shrink-0" />
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter truncate">
+                {r.site} · {r.location}
+              </span>
+            </div>
+
+            <div className="flex items-baseline gap-1.5 mt-auto pt-1 border-t border-slate-50">
+              <span className={`text-3xl font-black tabular-nums leading-none tracking-tighter ${r.reorder_status === 'No' ? 'text-orange-600' : 'text-red-500'}`}>
+                {r.quantity_on_hand.toLocaleString()}
+              </span>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">units</span>
+            </div>
+          </div>
+
+          {/* Footer actions */}
+          <div className="px-2 pb-2 flex items-center gap-1">
+            {canEdit && (
+              <button
+                type="button"
+                onClick={() => onEdit(r)}
+                className="flex-1 flex items-center justify-center py-2.5 rounded-sm bg-slate-50 text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer border border-transparent hover:border-orange-100"
+                title="Edit"
+              >
+                <Edit2 size={14} strokeWidth={2.5} />
+              </button>
+            )}
+            {canDelete && (
+              <button
+                type="button"
+                onClick={() => onDelete(r)}
+                className="flex-1 flex items-center justify-center py-2.5 rounded-sm bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer border border-transparent hover:border-red-100"
+                title="Delete"
+              >
+                <Trash2 size={14} strokeWidth={2.5} />
+              </button>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  // ── Desktop: List table ──
+  const desktopList = (
+    <div className="hidden lg:block overflow-x-auto bg-white border border-slate-200 rounded-md">
+      <table className="w-full text-sm">
+        <thead className="bg-slate-50 border-b border-slate-100">
+          <tr>
+            {[
+              { label: "#", class: "pl-6 w-16" },
+              { label: "Pic", class: "w-16" },
+              { label: "Product" },
+              { label: "Barcode", class: "w-36" },
+              { label: "Site", class: "w-40" },
+              { label: "Quantity", class: "text-center w-32" },
+              { label: "Reorder Lvl", class: "text-center w-32" },
+              { label: "Status", class: "w-32" },
+              { label: "Updated", class: "w-40" },
+              { label: "Actions", class: "pr-6 text-right w-24" }
+            ].map((h) => {
+              const canSort = orderingFields[h.label];
+              const isSorting = canSort && (ordering === canSort || ordering === '-' + canSort);
+              const isAsc = isSorting && ordering === canSort;
+              const isDesc = isSorting && ordering === '-' + canSort;
+              return (
+                <th
+                  key={h.label}
+                  className={`px-5 py-3 text-[9px] font-black tracking-widest text-slate-400 uppercase ${h.class ?? ""} ${canSort ? "cursor-pointer select-none group/th" : ""}`}
+                  onClick={() => canSort && onSort(h.label)}
+                >
+                  <div className={`flex items-center gap-1.5 ${h.class?.includes('center') ? 'justify-center' : ''} ${h.class?.includes('right') ? 'justify-end' : ''}`}>
+                    {h.label}
+                    {canSort && (
+                      <div className="flex flex-col -space-y-1 opacity-20 group-hover/th:opacity-100 transition-opacity ml-1">
+                        <ChevronRight size={8} className={`-rotate-90 ${isAsc ? "text-orange-500 opacity-100" : ""}`} strokeWidth={4} />
+                        <ChevronRight size={8} className={`rotate-90 ${isDesc ? "text-orange-500 opacity-100" : ""}`} strokeWidth={4} />
+                      </div>
+                    )}
+                  </div>
+                </th>
+              );
+            })}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100 bg-white">
+          {displayed.map((r) => (
+            <tr key={r.id} className="group hover:bg-slate-50/60 transition-colors">
+              <td className="pl-6 px-5 py-4">
+                <span className="text-[11px] font-black text-slate-500 tabular-nums">#{r.id}</span>
+              </td>
+              <td className="px-5 py-4 whitespace-nowrap">
+                <div className="w-10 h-10 rounded-sm bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden">
+                  {r.product_details.product_picture ? (
+                    <img src={`${BASE_URL}${r.product_details.product_picture}`} alt={r.product_details.product_name} className="w-full h-full object-cover" />
+                  ) : (
+                    <Package size={16} className="text-slate-200" />
+                  )}
+                </div>
+              </td>
+              <td className="px-5 py-4">
+                <div className="flex flex-col">
+                  <span className="text-[13px] font-black text-slate-900 uppercase tracking-tight group-hover:text-orange-600 transition-colors">
+                    {r.product_details.product_name}
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{r.product_details.category}</span>
+                </div>
+              </td>
+              <td className="px-5 py-4">
+                <span className="text-[11px] font-mono font-bold text-slate-600 tracking-wider">
+                  {r.product_details.barcode || "—"}
+                </span>
+              </td>
+              <td className="px-5 py-4">
+                <div className="flex items-center gap-1.5">
+                  <MapPin size={12} className="text-slate-300 shrink-0" />
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest truncate">{r.site}</span>
+                    <span className="text-[9px] font-bold text-slate-400 uppercase truncate">{r.location}</span>
+                  </div>
+                </div>
+              </td>
+              <td className="px-5 py-4 text-center">
+                <span className={`text-[13px] font-black tabular-nums transition-colors ${r.reorder_status === 'No' ? 'text-orange-600' : 'text-red-500'}`}>
+                  {r.quantity_on_hand.toLocaleString()}
+                </span>
+              </td>
+              <td className="px-5 py-4 text-center">
+                <span className="text-[13px] font-black tabular-nums text-slate-500">
+                  {r.product_details.reorder_level.toLocaleString()}
+                </span>
+              </td>
+              <td className="px-5 py-4">
+                <StockBadge r={r} />
+              </td>
+              <td className="px-5 py-4" suppressHydrationWarning>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[11px] font-black text-slate-700 tabular-nums">{formatDateTime(r.updated_at).split(' ')[0]}</span>
+                  <span className="text-[10px] font-bold text-slate-400 tabular-nums">{formatDateTime(r.updated_at).split(' ')[1]}</span>
+                </div>
+              </td>
+              <td className="pr-6 px-5 py-4 text-right">
+                <div className="flex items-center justify-end gap-0.5 opacity-20 group-hover:opacity-100 transition-opacity">
+                  {canEdit && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onEdit(r); }}
+                      className="p-1.5 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded transition-all cursor-pointer"
+                      title="Edit Record"
+                    >
+                      <Edit2 size={16} strokeWidth={2.5} />
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onDelete(r); }}
+                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-all cursor-pointer"
+                      title="Delete Record"
+                    >
+                      <Trash2 size={16} strokeWidth={2.5} />
+                    </button>
+                  )}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  // ── Desktop: Grid cards ──
+  const desktopGrid = (
+    <div className="hidden lg:grid grid-cols-3 xl:grid-cols-4 gap-3">
+      {displayed.map((r) => (
+        <div key={r.id} className="group relative bg-white border border-slate-200 rounded-md overflow-hidden hover:border-orange-300 hover:shadow-md transition-all duration-200">
+          {/* Image */}
+          <div className="relative w-full aspect-square bg-slate-50 border-b border-slate-100 flex items-center justify-center overflow-hidden">
+            {r.product_details.product_picture ? (
+              <img
+                src={`${BASE_URL}${r.product_details.product_picture}`}
+                alt={r.product_details.product_name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <Package size={32} className="text-slate-200" strokeWidth={1} />
+            )}
+            <div className="absolute top-2 right-2">
+              <StockBadge r={r} />
+            </div>
+            {(canEdit || canDelete) && (
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                {canEdit && (
+                  <button
+                    onClick={() => onEdit(r)}
+                    className="p-2 rounded-sm bg-white text-slate-700 hover:text-orange-500 hover:bg-orange-50 transition-all active:scale-95"
+                    title="Edit Record"
+                  >
+                    <Edit2 size={14} strokeWidth={2.5} />
+                  </button>
+                )}
+                {canDelete && (
+                  <button
+                    onClick={() => onDelete(r)}
+                    className="p-2 rounded-sm bg-white text-slate-700 hover:text-red-500 hover:bg-red-50 transition-all active:scale-95"
+                    title="Delete Record"
+                  >
+                    <Trash2 size={14} strokeWidth={2.5} />
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Info */}
+          <div className="p-3 space-y-1.5">
+            <div>
+              <p className="text-[11px] font-black text-slate-900 uppercase tracking-tight truncate group-hover:text-orange-600 transition-colors">
+                {r.product_details.product_name}
+              </p>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter truncate">
+                {r.product_details.category}
+              </p>
+            </div>
+            <div className="flex items-center gap-1">
+              <MapPin size={9} className="text-slate-300 shrink-0" />
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter truncate">
+                {r.site} · {r.location}
+              </span>
+            </div>
+            <div className="flex items-center justify-between pt-1 border-t border-slate-50">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Qty</span>
+              <span className={`text-[14px] font-black tabular-nums leading-none ${r.reorder_status === "No" ? "text-orange-600" : "text-red-500"}`}>
+                {r.quantity_on_hand.toLocaleString()}
+              </span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 
   return (
-    <div className="w-full">
-      {/* ── Mobile Compact Rows (Transactions Concept) ── */}
-      <div className="sm:hidden">
-        {/* Mobile Header */}
-        <div className="px-3 py-1.5 flex items-center gap-2 border-b border-gray-100 bg-white sticky top-0 z-10">
-           <div className="flex items-center gap-3 flex-1 min-w-0">
-             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">#</span>
-             <span className="text-slate-200">·</span>
-             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Record</span>
-           </div>
-           <div className="shrink-0 flex items-center gap-4">
-             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Qty</span>
-             <span className="text-slate-200">·</span>
-             <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Updated</span>
-             <span className="w-7" />
-           </div>
-        </div>
-
-        <div className="space-y-0">
-          {displayed.map((r) => (
-            <div
-              key={r.id}
-              className="relative group bg-white border-b border-gray-100 overflow-hidden hover:bg-slate-50/10"
-            >
-              <div className="px-3 py-3 flex items-center gap-2">
-                {/* Left: ID + Name wrapper as button for accessiblity */}
-                <button 
-                  onClick={() => onEdit(r)}
-                  className="flex items-center gap-2 flex-1 min-w-0 text-left group/btn appearance-none cursor-pointer"
-                  aria-label={`Edit ${r.product_details.product_name}`}
-                >
-                  <span className="text-slate-300 text-[10px] font-black tabular-nums shrink-0 group-hover/btn:text-orange-500 transition-colors">#{r.id}</span>
-                  <div className="w-8 h-8 rounded-sm bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
-                    {r.product_details.product_picture ? (
-                      <img
-                        src={`${BASE_URL}${r.product_details.product_picture}`}
-                        alt={r.product_details.product_name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Package size={14} className="text-slate-200" />
-                    )}
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <h3 className="text-[11px] font-black text-slate-900 truncate uppercase tracking-tight group-hover/btn:text-orange-600 transition-colors">
-                      {r.product_details.product_name}
-                    </h3>
-                    <div className="flex items-center gap-1">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter truncate">
-                        {r.site} · {r.location}
-                      </span>
-                    </div>
-                  </div>
-                </button>
-
-                {/* Right: Qty + Time + Action */}
-                <div className="shrink-0 flex items-center gap-2 relative z-10">
-                  <span className={`text-[12px] font-black tabular-nums leading-none ${r.reorder_status !== 'No' ? 'text-red-500' : 'text-orange-600'}`}>
-                    {r.quantity_on_hand.toLocaleString()}
-                  </span>
-                  <span className="text-slate-200 shrink-0">·</span>
-                  <span className="text-[9px] font-bold text-slate-400 font-mono tracking-tighter shrink-0" suppressHydrationWarning>
-                    {formatDateTime(r.updated_at).split(' ')[0].split('/').slice(0,2).join('/')} {formatDateTime(r.updated_at).split(' ')[1]}
-                  </span>
-                  <button className="p-1 text-slate-300">
-                     <ChevronRight size={14} strokeWidth={3} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Desktop Clean Table (Transactions Concept) ── */}
-      <div className="hidden sm:block overflow-x-auto bg-white border border-slate-200 rounded-md">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 border-b border-slate-100">
-            <tr>
-              {[
-                { label: "#", class: "pl-6 w-16" },
-                { label: "Pic", class: "w-16" },
-                { label: "Product" },
-                { label: "Barcode", class: "w-36" },
-                { label: "Site", class: "w-40" },
-                { label: "Quantity", class: "text-center w-32" },
-                { label: "Reorder Lvl", class: "text-center w-32" },
-                { label: "Status", class: "w-32" },
-                { label: "Updated", class: "w-40" },
-                { label: "Actions", class: "pr-6 text-right w-24" }
-              ].map((h) => {
-                const canSort = orderingFields[h.label];
-                const isSorting = canSort && (ordering === canSort || ordering === '-' + canSort);
-                const isAsc = isSorting && ordering === canSort;
-                const isDesc = isSorting && ordering === '-' + canSort;
-
-                return (
-                  <th 
-                    key={h.label} 
-                    className={`px-5 py-3 text-[9px] font-black tracking-widest text-slate-400 uppercase ${h.class ?? ""} ${canSort ? "cursor-pointer select-none group/th" : ""}`}
-                    onClick={() => canSort && onSort(h.label)}
-                  >
-                    <div className={`flex items-center gap-1.5 ${h.class?.includes('center') ? 'justify-center' : ''} ${h.class?.includes('right') ? 'justify-end' : ''}`}>
-                      {h.label}
-                    {canSort && (
-                    <div className="flex flex-col -space-y-1 opacity-20 group-hover/th:opacity-100 transition-opacity ml-1">
-                      <ChevronRight size={8} className={`-rotate-90 ${isAsc ? "text-orange-500 opacity-100" : ""}`} strokeWidth={4} />
-                      <ChevronRight size={8} className={`rotate-90 ${isDesc ? "text-orange-500 opacity-100" : ""}`} strokeWidth={4} />
-                    </div>
-                  )}
-                    </div>
-                  </th>
-                )
-              })}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 bg-white">
-            {displayed.map((r) => (
-              <tr key={r.id} className="group hover:bg-slate-50/60 transition-colors">
-                <td className="pl-6 px-5 py-4">
-                  <span className="text-[11px] font-black text-slate-500 tabular-nums">#{r.id}</span>
-                </td>
-                <td className="px-5 py-4 whitespace-nowrap">
-                  <div className="w-10 h-10 rounded-sm bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden">
-                    {r.product_details.product_picture ? (
-                      <img
-                        src={`${BASE_URL}${r.product_details.product_picture}`}
-                        alt={r.product_details.product_name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Package size={16} className="text-slate-200" />
-                    )}
-                  </div>
-                </td>
-                <td className="px-5 py-4">
-                  <div className="flex flex-col">
-                    <span className="text-[13px] font-black text-slate-900 uppercase tracking-tight group-hover:text-orange-600 transition-colors">
-                      {r.product_details.product_name}
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{r.product_details.category}</span>
-                  </div>
-                </td>
-                <td className="px-5 py-4">
-                  <span className="text-[11px] font-mono font-bold text-slate-600 tracking-wider">
-                    {r.product_details.barcode || "—"}
-                  </span>
-                </td>
-                <td className="px-5 py-4">
-                   <div className="flex items-center gap-1.5">
-                      <MapPin size={12} className="text-slate-300 shrink-0" />
-                      <div className="flex flex-col min-w-0">
-                         <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest truncate">{r.site}</span>
-                         <span className="text-[9px] font-bold text-slate-400 uppercase truncate">{r.location}</span>
-                      </div>
-                   </div>
-                </td>
-                <td className="px-5 py-4 text-center">
-                  <span className={`text-[13px] font-black tabular-nums transition-colors ${r.reorder_status !== 'No' ? 'text-red-500' : 'text-orange-600'}`}>
-                    {r.quantity_on_hand.toLocaleString()}
-                  </span>
-                </td>
-                <td className="px-5 py-4 text-center">
-                  <span className="text-[13px] font-black tabular-nums text-slate-500">
-                    {r.product_details.reorder_level.toLocaleString()}
-                  </span>
-                </td>
-                <td className="px-5 py-4">
-                  {getStockStatus(r)}
-                </td>
-                <td className="px-5 py-4" suppressHydrationWarning>
-                   <div className="flex flex-col gap-0.5">
-                      <span className="text-[11px] font-black text-slate-700 tabular-nums">{formatDateTime(r.updated_at).split(' ')[0]}</span>
-                      <span className="text-[10px] font-bold text-slate-400 tabular-nums">{formatDateTime(r.updated_at).split(' ')[1]}</span>
-                   </div>
-                </td>
-                <td className="pr-6 px-5 py-4 text-right">
-                  <div className="flex items-center justify-end gap-0.5 opacity-20 group-hover:opacity-100 transition-opacity">
-                    {canEdit && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); onEdit(r); }}
-                        className="p-1.5 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded transition-all cursor-pointer"
-                        title="Edit Record"
-                      >
-                        <Edit2 size={16} strokeWidth={2.5} />
-                      </button>
-                    )}
-                    {canDelete && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); onDelete(r); }}
-                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-all cursor-pointer"
-                        title="Delete Record"
-                      >
-                        <Trash2 size={16} strokeWidth={2.5} />
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <>
+      {mobileRows}
+      {tabletGrid}
+      {viewMode === "list" ? desktopList : desktopGrid}
+    </>
   );
 }

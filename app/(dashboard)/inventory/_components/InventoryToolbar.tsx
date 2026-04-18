@@ -247,7 +247,7 @@ export function InventoryToolbar({
               </button>
             )}
           </div>
-          <div className="flex items-center border border-slate-200 rounded-sm overflow-hidden h-8">
+          <div className="hidden lg:flex items-center border border-slate-200 rounded-sm overflow-hidden h-8">
             <button
               onClick={() => setViewMode("list")}
               className={`px-2 h-full transition-colors cursor-pointer ${viewMode === "list" ? "bg-black text-white" : "text-slate-400 hover:text-slate-600"}`}
@@ -385,22 +385,6 @@ export function InventoryToolbar({
               onChange={(e) => setSearch(e.target.value)}
               className="bg-transparent border-none outline-none text-[11px] text-slate-900 placeholder:text-slate-300 w-full font-bold uppercase tracking-tight"
             />
-          </div>
-          <div className="flex items-center border border-slate-200 rounded-sm overflow-hidden h-8 shrink-0">
-            <button
-              onClick={() => setViewMode("list")}
-              className={`px-2 h-full transition-colors cursor-pointer ${viewMode === "list" ? "bg-black text-white" : "text-slate-400"}`}
-              title="List view"
-            >
-              <List size={14} strokeWidth={2.5} />
-            </button>
-            <button
-              onClick={() => setViewMode("grid")}
-              className={`px-2 h-full transition-colors cursor-pointer ${viewMode === "grid" ? "bg-black text-white" : "text-slate-400"}`}
-              title="Grid view"
-            >
-              <LayoutGrid size={14} strokeWidth={2.5} />
-            </button>
           </div>
         </div>
       </div>

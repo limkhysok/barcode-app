@@ -43,7 +43,7 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
 
   return (
     <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-50">
-      <div className="h-[72px] px-3 sm:px-4 md:px-6 flex items-center justify-between gap-4 border-b border-slate-200">
+      <div className="h-12.5 px-3 sm:px-4 md:px-6 flex items-center justify-between gap-4 border-b border-slate-200">
 
         {/* Left Section: Handles both Mobile Branding and Hamburger */}
         <div className="flex items-center">
@@ -78,7 +78,7 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
           {/* Greeting text — Desktop ONLY (>= sm) */}
           <div className="hidden sm:flex flex-col items-end leading-none gap-1 shrink-0">
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Logged In As</p>
-            <p className="text-[11px] font-black text-slate-950 uppercase tracking-tight truncate max-w-[120px]">
+            <p className="text-[11px] font-black text-slate-950 uppercase tracking-tight truncate max-w-30">
               {displayName}
             </p>
           </div>
