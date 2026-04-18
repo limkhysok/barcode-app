@@ -6,7 +6,6 @@ export interface User {
   is_boss: boolean;
   is_staff: boolean;
   is_superuser: boolean;
-  image?: string;
 }
 
 export interface AuthTokens {

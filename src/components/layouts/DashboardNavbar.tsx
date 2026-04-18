@@ -84,13 +84,9 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
               className="group flex items-center gap-1 p-0.5 rounded-full hover:bg-slate-50 transition-all duration-300 cursor-pointer"
             >
               <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-2 ring-white shadow-sm border border-slate-200">
-                {user?.image ? (
-                  <Image src={user.image} alt="Avatar" width={32} height={32} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400">
-                    <User size={16} />
-                  </div>
-                )}
+                <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400">
+                  <User size={16} />
+                </div>
               </div>
             </button>
 
