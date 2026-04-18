@@ -54,7 +54,7 @@ const DateFilter: React.FC<DateFilterProps> = ({ value, onChange }) => {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`px-2.5 py-1 rounded-sm border border-gray-200 text-[12px] font-bold transition-all duration-150 focus:outline-none flex items-center gap-2.5 group ${buttonStyles} min-w-30`}
+        className={`px-2.5 h-8 rounded-sm border border-gray-200 text-[12px] font-bold transition-all duration-150 focus:outline-none flex items-center gap-2.5 group ${buttonStyles} min-w-30`}
       >
         <div className={`transition-colors duration-200 ${isActive ? "text-white" : "text-gray-400 group-hover:text-white"}`}>
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
