@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import {
   LayoutDashboard,
@@ -9,9 +9,7 @@ import {
   Database,
   ArrowLeftRight,
   ChevronLeft,
-  LogOut,
 } from "lucide-react";
-import { useAuth } from "@/src/context/AuthContext";
 
 const EXPANDED_W = 180;
 const COLLAPSED_W = 50;
@@ -115,87 +113,6 @@ function NavItem({
   );
 }
 
-// ─── UserFooter ───────────────────────────────────────────────────────────────
-
-const ROLE_LABELS: Record<string, string> = { superadmin: "Super Admin", boss: "Boss", staff: "Staff" };
-
-function UserFooter({ isCollapsed }: Readonly<{ isCollapsed: boolean }>) {
-  const { user, role, logout } = useAuth();
-  const router = useRouter();
-
-  const initials = user?.username ? user.username.slice(0, 2).toUpperCase() : "??";
-  const roleLabel = ROLE_LABELS[role] ?? "Staff";
-
-  function handleLogout() {
-    logout();
-    router.replace("/login");
-  }
-
-
-  return (
-    <div className="border-t border-slate-100 shrink-0 bg-slate-50/30">
-      {/* User row */}
-      <div
-        className="flex items-center gap-3 overflow-hidden"
-        style={{
-          justifyContent: isCollapsed ? "center" : "flex-start",
-          padding: isCollapsed ? "12px 0" : "12px 14px",
-          transition: `padding ${easing}`,
-        }}
-      >
-        <div className="w-7 h-7 rounded-sm bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shrink-0 shadow-sm border border-orange-400/20">
-          <span className="text-[10px] font-black text-white leading-none tracking-tighter">{initials}</span>
-        </div>
-
-        <div
-          className="flex-1 min-w-0"
-          style={{
-            opacity: isCollapsed ? 0 : 1,
-            maxWidth: isCollapsed ? 0 : 120,
-            overflow: "hidden",
-            transition: `opacity ${easing}, max-width ${easing}`,
-          }}
-        >
-          <p className="text-[10px] font-black text-slate-800 uppercase tracking-widest truncate leading-none">
-            {user?.username ?? "User"}
-          </p>
-          <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest mt-1 leading-none">
-            {roleLabel}
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleLogout}
-          title="Logout"
-          className={`shrink-0 w-6 h-6 flex items-center justify-center rounded-md text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all duration-200 cursor-pointer group/exit ${
-            isCollapsed ? "hidden" : ""
-          }`}
-        >
-          <LogOut size={13} strokeWidth={2.5} className="group-hover/exit:translate-x-0.5 transition-transform" />
-        </button>
-      </div>
-
-      {/* Collapsed logout */}
-      {isCollapsed && (
-        <div className="relative group flex justify-center pb-4">
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="w-8 h-8 flex items-center justify-center rounded-md text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer"
-          >
-            <LogOut size={14} strokeWidth={2.5} />
-          </button>
-          <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50 px-2.5 py-1.5 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest rounded-sm whitespace-nowrap shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-            {"Logout"}
-            <span className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-900" />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── SidebarContent ───────────────────────────────────────────────────────────
 
 function SidebarContent({
@@ -258,8 +175,6 @@ function SidebarContent({
         </div>
       </div>
 
-      {/* ── User Footer ── */}
-      <UserFooter isCollapsed={isCollapsed} />
     </div>
   );
 }
