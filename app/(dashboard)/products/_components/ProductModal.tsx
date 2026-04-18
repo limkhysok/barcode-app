@@ -172,8 +172,9 @@ export function ProductModal({
 
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
-      <div className="bg-white rounded-t-sm sm:rounded-sm shadow-2xl w-full sm:max-w-lg flex flex-col max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:px-4">
+      <button className="absolute inset-0 bg-black/20 backdrop-blur-sm cursor-default" onClick={onClose} aria-label="Close modal" />
+      <div className="relative bg-white rounded-t-sm sm:rounded-sm shadow-2xl w-full sm:max-w-lg flex flex-col max-h-[90vh] overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-black shrink-0 bg-white">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-sm bg-black flex items-center justify-center shrink-0">

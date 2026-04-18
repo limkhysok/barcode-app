@@ -2,13 +2,13 @@
 
 import React from "react";
 import type { InventoryRecord } from "@/src/types/inventory.types";
-import { 
-  Edit2, 
-  Trash2, 
+import {
+  Edit2,
+  Trash2,
   Database,
   ChevronRight,
   MapPin,
-  Package
+  Package,
 } from "lucide-react";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
@@ -23,6 +23,7 @@ interface InventoryTableProps {
   canDelete: boolean;
   ordering?: string;
   onSort: (col: string) => void;
+  viewMode?: "list" | "grid";
 }
 
 function formatDateTime(dateStr: string): string {
@@ -48,6 +49,7 @@ export function InventoryTable({
   canDelete,
   ordering,
   onSort,
+  viewMode = "list",
 }: Readonly<InventoryTableProps>) {
   if (loading) {
     return (
@@ -108,6 +110,85 @@ export function InventoryTable({
     'Updated': 'updated_at',
     'Order Date': 'updated_at',
   };
+
+  if (viewMode === "grid") {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        {displayed.map((r) => (
+          <div
+            key={r.id}
+            className="group relative bg-white border border-slate-200 rounded-md overflow-hidden hover:border-orange-300 hover:shadow-md transition-all duration-200"
+          >
+            {/* Image */}
+            <div className="relative w-full aspect-square bg-slate-50 border-b border-slate-100 flex items-center justify-center overflow-hidden">
+              {r.product_details.product_picture ? (
+                <img
+                  src={`${BASE_URL}${r.product_details.product_picture}`}
+                  alt={r.product_details.product_name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <Package size={32} className="text-slate-200" strokeWidth={1} />
+              )}
+              {/* Status badge top-right */}
+              <div className="absolute top-2 right-2">
+                {getStockStatus(r)}
+              </div>
+              {/* Actions overlay */}
+              {(canEdit || canDelete) && (
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  {canEdit && (
+                    <button
+                      onClick={() => onEdit(r)}
+                      className="p-2 rounded-sm bg-white text-slate-700 hover:text-orange-500 hover:bg-orange-50 transition-all active:scale-95"
+                      title="Edit Record"
+                    >
+                      <Edit2 size={14} strokeWidth={2.5} />
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button
+                      onClick={() => onDelete(r)}
+                      className="p-2 rounded-sm bg-white text-slate-700 hover:text-red-500 hover:bg-red-50 transition-all active:scale-95"
+                      title="Delete Record"
+                    >
+                      <Trash2 size={14} strokeWidth={2.5} />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Info */}
+            <div className="p-3 space-y-1.5">
+              <div>
+                <p className="text-[11px] font-black text-slate-900 uppercase tracking-tight truncate group-hover:text-orange-600 transition-colors">
+                  {r.product_details.product_name}
+                </p>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter truncate">
+                  {r.product_details.category}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <MapPin size={9} className="text-slate-300 shrink-0" />
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter truncate">
+                  {r.site} · {r.location}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between pt-1 border-t border-slate-50">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Qty</span>
+                <span className={`text-[14px] font-black tabular-nums leading-none ${r.reorder_status === "No" ? "text-orange-600" : "text-red-500"}`}>
+                  {r.quantity_on_hand.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">

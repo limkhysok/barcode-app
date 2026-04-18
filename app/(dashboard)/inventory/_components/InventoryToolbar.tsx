@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { 
-  Search, 
-  X, 
+import {
+  Search,
+  X,
   ArrowUpDown,
   Filter,
   ChevronDown,
@@ -11,7 +11,9 @@ import {
   Calendar,
   Layers,
   Activity,
-  BarChart3
+  BarChart3,
+  List,
+  LayoutGrid,
 } from "lucide-react";
 
 interface InventoryToolbarProps {
@@ -30,6 +32,8 @@ interface InventoryToolbarProps {
   filtersOpen: boolean;
   setFiltersOpen: React.Dispatch<React.SetStateAction<boolean>>;
   filtersRef: React.RefObject<HTMLDivElement | null>;
+  viewMode: "list" | "grid";
+  setViewMode: (v: "list" | "grid") => void;
 }
 
 function FilterDropdown({ label, value, options, onChange, icon: Icon }: Readonly<{ 
@@ -151,6 +155,8 @@ export function InventoryToolbar({
   filtersOpen,
   setFiltersOpen,
   filtersRef,
+  viewMode,
+  setViewMode,
 }: Readonly<InventoryToolbarProps>) {
   const activeCount = [siteFilter, statusFilter, quantitySort, dateSort].filter(Boolean).length;
   const isFiltered = activeCount > 0 || search !== "";
@@ -225,20 +231,38 @@ export function InventoryToolbar({
            </button>
         )}
 
-        <div className="ml-auto flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-sm px-2.5 h-8 focus-within:border-orange-200 focus-within:bg-white transition-all w-64 lg:w-80 overflow-hidden">
-          <Search size={14} className="text-slate-400 shrink-0" strokeWidth={3} />
-          <input 
-            type="text" 
-            placeholder="Search record..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="bg-transparent border-none outline-none text-[11px] text-slate-900 placeholder:text-slate-300 w-full font-bold uppercase tracking-tight"
-          />
-          {search && (
-            <button onClick={() => setSearch("")} className="text-slate-300 hover:text-slate-900 transition-colors cursor-pointer">
-              <X size={14} strokeWidth={3} />
+        <div className="ml-auto flex items-center gap-2">
+          <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-sm px-2.5 h-8 focus-within:border-orange-200 focus-within:bg-white transition-all w-64 lg:w-80 overflow-hidden">
+            <Search size={14} className="text-slate-400 shrink-0" strokeWidth={3} />
+            <input
+              type="text"
+              placeholder="Search record..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="bg-transparent border-none outline-none text-[11px] text-slate-900 placeholder:text-slate-300 w-full font-bold uppercase tracking-tight"
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="text-slate-300 hover:text-slate-900 transition-colors cursor-pointer">
+                <X size={14} strokeWidth={3} />
+              </button>
+            )}
+          </div>
+          <div className="flex items-center border border-slate-200 rounded-sm overflow-hidden h-8">
+            <button
+              onClick={() => setViewMode("list")}
+              className={`px-2 h-full transition-colors cursor-pointer ${viewMode === "list" ? "bg-black text-white" : "text-slate-400 hover:text-slate-600"}`}
+              title="List view"
+            >
+              <List size={14} strokeWidth={2.5} />
             </button>
-          )}
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`px-2 h-full transition-colors cursor-pointer ${viewMode === "grid" ? "bg-black text-white" : "text-slate-400 hover:text-slate-600"}`}
+              title="Grid view"
+            >
+              <LayoutGrid size={14} strokeWidth={2.5} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -350,16 +374,34 @@ export function InventoryToolbar({
           )}
         </div>
 
-        {/* Mobile Search */}
-        <div className="flex-1 flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-sm px-2.5 h-8">
-          <Search size={14} className="text-slate-400 shrink-0" strokeWidth={3} />
-          <input 
-            type="text" 
-            placeholder="Search record..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="bg-transparent border-none outline-none text-[11px] text-slate-900 placeholder:text-slate-300 w-full font-bold uppercase tracking-tight"
-          />
+        {/* Mobile Search + View Toggle */}
+        <div className="flex-1 flex items-center gap-2">
+          <div className="flex-1 flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-sm px-2.5 h-8">
+            <Search size={14} className="text-slate-400 shrink-0" strokeWidth={3} />
+            <input
+              type="text"
+              placeholder="Search record..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="bg-transparent border-none outline-none text-[11px] text-slate-900 placeholder:text-slate-300 w-full font-bold uppercase tracking-tight"
+            />
+          </div>
+          <div className="flex items-center border border-slate-200 rounded-sm overflow-hidden h-8 shrink-0">
+            <button
+              onClick={() => setViewMode("list")}
+              className={`px-2 h-full transition-colors cursor-pointer ${viewMode === "list" ? "bg-black text-white" : "text-slate-400"}`}
+              title="List view"
+            >
+              <List size={14} strokeWidth={2.5} />
+            </button>
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`px-2 h-full transition-colors cursor-pointer ${viewMode === "grid" ? "bg-black text-white" : "text-slate-400"}`}
+              title="Grid view"
+            >
+              <LayoutGrid size={14} strokeWidth={2.5} />
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -84,6 +84,8 @@ export default function InventoryClient({
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+
   const [deleteTarget, setDeleteTarget] = useState<InventoryRecord | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -397,7 +399,7 @@ export default function InventoryClient({
         <div className="flex items-center gap-3">
           {canEdit && (
             <div className="relative" ref={exportRef}>
-              <button 
+              <button
                 onClick={() => setExportOpen(!exportOpen)}
                 className={`flex items-center gap-2 px-4 py-1.5 rounded-sm text-[11px] font-black uppercase tracking-wider border transition-all cursor-pointer ${
                   exportOpen ? "bg-black text-white border-black" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
@@ -473,6 +475,8 @@ export default function InventoryClient({
         filtersOpen={filtersOpen}
         setFiltersOpen={setFiltersOpen}
         filtersRef={filtersRef}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
       />
 
       {/* Table Section */}
@@ -487,6 +491,7 @@ export default function InventoryClient({
           canDelete={canDelete}
           ordering={ordering}
           onSort={handleSort}
+          viewMode={viewMode}
         />
       </div>
 

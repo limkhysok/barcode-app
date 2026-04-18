@@ -209,7 +209,7 @@ function FilterableProductSelect({
         {open && (
           <ul className="absolute z-200 top-full mt-1 w-full bg-white border border-black rounded-sm shadow-lg overflow-hidden max-h-52 overflow-y-auto">
             {filtered.length === 0 && (
-              <li className="px-2 py-3 text-xs text-gray-400 font-medium font-black uppercase tracking-widest text-center">No products found</li>
+              <li className="px-2 py-3 text-xs text-gray-400 font-black uppercase tracking-widest text-center">No products found</li>
             )}
             {filtered.map((p) => {
               const active = value === p.id;
@@ -279,8 +279,9 @@ export function InventoryModal({
   else if (editing) saveLabel = "Save Changes";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 sm:px-4">
-      <div className="bg-white rounded-t-sm sm:rounded-sm shadow-2xl w-full sm:max-w-lg flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:px-4">
+      <button className="absolute inset-0 bg-black/20 backdrop-blur-sm cursor-default" onClick={onClose} aria-label="Close modal" />
+      <div className="relative bg-white rounded-t-sm sm:rounded-sm shadow-2xl w-full sm:max-w-lg flex flex-col max-h-[90vh]">
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-black shrink-0 bg-white">
