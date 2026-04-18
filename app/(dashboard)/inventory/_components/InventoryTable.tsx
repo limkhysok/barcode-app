@@ -85,7 +85,7 @@ export function InventoryTable({
         </span>
       );
     }
-    if (r.reorder_status === "Yes") {
+    if (r.reorder_status === "LOW") {
       return (
         <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-yellow-50 text-yellow-600 border border-yellow-100">
           <span className="w-1 h-1 rounded-full bg-yellow-400" /> LOW
@@ -167,7 +167,7 @@ export function InventoryTable({
 
                 {/* Right: Qty + Time + Action */}
                 <div className="shrink-0 flex items-center gap-2 relative z-10">
-                  <span className={`text-[12px] font-black tabular-nums leading-none ${r.reorder_status === 'Yes' ? 'text-red-500' : 'text-orange-600'}`}>
+                  <span className={`text-[12px] font-black tabular-nums leading-none ${r.reorder_status !== 'No' ? 'text-red-500' : 'text-orange-600'}`}>
                     {r.quantity_on_hand.toLocaleString()}
                   </span>
                   <span className="text-slate-200 shrink-0">·</span>
@@ -268,7 +268,7 @@ export function InventoryTable({
                    </div>
                 </td>
                 <td className="px-5 py-4 text-center">
-                  <span className={`text-[13px] font-black tabular-nums transition-colors ${r.reorder_status === 'Yes' ? 'text-red-500' : 'text-orange-600'}`}>
+                  <span className={`text-[13px] font-black tabular-nums transition-colors ${r.reorder_status !== 'No' ? 'text-red-500' : 'text-orange-600'}`}>
                     {r.quantity_on_hand.toLocaleString()}
                   </span>
                 </td>

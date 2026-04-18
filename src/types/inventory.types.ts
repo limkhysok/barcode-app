@@ -19,7 +19,7 @@ export interface InventoryRecord {
   product_description: string;
   quantity_on_hand: number;
   stock_value: string;
-  reorder_status: "Yes" | "No";
+  reorder_status: "No" | "LOW" | "NO STOCK";
   order_date: string;
   created_at: string;
   updated_at: string;

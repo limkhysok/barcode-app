@@ -187,7 +187,7 @@ export function InventoryToolbar({
              options={[
                { key: "", label: "ALL STATUS" },
                { key: "No", label: "GOOD" },
-               { key: "Yes", label: "LOW" },
+               { key: "LOW", label: "LOW" },
                { key: "no_stock", label: "NO STOCK" },
              ]}
            />
@@ -289,7 +289,7 @@ export function InventoryToolbar({
                    {[
                      { key: "", label: "ALL STATUS" },
                      { key: "No", label: "GOOD" },
-                     { key: "Yes", label: "LOW" },
+                     { key: "LOW", label: "LOW" },
                      { key: "no_stock", label: "NO STOCK" },
                    ].map((s) => {
                      const isSelected = s.key === statusFilter;

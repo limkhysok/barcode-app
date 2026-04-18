@@ -53,7 +53,7 @@ export default function InventoryClient({
 
   // -- Filter / sort state --
   const [siteFilter, setSiteFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState(""); // "" | "Yes" | "No"
+  const [statusFilter, setStatusFilter] = useState(""); // "" | "No" | "LOW" | "no_stock"
   const [search, setSearch] = useState("");
   const [ordering, setOrdering] = useState<string>("-updated_at");
 
@@ -148,8 +148,12 @@ export default function InventoryClient({
       setModalOpen(false);
       fetchInventory();
       getProducts().then(setPaginatedProducts).catch(() => { });
-    } catch {
-      setFormError("FAILED TO SAVE. PLEASE VERIFY INPUTS");
+    } catch (err: any) {
+      if (err?.response?.status === 409) {
+        setFormError("AN INVENTORY RECORD FOR THIS PRODUCT, SITE, AND LOCATION ALREADY EXISTS.");
+      } else {
+        setFormError("FAILED TO SAVE. PLEASE VERIFY INPUTS");
+      }
     } finally {
       setSaving(false);
     }
@@ -175,7 +179,7 @@ export default function InventoryClient({
 
     let list = records;
     if (mode === "no_stock") list = records.filter(r => r.quantity_on_hand === 0);
-    else if (mode === "low") list = records.filter(r => r.quantity_on_hand > 0 && r.reorder_status === "Yes");
+    else if (mode === "low") list = records.filter(r => r.quantity_on_hand > 0 && r.reorder_status === "LOW");
     else if (mode === "good") list = records.filter(r => r.quantity_on_hand > 0 && r.reorder_status === "No");
 
     if (list.length === 0) {
@@ -185,7 +189,7 @@ export default function InventoryClient({
 
     function getStatus(r: typeof records[number]) {
       if (r.quantity_on_hand === 0) return "NO STOCK";
-      if (r.reorder_status === "Yes") return "LOW";
+      if (r.reorder_status === "LOW") return "LOW";
       return "GOOD";
     }
 
@@ -281,7 +285,7 @@ export default function InventoryClient({
   const stats = useMemo(() => {
     const total = displayed.length;
     const totalQty = displayed.reduce((s, r) => s + r.quantity_on_hand, 0);
-    const needsReorder = displayed.filter((r) => r.reorder_status === "Yes").length;
+    const needsReorder = displayed.filter((r) => r.reorder_status !== "No").length;
     return { total, totalQty, needsReorder };
   }, [displayed]);
 
