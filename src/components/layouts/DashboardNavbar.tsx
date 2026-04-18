@@ -83,18 +83,16 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
               onClick={() => setOpen((v) => !v)}
               className="group flex items-center gap-1 p-0.5 rounded-full hover:bg-slate-50 transition-all duration-300 cursor-pointer"
             >
-              <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-2 ring-white shadow-sm border border-slate-200">
-                <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400">
-                  <User size={16} />
-                </div>
+              <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-2 ring-white shadow-sm border border-slate-200 bg-slate-100 flex items-center justify-center">
+                <Image src="/albert-einstein.png" alt="User Avatar" width={32} height={32} className="object-cover" />
               </div>
             </button>
 
             {open && (
               <div className="absolute right-0 mt-3 w-56 bg-white border border-slate-200 shadow-2xl overflow-hidden z-50 rounded-sm animate-in fade-in slide-in-from-top-2 duration-200">
                 <div className="px-5 py-4 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-sm bg-gradient-to-br from-slate-800 to-slate-950 flex items-center justify-center text-white shadow-lg shrink-0">
-                    <span className="text-xs font-black uppercase">{user?.username?.[0] || "?"}</span>
+                  <div className="w-10 h-10 rounded-sm overflow-hidden shadow-lg shrink-0 border border-slate-200">
+                    <Image src="/albert-einstein.png" alt="User Avatar" width={40} height={40} className="object-cover" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[12px] font-black text-slate-950 truncate leading-none mb-1">@{user?.username || "user"}</p>
