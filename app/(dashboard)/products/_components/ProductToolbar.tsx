@@ -192,8 +192,8 @@ export function ProductToolbar({
               )}
             </div>
 
-            {/* View mode toggle */}
-            <div className="flex items-center gap-0 bg-slate-100 border border-gray-100 rounded-sm h-8 overflow-hidden">
+            {/* View mode toggle - desktop only */}
+            <div className="hidden lg:flex items-center gap-0 bg-slate-100 border border-gray-100 rounded-sm h-8 overflow-hidden">
               {(["list", "grid"] as const).map((mode) => (
                 <button
                   key={mode}
