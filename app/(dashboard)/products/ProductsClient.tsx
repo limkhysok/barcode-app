@@ -11,6 +11,7 @@ import { type ApiError, getFieldError } from "@/src/types/error.types";
 
 // Components
 import { StatsOverview } from "./_components/StatsOverview";
+import { ProductHeader } from "./_components/ProductHeader";
 import { ProductsTable, type SortDir } from "./_components/ProductsTable";
 import { ProductModal } from "./_components/ProductModal";
 import { DeleteConfirmModal } from "./_components/DeleteConfirmModal";
@@ -238,51 +239,7 @@ export default function ProductsClient({
   return (
     <div className="px-4 py-5 sm:px-5 sm:py-5 space-y-3">
 
-      {/* HEADER SECTION - Separate Mobile and Desktop Blocks */}
-
-      {/* Mobile-Only Header */}
-      <div className="sm:hidden flex flex-row gap-4 justify-between h-10">
-        <div className="flex items-center">
-          <div className="flex flex-col">
-            <h1 className="text-[14px] font-black text-slate-950 uppercase tracking-[0.2em] leading-none">Product</h1>
-            <p className="text-[9px] text-orange-500 font-bold uppercase mt-1">Mobile Dashboard</p>
-          </div>
-        </div>
-
-        <div className="flex items-center">
-          <button
-            onClick={openCreate}
-            className="px-5 py-1.5 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white active:scale-[0.98] transition-all cursor-pointer"
-          >
-            <span>New</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Desktop-Only Header */}
-      <div className="hidden sm:flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="flex flex-col border-l-4 border-orange-500 pl-4">
-            <h1 className="text-[16px] font-black text-slate-950 uppercase tracking-[0.25em] leading-tight">Product</h1>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Command Center / Catalog</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={openCreate}
-            className="flex items-center gap-2.5 px-5 py-2 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            <span>New Product</span>
-          </button>
-        </div>
-      </div>
+      <ProductHeader onNew={openCreate} />
 
       {/* ── Stats: Category Overview ── */}
       <StatsOverview stats={initialStats} products={products} />

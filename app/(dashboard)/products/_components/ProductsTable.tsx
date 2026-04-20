@@ -2,7 +2,7 @@
 
 import React from "react";
 import type { Product } from "@/src/types/product.types";
-import { Edit2, Trash2, Eye, Database, ArrowUp, ArrowDown, Image as ImageIcon, Package } from "lucide-react";
+import { Edit2, Trash2, Eye, Database, ArrowUp, ArrowDown, Package } from "lucide-react";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -192,80 +192,35 @@ export function ProductsTable({
     </div>
   );
 
-  // ── Tablet: 2-col cards ──
+  // ── Tablet: 4-col cards ──
   const tabletGrid = (
-    <div className="hidden sm:grid lg:hidden grid-cols-2 gap-3 p-3">
+    <div className="hidden sm:grid lg:hidden grid-cols-4 gap-2">
       {displayed.map((p) => (
-        <div key={p.id} className="group bg-white border border-slate-200 rounded-sm overflow-hidden flex flex-col transition-all duration-300 hover:border-orange-500/30 hover:shadow-lg hover:shadow-orange-500/5">
-          {/* Header bar */}
-          <div className="px-3 py-2 flex items-center justify-between border-b border-slate-100 bg-slate-50/50">
-            <span className="text-[9px] font-black text-slate-400 tabular-nums">#{p.id}</span>
-            <span className="text-[9px] font-mono font-bold text-slate-300 uppercase tracking-tighter truncate max-w-32 ml-2">{p.barcode}</span>
-          </div>
-
-          {/* Image */}
-          <div className="aspect-video w-full bg-slate-50 flex items-center justify-center border-b border-slate-100 overflow-hidden group-hover:bg-slate-100 transition-colors">
-            {p.product_picture ? (
-              <img
-                src={`${BASE_URL}${p.product_picture}`}
-                alt={p.product_name}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-            ) : (
-              <div className="flex flex-col items-center gap-2 opacity-20">
-                <ImageIcon size={28} strokeWidth={1} />
-                <span className="text-[8px] font-black uppercase tracking-[0.2em]">No Preview</span>
+        <div key={p.id} className="group relative bg-white border border-slate-200 rounded-sm overflow-hidden transition-all duration-300 hover:border-orange-400 hover:shadow-md hover:shadow-orange-500/10 hover:-translate-y-0.5">
+          {/* Card button — click anywhere to view */}
+          <button type="button" onClick={() => onView(p)} className="w-full text-left flex flex-col cursor-pointer">
+            <div className="h-20 w-full bg-slate-50 flex items-center justify-center overflow-hidden group-hover:bg-orange-50 transition-colors relative">
+              {p.product_picture ? (
+                <img src={`${BASE_URL}${p.product_picture}`} alt={p.product_name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              ) : (
+                <Package size={20} strokeWidth={1} className="opacity-20" />
+              )}
+              <span className="absolute top-1 left-1 text-[8px] font-black text-slate-500 tabular-nums bg-white/80 px-1 py-0.5 rounded-sm">#{p.id}</span>
+            </div>
+            <div className="px-2 py-1.5 flex flex-col gap-1">
+              <span className="text-[8px] font-black text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded-full border border-orange-100 uppercase tracking-widest self-start truncate max-w-full">{p.category}</span>
+              <span className="text-[11px] font-black text-slate-900 leading-tight truncate group-hover:text-orange-600 transition-colors">{p.product_name}</span>
+              <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                <span className="text-[9px] text-slate-400 truncate">{p.supplier}</span>
+                <span className="text-[10px] font-black text-orange-600 tabular-nums shrink-0 ml-1">{p.reorder_level}</span>
               </div>
-            )}
-          </div>
-
-          {/* Body */}
-          <div className="px-3 py-3 flex-1 flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[8px] font-black text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100 uppercase tracking-widest shrink-0">
-                {p.category}
-              </span>
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-wide truncate">{p.supplier}</span>
             </div>
-            <span className="text-[12px] font-black text-slate-900 uppercase leading-tight line-clamp-2 group-hover:text-orange-600 transition-colors">
-              {p.product_name}
-            </span>
-            <div className="flex items-baseline gap-1.5 mt-auto pt-1">
-              <span className="text-3xl font-black text-orange-600 tabular-nums leading-none tracking-tighter">{p.reorder_level}</span>
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">reorder</span>
-            </div>
-          </div>
-
-          {/* Footer actions */}
-          <div className="px-2 pb-2 flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => onView(p)}
-              className="flex-1 flex items-center justify-center py-2.5 rounded-sm bg-slate-50 text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-all cursor-pointer border border-transparent hover:border-blue-100"
-              title="View"
-            >
-              <Eye size={14} strokeWidth={2.5} />
-            </button>
-            {canEdit && (
-              <button
-                type="button"
-                onClick={() => onEdit(p)}
-                className="flex-1 flex items-center justify-center py-2.5 rounded-sm bg-slate-50 text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer border border-transparent hover:border-orange-100"
-                title="Edit"
-              >
-                <Edit2 size={14} strokeWidth={2.5} />
-              </button>
-            )}
-            {canDelete && (
-              <button
-                type="button"
-                onClick={() => onDelete(p)}
-                className="flex-1 flex items-center justify-center py-2.5 rounded-sm bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer border border-transparent hover:border-red-100"
-                title="Delete"
-              >
-                <Trash2 size={14} strokeWidth={2.5} />
-              </button>
-            )}
+          </button>
+          {/* Action overlay — sibling to button, pointer-events-none so bg passes clicks to card */}
+          <div className="absolute top-0 inset-x-0 h-20 bg-black/30 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity flex items-center justify-center gap-1">
+            <button type="button" onClick={() => onView(p)} className="pointer-events-auto p-1.5 bg-white/90 rounded-sm text-slate-600 hover:text-blue-500 transition-colors cursor-pointer" title="View"><Eye size={11} strokeWidth={2.5} /></button>
+            {canEdit && <button type="button" onClick={() => onEdit(p)} className="pointer-events-auto p-1.5 bg-white/90 rounded-sm text-slate-600 hover:text-orange-500 transition-colors cursor-pointer" title="Edit"><Edit2 size={11} strokeWidth={2.5} /></button>}
+            {canDelete && <button type="button" onClick={() => onDelete(p)} className="pointer-events-auto p-1.5 bg-white/90 rounded-sm text-slate-600 hover:text-red-500 transition-colors cursor-pointer" title="Delete"><Trash2 size={11} strokeWidth={2.5} /></button>}
           </div>
         </div>
       ))}
@@ -290,9 +245,9 @@ export function ProductsTable({
         </thead>
         <tbody className="divide-y divide-slate-100 bg-white">
           {displayed.map((p) => (
-            <tr key={p.id} className="group hover:bg-slate-50/50 transition-colors">
+            <tr key={p.id} className="group hover:bg-orange-50/60 transition-colors">
               <td className="px-5 py-4">
-                <span className="text-[11px] font-black text-slate-500 tabular-nums">#{p.id}</span>
+                <span className="text-[12px] font-black text-slate-500 tabular-nums group-hover:text-orange-600 transition-colors">#{p.id}</span>
               </td>
               <td className="px-5 py-4 whitespace-nowrap">
                 <div className="w-10 h-10 rounded-sm bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden">
@@ -308,10 +263,10 @@ export function ProductsTable({
                 </div>
               </td>
               <td className="px-5 py-4 whitespace-nowrap">
-                <span className="text-[10px] font-mono font-bold text-slate-300 uppercase tracking-tighter tabular-nums">{p.barcode}</span>
+                <span className="text-[12px] font-mono font-bold text-slate-300 tracking-tighter tabular-nums group-hover:text-orange-400 transition-colors">{p.barcode}</span>
               </td>
               <td className="px-5 py-4">
-                <span className="text-[13px] font-black text-slate-900 uppercase tracking-tight group-hover:text-orange-600 transition-colors">
+                <span className="text-[12px] font-black text-slate-900 tracking-tight group-hover:text-orange-600 transition-colors">
                   {p.product_name}
                 </span>
               </td>
@@ -321,10 +276,10 @@ export function ProductsTable({
                 </span>
               </td>
               <td className="px-5 py-4">
-                <span className="text-sm font-black text-slate-950 tabular-nums">{p.reorder_level}</span>
+                <span className="text-[12px] font-black text-slate-950 tabular-nums group-hover:text-orange-600 transition-colors">{p.reorder_level}</span>
               </td>
               <td className="px-5 py-4">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{p.supplier}</span>
+                <span className="text-[12px] font-black text-slate-400 tracking-widest group-hover:text-orange-600 transition-colors">{p.supplier}</span>
               </td>
               <td className="px-5 py-4">
                 <div className="flex items-center gap-1 opacity-20 group-hover:opacity-100 transition-opacity">
@@ -364,80 +319,33 @@ export function ProductsTable({
 
   // ── Desktop: Grid cards ──
   const desktopGrid = (
-    <div className="hidden lg:grid grid-cols-3 xl:grid-cols-4 gap-3">
+    <div className="hidden lg:grid grid-cols-6 gap-2">
       {displayed.map((p) => (
-        <div key={p.id} className="group bg-white border border-slate-200 rounded-sm overflow-hidden flex flex-col transition-all duration-300 hover:border-orange-500/30 hover:shadow-xl hover:shadow-orange-500/5">
-          {/* Top bar */}
-          <div className="px-4 py-2.5 flex items-center justify-between border-b border-slate-100 bg-slate-50/50">
-            <span className="text-[10px] font-black text-slate-400 tabular-nums">#{p.id}</span>
-            <span className="text-[10px] font-bold text-slate-300 tracking-tighter font-mono uppercase">{p.barcode}</span>
-          </div>
-
-          {/* Image Section */}
-          <div className="aspect-video w-full bg-slate-50 flex items-center justify-center border-b border-slate-100 overflow-hidden relative group-hover:bg-slate-100 transition-colors">
-            {p.product_picture ? (
-              <img
-                src={`${BASE_URL}${p.product_picture}`}
-                alt={p.product_name}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-            ) : (
-              <div className="flex flex-col items-center gap-2 opacity-20">
-                <ImageIcon size={32} strokeWidth={1} />
-                <span className="text-[8px] font-black uppercase tracking-[0.2em]">No Preview</span>
+        <div key={p.id} className="group relative bg-white border border-slate-200 rounded-sm overflow-hidden transition-all duration-300 hover:border-orange-400 hover:shadow-md hover:shadow-orange-500/10 hover:-translate-y-0.5">
+          {/* Card button — click anywhere to view */}
+          <button type="button" onClick={() => onView(p)} className="w-full text-left flex flex-col cursor-pointer">
+            <div className="h-20 w-full bg-slate-50 flex items-center justify-center overflow-hidden group-hover:bg-orange-50 transition-colors relative">
+              {p.product_picture ? (
+                <img src={`${BASE_URL}${p.product_picture}`} alt={p.product_name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              ) : (
+                <Package size={20} strokeWidth={1} className="opacity-20" />
+              )}
+              <span className="absolute top-1 left-1 text-[8px] font-black text-slate-500 tabular-nums bg-white/80 px-1 py-0.5 rounded-sm">#{p.id}</span>
+            </div>
+            <div className="px-2 py-1.5 flex flex-col gap-1">
+              <span className="text-[8px] font-black text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded-full border border-orange-100 uppercase tracking-widest self-start truncate max-w-full">{p.category}</span>
+              <span className="text-[11px] font-black text-slate-900 leading-tight truncate group-hover:text-orange-600 transition-colors">{p.product_name}</span>
+              <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                <span className="text-[9px] text-slate-400 truncate">{p.supplier}</span>
+                <span className="text-[10px] font-black text-orange-600 tabular-nums shrink-0 ml-1">{p.reorder_level}</span>
               </div>
-            )}
-          </div>
-
-          {/* Body */}
-          <div className="px-4 py-5 flex-1 flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <span className="text-[8px] font-black text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100 uppercase tracking-widest">
-                {p.category}
-              </span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{p.supplier}</span>
             </div>
-
-            <span className="text-sm font-black text-slate-900 uppercase leading-tight group-hover:text-orange-600 transition-colors line-clamp-2 min-h-10">
-              {p.product_name}
-            </span>
-
-            <div className="flex items-baseline gap-2 mt-auto">
-              <span className="text-4xl font-black text-orange-600 tabular-nums leading-none tracking-tighter">{p.reorder_level}</span>
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">reorder units</span>
-            </div>
-          </div>
-
-          {/* Actions footer */}
-          <div className="px-2 pb-2 flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => onView(p)}
-              className="flex-1 flex items-center justify-center py-2.5 rounded-sm bg-slate-50 text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-all cursor-pointer border border-transparent hover:border-blue-100"
-              title="View"
-            >
-              <Eye size={14} strokeWidth={2.5} />
-            </button>
-            {canEdit && (
-              <button
-                type="button"
-                onClick={() => onEdit(p)}
-                className="flex-1 flex items-center justify-center py-2.5 rounded-sm bg-slate-50 text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer border border-transparent hover:border-orange-100"
-                title="Edit"
-              >
-                <Edit2 size={14} strokeWidth={2.5} />
-              </button>
-            )}
-            {canDelete && (
-              <button
-                type="button"
-                onClick={() => onDelete(p)}
-                className="flex-1 flex items-center justify-center py-2.5 rounded-sm bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer border border-transparent hover:border-red-100"
-                title="Delete"
-              >
-                <Trash2 size={14} strokeWidth={2.5} />
-              </button>
-            )}
+          </button>
+          {/* Action overlay — sibling to button, pointer-events-none so bg passes clicks to card */}
+          <div className="absolute top-0 inset-x-0 h-20 bg-black/30 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity flex items-center justify-center gap-1">
+            <button type="button" onClick={() => onView(p)} className="pointer-events-auto p-1.5 bg-white/90 rounded-sm text-slate-600 hover:text-blue-500 transition-colors cursor-pointer" title="View"><Eye size={11} strokeWidth={2.5} /></button>
+            {canEdit && <button type="button" onClick={() => onEdit(p)} className="pointer-events-auto p-1.5 bg-white/90 rounded-sm text-slate-600 hover:text-orange-500 transition-colors cursor-pointer" title="Edit"><Edit2 size={11} strokeWidth={2.5} /></button>}
+            {canDelete && <button type="button" onClick={() => onDelete(p)} className="pointer-events-auto p-1.5 bg-white/90 rounded-sm text-slate-600 hover:text-red-500 transition-colors cursor-pointer" title="Delete"><Trash2 size={11} strokeWidth={2.5} /></button>}
           </div>
         </div>
       ))}

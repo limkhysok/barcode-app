@@ -3,167 +3,180 @@
 import React, { useMemo } from "react";
 import type { ProductStats } from "@/src/types/api.types";
 import type { Product } from "@/src/types/product.types";
-import {
-  Package,
-  Zap,
-  Box
-} from "lucide-react";
+import { Package, Zap, Box } from "lucide-react";
 
 interface StatsOverviewProps {
   stats: ProductStats | null;
   products: Product[];
 }
 
+function fmt(n: number) {
+  return n.toLocaleString();
+}
+
 export function StatsOverview({ stats, products }: Readonly<StatsOverviewProps>) {
-  const categoryStats = useMemo(() => {
-    if (stats?.by_category) {
-      const accCount = stats.by_category.Accessories?.count ?? 0;
-      const fasCount = stats.by_category.Fasteners?.count ?? 0;
-      const total = stats.total_products ?? (accCount + fasCount);
-      const accShare = total > 0 ? Math.round((accCount / total) * 100) : 0;
-      const fasShare = total > 0 ? 100 - accShare : 0;
-
-      return {
-        accessories: { count: accCount, share: accShare },
-        fasteners: { count: fasCount, share: fasShare },
-        total,
-      };
-    }
-    // Fallback if stats not fully loaded
-    const accLen = products.filter((p) => p.category === "Accessories").length;
-    const fasLen = products.filter((p) => p.category === "Fasteners").length;
-    const total = accLen + fasLen;
-    const accShare = total > 0 ? Math.round((accLen / total) * 100) : 0;
+  const s = useMemo(() => {
+    const accCount = stats?.by_category?.Accessories?.count ?? products.filter(p => p.category === "Accessories").length;
+    const fasCount = stats?.by_category?.Fasteners?.count ?? products.filter(p => p.category === "Fasteners").length;
+    const total = stats?.total_products ?? (accCount + fasCount);
+    const accShare = total > 0 ? Math.round((accCount / total) * 100) : 0;
     const fasShare = total > 0 ? 100 - accShare : 0;
-
-    return {
-      accessories: { count: accLen, share: accShare },
-      fasteners: { count: fasLen, share: fasShare },
-      total,
-    };
+    return { accCount, fasCount, total, accShare, fasShare };
   }, [stats, products]);
 
   return (
     <div className="w-full">
-      {/* ── Mobile Overview ── */}
-      <div className="block sm:hidden rounded-md border border-slate-200 bg-white overflow-hidden">
 
-        {/* Header: Lifetime Stats (With Vertical Dividers) */}
-        <div className="px-0 py-0 bg-white border-b border-slate-200">
-          <div className="px-3 py-2 border-b border-slate-200 flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-orange-500 shrink-0" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-black">Overview</span>
+      {/* ── MOBILE (< sm) ── */}
+      <div className="sm:hidden bg-white border border-slate-200 rounded-sm overflow-hidden">
+        <div className="grid grid-cols-3 divide-x divide-slate-100">
+          <div className="flex flex-col items-center gap-0.5 py-3">
+            <Package size={14} className="text-orange-500" strokeWidth={2} />
+            <p className="text-[18px] font-black text-slate-900 leading-none tabular-nums">{fmt(s.accCount)}</p>
+            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Accessories</p>
           </div>
+          <div className="flex flex-col items-center gap-0.5 py-3">
+            <Box size={14} className="text-orange-500" strokeWidth={2} />
+            <p className="text-[18px] font-black text-slate-900 leading-none tabular-nums">{fmt(s.fasCount)}</p>
+            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Fasteners</p>
+          </div>
+          <div className="flex flex-col items-center gap-0.5 py-3">
+            <Zap size={14} className="text-orange-500" strokeWidth={2} />
+            <p className="text-[18px] font-black text-slate-900 leading-none tabular-nums">{fmt(s.total)}</p>
+            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Total</p>
+          </div>
+        </div>
+        <div className="px-3 pb-3 flex flex-col gap-1">
+          <div className="flex h-1.5 rounded-full overflow-hidden bg-orange-100">
+            <div className="bg-orange-500 transition-all duration-700" style={{ width: `${s.accShare}%` }} />
+            <div className="bg-orange-200 transition-all duration-700" style={{ width: `${s.fasShare}%` }} />
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[8px] font-black text-orange-500 uppercase tracking-widest">ACC {s.accShare}%</span>
+            <span className="text-[8px] font-black text-orange-300 uppercase tracking-widest">FAS {s.fasShare}%</span>
+          </div>
+        </div>
+      </div>
 
-          <div className="grid grid-cols-3 gap-0 divide-x divide-slate-200">
-            {/* Accessories */}
-            <div className="flex flex-col items-center gap-1 py-4">
-              <Package className="h-6 w-6 text-orange-600" strokeWidth={2} />
-              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter leading-none">Accessories</p>
-              <p className="text-base font-black text-black leading-none">{categoryStats.accessories.count.toLocaleString()}</p>
+      {/* ── TABLET (sm → lg) ── */}
+      <div className="hidden sm:grid lg:hidden grid-cols-3 gap-2">
+        <div className="bg-white border border-slate-200 rounded-sm p-3 flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-sm bg-orange-50 flex items-center justify-center">
+                <Package size={14} className="text-orange-500" strokeWidth={2} />
+              </div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Accessories</p>
             </div>
+            <span className="text-[9px] font-black text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded-full">{s.accShare}%</span>
+          </div>
+          <p className="text-[26px] font-black text-slate-900 leading-none tabular-nums tracking-tighter">{fmt(s.accCount)}</p>
+          <div className="h-1 rounded-full bg-orange-100 overflow-hidden">
+            <div className="h-full bg-orange-500 rounded-full transition-all duration-700" style={{ width: `${s.accShare}%` }} />
+          </div>
+        </div>
 
-            {/* Fasteners */}
-            <div className="flex flex-col items-center gap-1 py-4">
-              <Box className="h-6 w-6 text-orange-600" strokeWidth={2} />
-              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter leading-none">Fasteners</p>
-              <p className="text-base font-black text-black leading-none">{categoryStats.fasteners.count.toLocaleString()}</p>
+        <div className="bg-white border border-slate-200 rounded-sm p-3 flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-sm bg-orange-50 flex items-center justify-center">
+                <Box size={14} className="text-orange-500" strokeWidth={2} />
+              </div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fasteners</p>
             </div>
+            <span className="text-[9px] font-black text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded-full">{s.fasShare}%</span>
+          </div>
+          <p className="text-[26px] font-black text-slate-900 leading-none tabular-nums tracking-tighter">{fmt(s.fasCount)}</p>
+          <div className="h-1 rounded-full bg-orange-100 overflow-hidden">
+            <div className="h-full bg-orange-500 rounded-full transition-all duration-700" style={{ width: `${s.fasShare}%` }} />
+          </div>
+        </div>
 
-            {/* Total */}
-            <div className="flex flex-col items-center gap-1 py-4">
-              <Zap className="h-6 w-6 text-orange-600" strokeWidth={2} />
-              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter leading-none">Total</p>
-              <p className="text-base font-black text-black leading-none">{categoryStats.total.toLocaleString()}</p>
+        <div className="bg-white border border-slate-200 rounded-sm p-3 flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-sm bg-orange-50 flex items-center justify-center">
+                <Zap size={14} className="text-orange-500" strokeWidth={2} />
+              </div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total</p>
+            </div>
+          </div>
+          <p className="text-[26px] font-black text-slate-900 leading-none tabular-nums tracking-tighter">{fmt(s.total)}</p>
+          <div className="h-1 rounded-full bg-orange-100 overflow-hidden">
+            <div className="h-full bg-orange-500 rounded-full" style={{ width: "100%" }} />
+          </div>
+        </div>
+      </div>
+
+      {/* ── DESKTOP (≥ lg) ── */}
+      <div className="hidden lg:grid grid-cols-3 gap-3">
+        <div className="bg-white border border-slate-200 rounded-sm p-4 flex flex-col gap-3">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Accessories</p>
+              <p className="text-3xl font-black text-slate-900 leading-none tabular-nums tracking-tighter mt-1">{fmt(s.accCount)}</p>
+            </div>
+            <div className="w-9 h-9 rounded-sm bg-orange-50 flex items-center justify-center">
+              <Package size={18} className="text-orange-500" strokeWidth={1.5} />
+            </div>
+          </div>
+          <div className="flex flex-col gap-1.5 mt-auto">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Share</span>
+              <span className="text-[10px] font-black text-orange-600">{s.accShare}%</span>
+            </div>
+            <div className="h-1.5 rounded-full bg-orange-100 overflow-hidden">
+              <div className="h-full bg-orange-500 rounded-full transition-all duration-700" style={{ width: `${s.accShare}%` }} />
             </div>
           </div>
         </div>
 
-        {/* Share: Horizontal Layout */}
-        <div className="bg-white">
-          <div className="px-3 py-2 flex items-center justify-between border-b border-slate-200">
-            <div className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-orange-500 shrink-0" />
-              <span className="text-[10px] font-black text-black uppercase tracking-widest">Share</span>
+        <div className="bg-white border border-slate-200 rounded-sm p-4 flex flex-col gap-3">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Fasteners</p>
+              <p className="text-3xl font-black text-slate-900 leading-none tabular-nums tracking-tighter mt-1">{fmt(s.fasCount)}</p>
             </div>
-            <span className="text-[9px] font-bold text-slate-500 uppercase">{categoryStats.total} Total</span>
+            <div className="w-9 h-9 rounded-sm bg-orange-50 flex items-center justify-center">
+              <Box size={18} className="text-orange-500" strokeWidth={1.5} />
+            </div>
           </div>
-
-          <div className="grid grid-cols-2">
-            {/* Accessories Share */}
-            <div className="flex flex-col py-3 px-5 gap-1 border-r border-slate-200">
-              <div className="flex items-center gap-1">
-                <Package size={12} strokeWidth={2.5} className="text-orange-500 shrink-0" />
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">Accessories</p>
-              </div>
-              <div className="flex items-baseline justify-between">
-                <p className="text-xl font-black text-black leading-none tabular-nums">{categoryStats.accessories.count.toLocaleString()}</p>
-                <p className="text-[11px] font-bold text-slate-700 uppercase leading-none">/ {categoryStats.accessories.share}%</p>
-              </div>
+          <div className="flex flex-col gap-1.5 mt-auto">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Share</span>
+              <span className="text-[10px] font-black text-orange-600">{s.fasShare}%</span>
             </div>
+            <div className="h-1.5 rounded-full bg-orange-100 overflow-hidden">
+              <div className="h-full bg-orange-500 rounded-full transition-all duration-700" style={{ width: `${s.fasShare}%` }} />
+            </div>
+          </div>
+        </div>
 
-            {/* Fasteners Share */}
-            <div className="flex flex-col py-3 px-5 gap-1">
-              <div className="flex items-center gap-1">
-                <Box size={12} strokeWidth={2.5} className="text-orange-500 shrink-0" />
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">Fasteners</p>
-              </div>
-              <div className="flex items-baseline justify-between">
-                <p className="text-xl font-black text-black leading-none tabular-nums">{categoryStats.fasteners.count.toLocaleString()}</p>
-                <p className="text-[11px] font-bold text-slate-700 uppercase leading-none">/ {categoryStats.fasteners.share}%</p>
-              </div>
+        <div className="bg-white border border-slate-200 rounded-sm p-4 flex flex-col gap-3">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Total Products</p>
+              <p className="text-3xl font-black text-slate-900 leading-none tabular-nums tracking-tighter mt-1">{fmt(s.total)}</p>
+            </div>
+            <div className="w-9 h-9 rounded-sm bg-orange-50 flex items-center justify-center">
+              <Zap size={18} className="text-orange-500" strokeWidth={1.5} />
+            </div>
+          </div>
+          <div className="flex flex-col gap-1.5 mt-auto">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Split</span>
+              <span className="text-[9px] font-black text-orange-500">
+                {s.accShare}% · {s.fasShare}%
+              </span>
+            </div>
+            <div className="h-1.5 rounded-full overflow-hidden bg-orange-100 flex">
+              <div className="h-full bg-orange-500 transition-all duration-700" style={{ width: `${s.accShare}%` }} />
+              <div className="h-full bg-orange-200 transition-all duration-700" style={{ width: `${s.fasShare}%` }} />
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Desktop Overview (3 Card Layout) ── */}
-      <div className="hidden sm:grid grid-cols-3 gap-3">
-        {/* Box: Accessories */}
-        <div className="rounded-md border border-slate-200 bg-white p-4">
-          <div className="flex items-start justify-between pb-2">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Accessories</p>
-            <Package className="h-8 w-8 text-orange-600" strokeWidth={1.5} />
-          </div>
-          <div className="space-y-1">
-            <p className="text-3xl font-black tracking-tighter text-black">{categoryStats.accessories.count.toLocaleString()}</p>
-            <div className="flex items-center justify-between pt-2 border-t border-gray-200 mt-3">
-              <span className="text-xs font-black text-orange-600">{categoryStats.accessories.share}% Share</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Of Product</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Box: Fasteners */}
-        <div className="rounded-md border border-slate-200 bg-white p-4">
-          <div className="flex items-start justify-between pb-2">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Fasteners</p>
-            <Box className="h-8 w-8 text-orange-600" strokeWidth={1.5} />
-          </div>
-          <div className="space-y-1">
-            <p className="text-3xl font-black tracking-tighter text-black">{categoryStats.fasteners.count.toLocaleString()}</p>
-            <div className="flex items-center justify-between pt-2 border-t border-gray-200 mt-3">
-              <span className="text-xs font-black text-orange-600">{categoryStats.fasteners.share}% Share</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Of Product</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Box: Total */}
-        <div className="rounded-md border border-slate-200 bg-white p-4">
-          <div className="flex items-start justify-between pb-2">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Total Products</p>
-            <Zap className="h-8 w-8 text-orange-600" strokeWidth={1.5} />
-          </div>
-          <div className="space-y-1">
-            <p className="text-3xl font-black tracking-tighter text-black">{categoryStats.total.toLocaleString()}</p>
-            <div className="flex items-center justify-between pt-2 border-t border-gray-200 mt-3">
-              <span className="text-xs font-black text-black uppercase tracking-widest">{categoryStats.total} Products</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Indexed</span>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
