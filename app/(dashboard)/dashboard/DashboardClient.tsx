@@ -111,6 +111,11 @@ export default function DashboardClient({ initialStats }: Readonly<DashboardClie
   const [stats, setStats]             = useState<DashboardStats | null>(initialStats);
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState("");
+  const [mounted, setMounted]         = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const fetchStats = useCallback(async (r: RangeLabel, start?: string, end?: string) => {
     setLoading(true);
@@ -344,7 +349,7 @@ export default function DashboardClient({ initialStats }: Readonly<DashboardClie
 
       {/* ── ANALYTICS ROW: Stack on Mobile, split on Desktop ── */}
       <div className={`grid grid-cols-1 lg:grid-cols-3 gap-6 transition-opacity duration-200 ${loading ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
-        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-sm p-5 sm:p-6 lg:p-8 flex flex-col overflow-hidden">
+        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-sm p-5 sm:p-6 lg:p-8 flex flex-col overflow-hidden min-w-0">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div className="flex items-center gap-2">
               <Activity size={12} className="text-orange-500" strokeWidth={3} />
@@ -362,9 +367,9 @@ export default function DashboardClient({ initialStats }: Readonly<DashboardClie
             </div>
           </div>
           
-          <div className="h-[250px] sm:h-[300px] w-full">
-            {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+          <div className="w-full min-w-0 min-h-[250px] sm:min-h-[300px] relative">
+            {mounted && chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300} minWidth={0}>
                 <AreaChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 900 }} dy={10} />
@@ -383,16 +388,16 @@ export default function DashboardClient({ initialStats }: Readonly<DashboardClie
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-sm p-6 flex flex-col">
+        <div className="bg-white border border-slate-200 rounded-sm p-6 flex flex-col min-w-0">
            <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-2">
                 <Tag size={12} className="text-orange-500" strokeWidth={3} />
                 <h2 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-700">Distribution</h2>
               </div>
            </div>
-           <div className="flex-1 min-h-[250px]">
-              {categoryData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+           <div className="flex-1 min-h-[250px] min-w-0 relative">
+              {mounted && categoryData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={250} minWidth={0}>
                   <BarChart data={categoryData} layout="vertical" margin={{ left: -10, right: 30 }}>
                     <XAxis type="number" hide />
                     <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} width={80} tick={{ fill: '#64748b', fontSize: 9, fontWeight: 900 }} />
