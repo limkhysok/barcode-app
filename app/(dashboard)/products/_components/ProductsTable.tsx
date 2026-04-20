@@ -2,7 +2,7 @@
 
 import React from "react";
 import type { Product } from "@/src/types/product.types";
-import { Edit2, Trash2, Database, ArrowUp, ArrowDown, Image as ImageIcon, Package } from "lucide-react";
+import { Edit2, Trash2, Eye, Database, ArrowUp, ArrowDown, Image as ImageIcon, Package } from "lucide-react";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -19,6 +19,7 @@ interface ProductsTableProps {
   setSortDir: (v: SortDir) => void;
   onEdit: (p: Product) => void;
   onDelete: (p: Product) => void;
+  onView: (p: Product) => void;
   canEdit: boolean;
   canDelete: boolean;
   viewMode?: "list" | "grid";
@@ -76,6 +77,7 @@ export function ProductsTable({
   setSortDir,
   onEdit,
   onDelete,
+  onView,
   canEdit,
   canDelete,
   viewMode = "list",
@@ -153,6 +155,14 @@ export function ProductsTable({
                   {p.reorder_level}
                 </span>
                 <div className="flex items-center">
+                  <button
+                    type="button"
+                    onClick={() => onView(p)}
+                    className="p-1.5 text-slate-400 hover:text-blue-500 transition-all cursor-pointer"
+                    title="View"
+                  >
+                    <Eye size={14} />
+                  </button>
                   {canEdit && (
                     <button
                       type="button"
@@ -228,6 +238,14 @@ export function ProductsTable({
 
           {/* Footer actions */}
           <div className="px-2 pb-2 flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => onView(p)}
+              className="flex-1 flex items-center justify-center py-2.5 rounded-sm bg-slate-50 text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-all cursor-pointer border border-transparent hover:border-blue-100"
+              title="View"
+            >
+              <Eye size={14} strokeWidth={2.5} />
+            </button>
             {canEdit && (
               <button
                 type="button"
@@ -310,6 +328,13 @@ export function ProductsTable({
               </td>
               <td className="px-5 py-4">
                 <div className="flex items-center gap-1 opacity-20 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => onView(p)}
+                    className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded transition-all cursor-pointer"
+                    title="View Product"
+                  >
+                    <Eye size={16} strokeWidth={2.5} />
+                  </button>
                   {canEdit && (
                     <button
                       onClick={() => onEdit(p)}
@@ -385,6 +410,14 @@ export function ProductsTable({
 
           {/* Actions footer */}
           <div className="px-2 pb-2 flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => onView(p)}
+              className="flex-1 flex items-center justify-center py-2.5 rounded-sm bg-slate-50 text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-all cursor-pointer border border-transparent hover:border-blue-100"
+              title="View"
+            >
+              <Eye size={14} strokeWidth={2.5} />
+            </button>
             {canEdit && (
               <button
                 type="button"

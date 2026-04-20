@@ -15,6 +15,7 @@ import { ProductsTable, type SortDir } from "./_components/ProductsTable";
 import { ProductModal } from "./_components/ProductModal";
 import { DeleteConfirmModal } from "./_components/DeleteConfirmModal";
 import { ProductToolbar } from "./_components/ProductToolbar";
+import { ProductViewModal } from "./_components/ProductViewModal";
 
 const REORDER_PRESETS = new Set([5, 10, 15, 20]);
 
@@ -71,12 +72,14 @@ export default function ProductsClient({
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  const [viewTarget, setViewTarget] = useState<Product | null>(null);
+
   // Filter States
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [supplierFilter, setSupplierFilter] = useState("");
-  const [sortField, setSortField] = useState<string>("product_name");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [sortField, setSortField] = useState<string>("id");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
   // Dynamic Options (from all products)
@@ -319,6 +322,7 @@ export default function ProductsClient({
           setSortDir={setSortDir}
           onEdit={openEdit}
           onDelete={setDeleteTarget}
+          onView={setViewTarget}
           canEdit={canEdit}
           canDelete={canDelete}
           viewMode={viewMode}
@@ -337,6 +341,12 @@ export default function ProductsClient({
         saving={saving}
         formError={formError}
         onSave={handleSave}
+      />
+
+      {/* View Modal */}
+      <ProductViewModal
+        product={viewTarget}
+        onClose={() => setViewTarget(null)}
       />
 
       {/* Delete Confirm Modal */}
