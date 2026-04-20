@@ -10,9 +10,7 @@ import TransactionTemplate from "@/src/components/features/export/TransactionTem
 type TxTypeFilter = "" | "Receive" | "Sale";
 type TemplateItem = { barcode: string; product_name: string; unit: string; quantity: number };
 import { useAuth } from "@/src/context/AuthContext";
-import TypeFilterSelect from "./_components/TypeFilterSelect";
-import DateFilter, { type DateFilterValue } from "./_components/DateFilter";
-import SortToggleButton from "./_components/SortToggleButton";
+import { TransactionsToolbar } from "./_components/TransactionsToolbar";
 import StatsOverview from "./_components/StatsOverview";
 import TransactionsTable from "./_components/TransactionsTable";
 import {
@@ -53,8 +51,9 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   const [error, setError] = useState("");
 
   const [typeFilter, setTypeFilter] = useState<TxTypeFilter>("");
-  const [dateFilter, setDateFilter] = useState<DateFilterValue>("");
+  const [dateFilter, setDateFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("-transaction_date");
+  const [search, setSearch] = useState("");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -83,8 +82,6 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   const [pdfType, setPdfType] = useState<"Receive" | "Sale">("Receive");
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
-  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
-  const filterPanelRef = useRef<HTMLDivElement>(null);
   const pdfPanelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -92,9 +89,6 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
       const target = e.target as Node;
       if (pdfPanelRef.current && !pdfPanelRef.current.contains(target)) {
         setPdfPanelOpen(false);
-      }
-      if (filterPanelRef.current && !filterPanelRef.current.contains(target)) {
-        setFilterPanelOpen(false);
       }
     }
     document.addEventListener("mousedown", handler);
@@ -297,6 +291,17 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
   const displayed = useMemo(() => {
     let list = [...transactions];
 
+    // Search
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter((t) => {
+        const idMatch = t.id.toString().includes(q);
+        const userMatch = t.performed_by_username.toLowerCase().includes(q);
+        const itemMatch = t.items.some(i => i.product_name.toLowerCase().includes(q));
+        return idMatch || userMatch || itemMatch;
+      });
+    }
+
     // Filter by Type
     if (typeFilter) {
       list = list.filter((t) => t.transaction_type === typeFilter);
@@ -304,22 +309,32 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
     // Filter by Date
     if (dateFilter) {
+      const now = new Date();
       if (dateFilter === "today") {
-        const todayStr = new Date().toISOString().slice(0, 10);
+        const todayStr = now.toISOString().slice(0, 10);
         list = list.filter((t) => t.transaction_date.startsWith(todayStr));
+      } else if (dateFilter === "yesterday") {
+        const yest = new Date(now);
+        yest.setDate(yest.getDate() - 1);
+        const yestStr = yest.toISOString().slice(0, 10);
+        list = list.filter((t) => t.transaction_date.startsWith(yestStr));
+      } else if (dateFilter === "this_week") {
+        const limit = new Date(now);
+        limit.setDate(limit.getDate() - 7);
+        limit.setHours(0, 0, 0, 0);
+        list = list.filter((t) => new Date(t.transaction_date) >= limit);
+      } else if (dateFilter === "this_month") {
+        const limit = new Date(now);
+        limit.setMonth(limit.getMonth() - 1);
+        limit.setHours(0, 0, 0, 0);
+        list = list.filter((t) => new Date(t.transaction_date) >= limit);
       } else if (dateFilter === "7d" || dateFilter === "30d") {
         const days = dateFilter === "7d" ? 7 : 30;
         const limit = new Date();
         limit.setDate(limit.getDate() - days);
-        // Ensure we compare the start of that day
         limit.setHours(0, 0, 0, 0);
-
-        list = list.filter((t) => {
-          const txDate = new Date(t.transaction_date);
-          return txDate >= limit;
-        });
+        list = list.filter((t) => new Date(t.transaction_date) >= limit);
       } else {
-        // Custom date (YYYY-MM-DD)
         list = list.filter((t) => t.transaction_date.startsWith(dateFilter));
       }
     }
@@ -379,149 +394,20 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
 
       <StatsOverview stats={stats} />
 
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Desktop Toolbar */}
-        <div className="hidden sm:flex items-center">
-          <div className="flex items-center gap-1">
-            <TypeFilterSelect value={typeFilter} onChange={setTypeFilter} />
-            <DateFilter value={dateFilter} onChange={setDateFilter} />
-          </div>
-
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none no-scrollbar">
-            <div className="flex items-center gap-1 shrink-0 pl-1">
-              <SortToggleButton
-                label="Date"
-                field="transaction_date"
-                currentSort={sortBy}
-                onSort={setSortBy}
-                icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zM14.25 15h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-2.25h.008v.008H16.5V15z" /></svg>}
-              />
-              <SortToggleButton
-                label="Items"
-                field="items_count"
-                currentSort={sortBy}
-                onSort={setSortBy}
-                icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-3.75zM2.25 16.875c0-.621.504-1.125 1.125-1.125h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75z" /></svg>}
-              />
-              <SortToggleButton
-                label="Quantity"
-                field="total_qty"
-                currentSort={sortBy}
-                onSort={setSortBy}
-                icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Bundle Button */}
-        <div className="sm:hidden relative" ref={filterPanelRef}>
-          {(() => {
-            let btnCls = "bg-white text-black border-gray-200";
-            if (filterPanelOpen) btnCls = "bg-orange-500 text-white border-orange-500";
-            else if (typeFilter || dateFilter) btnCls = "bg-orange-50 text-orange-500 border-orange-300";
-            return (
-              <>
-                <button
-                  onClick={() => setFilterPanelOpen(!filterPanelOpen)}
-                  className={`relative flex items-center gap-2 px-3 h-8 rounded-sm border text-[11px] font-black text-gray-400 tracking-widest transition-all cursor-pointer ${btnCls}`}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
-                  </svg>
-                  <span>Filter</span>
-                  {(typeFilter || dateFilter) && !filterPanelOpen && (
-                    <span className="absolute -top-1.5 -right-1.5 h-4 w-4 flex items-center justify-center rounded-full bg-orange-500 text-white text-[8px] font-black">
-                      {[typeFilter, dateFilter].filter(Boolean).length}
-                    </span>
-                  )}
-                </button>
-
-                {filterPanelOpen && (
-                  <div className="absolute left-0 mt-3 z-50 w-70 bg-white border border-gray-200 rounded-sm shadow-xl p-4 flex flex-col gap-5 animate-in fade-in slide-in-from-top-2 duration-200">
-
-                    {/* Active filter pills */}
-                    {(typeFilter || dateFilter) && (
-                      <div className="flex flex-wrap gap-1.5">
-                        {typeFilter && (
-                          <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-1 bg-orange-50 text-orange-500 border border-orange-200 rounded-full">
-                            {typeFilter}
-                            <button type="button" onClick={() => setTypeFilter("")} className="text-orange-400 hover:text-orange-600 cursor-pointer transition-colors">✕</button>
-                          </span>
-                        )}
-                        {dateFilter && (
-                          <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-1 bg-orange-50 text-orange-500 border border-orange-200 rounded-full">
-                            {dateFilter}
-                            <button type="button" onClick={() => setDateFilter("")} className="text-orange-400 hover:text-orange-600 cursor-pointer transition-colors">✕</button>
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="space-y-2">
-                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Filter By</span>
-                      <div className="flex flex-col gap-2">
-                        <TypeFilterSelect value={typeFilter} onChange={setTypeFilter} />
-                        <DateFilter value={dateFilter} onChange={setDateFilter} />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Sort By</span>
-                      <div className="flex flex-wrap gap-2">
-                        <SortToggleButton label="Date" field="transaction_date" currentSort={sortBy} onSort={setSortBy} />
-                        <SortToggleButton label="Items" field="items_count" currentSort={sortBy} onSort={setSortBy} />
-                        <SortToggleButton label="Qty" field="total_qty" currentSort={sortBy} onSort={setSortBy} />
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2 mt-2">
-                      {(typeFilter || dateFilter) && (
-                        <button
-                          onClick={() => { setTypeFilter(""); setDateFilter(""); }}
-                          className="flex-1 py-2 border border-gray-200 text-gray-400 text-[11px] font-black uppercase rounded hover:border-red-300 hover:text-red-400 transition-all cursor-pointer"
-                        >
-                          Clear All
-                        </button>
-                      )}
-                      <button
-                        onClick={() => setFilterPanelOpen(false)}
-                        className="flex-1 py-2 bg-black text-white text-[11px] font-black uppercase rounded hover:bg-gray-800 transition-all cursor-pointer"
-                      >
-                        Close
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </>
-            );
-          })()}
-        </div>
-
-        <div className="ml-auto hidden lg:flex items-center gap-0 bg-slate-100 border border-gray-100 rounded-sm overflow-hidden h-8">
-          {(["list", "grid"] as const).map((mode) => (
-            <button
-              key={mode}
-              type="button"
-              onClick={() => setViewMode(mode)}
-              title={mode === "list" ? "List view" : "Grid view"}
-              className={`flex items-center gap-1.5 px-2 h-full rounded-sm text-[10px] font-black tracking-widest uppercase transition-all duration-150 cursor-pointer ${viewMode === mode
-                ? "bg-orange-500 text-white"
-                : "text-gray-400 hover:text-orange-500 "
-                }`}
-            >
-              {mode === "list" ? (
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                </svg>
-              ) : (
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-                </svg>
-              )}
-            </button>
-          ))}
-        </div>
+      <div className="py-3">
+        <TransactionsToolbar
+          typeFilter={typeFilter}
+          setTypeFilter={setTypeFilter as (v: string) => void}
+          dateFilter={dateFilter}
+          setDateFilter={setDateFilter}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          search={search}
+          setSearch={setSearch}
+          totalResults={displayed.length}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+        />
       </div>
 
       <div className=" overflow-hidden bg-white ">
@@ -537,6 +423,8 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
           canDelete={canDelete}
           onActionClick={handleActionClick}
           viewMode={viewMode}
+          ordering={sortBy}
+          onSort={setSortBy}
         />
       </div>
 

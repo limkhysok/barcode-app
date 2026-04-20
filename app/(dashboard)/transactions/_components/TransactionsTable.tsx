@@ -2,21 +2,22 @@
 
 import React from "react";
 import type { Transaction } from "@/src/types/transaction.types";
+import { 
+  Eye, 
+  Edit2, 
+  Printer, 
+  Trash2, 
+  ArrowUp, 
+  ArrowDown,
+  Clock,
+  User,
+  Layers,
+  ArrowRightLeft
+} from "lucide-react";
 
-function formatDateTime(ts: string): string {
-  const d = new Date(ts);
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
-  const h24 = d.getHours();
-  const mins = d.getMinutes();
-  const ampm = h24 >= 12 ? "PM" : "AM";
-  const h12 = h24 % 12 || 12;
-  const time = mins === 0 ? `${h12}${ampm}` : `${h12}:${String(mins).padStart(2, "0")}${ampm}`;
-  return `${day}/${month}/${year} ${time}`;
-}
+export type SortDir = "asc" | "desc" | "";
 
-type TransactionsTableProps = {
+interface TransactionsTableProps {
   displayed: Transaction[];
   loading: boolean;
   error: string;
@@ -28,9 +29,77 @@ type TransactionsTableProps = {
   canDelete: boolean;
   onActionClick: (e: React.MouseEvent, t: Transaction) => void;
   viewMode?: "list" | "grid";
+  ordering?: string;
+  onSort?: (col: string) => void;
+}
+
+const SortIcon = ({ field, currentOrdering }: { field: string; currentOrdering: string }) => {
+  const isAsc = currentOrdering === field;
+  const isDesc = currentOrdering === `-${field}`;
+  if (!isAsc && !isDesc) return null;
+  return isAsc ? (
+    <ArrowUp size={10} className="ml-1.5 text-orange-500" strokeWidth={3} />
+  ) : (
+    <ArrowDown size={10} className="ml-1.5 text-orange-500" strokeWidth={3} />
+  );
 };
 
-const TransactionsTable: React.FC<TransactionsTableProps> = ({
+const Header = ({
+  label,
+  field,
+  className,
+  ordering,
+  handleSort,
+}: {
+  label: string;
+  field?: string;
+  className?: string;
+  ordering: string;
+  handleSort?: (f: string) => void;
+}) => {
+  const isSortable = !!field && !!handleSort;
+  const isActive = field && (ordering === field || ordering === `-${field}`);
+  return (
+    <th
+      onClick={() => isSortable && field && handleSort?.(label)}
+      className={`px-5 py-4 text-left text-[9px] font-black tracking-widest uppercase transition-all duration-200 select-none ${
+        isSortable ? "cursor-pointer hover:bg-slate-100/50" : ""
+      } ${isActive ? "text-orange-600 bg-orange-50/30" : "text-slate-400"} ${className || ""}`}
+    >
+      <div className={`flex items-center ${className?.includes('center') ? 'justify-center' : ''} ${className?.includes('right') ? 'justify-end' : ''}`}>
+        {label}
+        {isSortable && field && <SortIcon field={field} currentOrdering={ordering} />}
+      </div>
+    </th>
+  );
+};
+
+function formatDateTime(dateStr: string): string {
+  const d = new Date(dateStr);
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  const h24 = d.getHours();
+  const mins = d.getMinutes();
+  const ampm = h24 >= 12 ? "PM" : "AM";
+  const h12 = h24 % 12 || 12;
+  const time = mins === 0 ? `${h12}${ampm}` : `${h12}:${String(mins).padStart(2, "0")}${ampm}`;
+  return `${day}/${month}/${year} ${time}`;
+}
+
+function TypeBadge({ type }: Readonly<{ type: "Receive" | "Sale" }>) {
+  const isReceive = type === "Receive";
+  return (
+    <span className={`inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full ${
+      isReceive ? "bg-green-50 text-green-600 border border-green-100" : "bg-red-50 text-red-500 border border-red-100"
+    }`}>
+      <span className={`w-1 h-1 rounded-full ${isReceive ? "bg-green-500" : "bg-red-500"}`} />
+      {type}
+    </span>
+  );
+}
+
+export function TransactionsTable({
   displayed,
   loading,
   error,
@@ -42,7 +111,10 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
   canDelete,
   onActionClick,
   viewMode = "list",
-}) => {
+  ordering = "",
+  onSort,
+}: Readonly<TransactionsTableProps>) {
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -53,85 +125,75 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
   }
 
   if (error) {
-    return <p className="text-center py-20 text-sm text-red-400">{error}</p>;
-  }
-
-  if (displayed.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-3 text-gray-400">
-        <svg className="w-10 h-10 opacity-30" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
-        </svg>
-        <p className="text-[10px] font-black uppercase tracking-widest text-slate-300">No transactions found.</p>
+      <div className="flex items-center justify-center py-20 px-4">
+        <p className="max-w-md text-center py-4 text-[10px] font-black text-red-500 bg-red-50/50 rounded-sm border border-red-100 uppercase tracking-[0.2em] leading-loose">
+          {error}
+        </p>
       </div>
     );
   }
 
-  /* ── MOBILE (< sm): compact 1-col rows ─────────────────────────────── */
+  if (displayed.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 gap-4 text-slate-300">
+        <ArrowRightLeft className="w-10 h-10 opacity-20" strokeWidth={1} />
+        <p className="text-[9px] font-black uppercase tracking-[0.25em]">No Transactions Found</p>
+      </div>
+    );
+  }
+
+  // ── Mobile: compact rows ──
   const mobileRows = (
     <div className="sm:hidden">
-      <div className="px-3 py-1.5 flex items-center gap-2 border-b border-t border-gray-200 bg-white">
+      <div className="px-3 py-1.5 flex items-center gap-2 border-b border-t border-slate-200 bg-white">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">#</span>
           <span className="text-slate-200">·</span>
-          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Items</span>
-          <span className="text-slate-200">·</span>
-          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Type</span>
+          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Transaction</span>
         </div>
         <div className="shrink-0 flex items-center gap-4">
           <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Qty</span>
-          <span className="text-slate-200">·</span>
-          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Date</span>
           <span className="w-7" />
         </div>
       </div>
-      <div className="space-y-0">
+      <div className="divide-y divide-slate-100 bg-white">
         {displayed.map((t) => {
           const totalQty = t.items.reduce((sum, i) => sum + Math.abs(i.quantity), 0);
+          const isReceive = t.transaction_type === "Receive";
           return (
-            <div key={t.id} className="relative group bg-white border-b border-gray-200 overflow-hidden">
-              <div className="px-3 py-2 flex items-center gap-2">
-                <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                  <span className="text-slate-300 text-[10px] font-bold shrink-0">{t.id}</span>
-                  <span className="shrink-0 text-[10px] font-black text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded-full">
-                    x{t.items.length} {t.items.length === 1 ? "item" : "items"}
+            <div key={t.id} className="group bg-white hover:bg-slate-50 transition-all duration-300">
+              <div className="px-3 py-3.5 flex items-center gap-3">
+                <button
+                  onClick={() => onView(t)}
+                  className="flex flex-col flex-1 min-w-0 text-left cursor-pointer"
+                >
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-[9px] font-black text-slate-300 tabular-nums">#{t.id}</span>
+                    <span className="text-slate-200">·</span>
+                    <TypeBadge type={t.transaction_type} />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Layers size={9} className="text-slate-300 shrink-0" />
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter truncate">
+                      {t.items.length} Items · {t.performed_by_username}
+                    </span>
+                  </div>
+                </button>
+                <div className="shrink-0 flex items-center gap-4">
+                  <span className={`text-[12px] font-black tabular-nums leading-none w-10 h-8 flex items-center justify-center rounded-sm ${isReceive ? 'text-green-600 bg-green-50' : 'text-red-500 bg-red-50'}`}>
+                    {isReceive ? "+" : "-"}{totalQty}
                   </span>
-                  <span className="text-slate-300 shrink-0">·</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0">{t.transaction_type}</span>
-                </div>
-                <div className="shrink-0 flex items-center gap-2 relative z-10">
-                  <span className={`text-[12px] font-black tabular-nums leading-none ${t.transaction_type === "Receive" ? "text-green-600" : "text-red-500"}`}>
-                    {t.transaction_type === "Receive" ? "+" : "-"}{totalQty}
-                  </span>
-                  <span className="text-slate-300">·</span>
-                  <span className="text-[10px] font-bold text-slate-400 font-mono tracking-tighter" suppressHydrationWarning>
-                    {(() => {
-                      const d = new Date(t.transaction_date);
-                      const day = String(d.getDate()).padStart(2, "0");
-                      const month = String(d.getMonth() + 1).padStart(2, "0");
-                      const h24 = d.getHours();
-                      const ampm = h24 >= 12 ? "PM" : "AM";
-                      const h12 = h24 % 12 || 12;
-                      return `${day}/${month} ${h12}${ampm}`;
-                    })()}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={(e) => onActionClick(e, t)}
-                    className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-sm transition-all cursor-pointer"
-                  >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 6a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm0 7.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" />
-                    </svg>
-                  </button>
+                  <div className="flex items-center">
+                    <button onClick={() => onView(t)} className="p-1.5 text-slate-300 hover:text-blue-500 transition-colors cursor-pointer" title="View">
+                      <Eye size={14} strokeWidth={2.5} />
+                    </button>
+                    <button onClick={(e) => onActionClick(e, t)} className="p-1.5 text-slate-300 hover:text-orange-500 transition-colors cursor-pointer" title="Menu">
+                      <ArrowRightLeft size={14} strokeWidth={2.5} className="rotate-90" />
+                    </button>
+                  </div>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => onView(t)}
-                className="absolute inset-0 w-full h-full cursor-pointer z-0 opacity-0"
-                aria-label="View Details"
-              />
             </div>
           );
         })}
@@ -139,82 +201,70 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
     </div>
   );
 
-  /* ── TABLET (sm → lg): always 2-col card grid ────────────────────────── */
+  // ── Tablet: 2-col Grid ──
   const tabletGrid = (
-    <div className="hidden sm:grid lg:hidden grid-cols-2 gap-3">
+    <div className="hidden sm:grid lg:hidden grid-cols-2 gap-3 p-1">
       {displayed.map((t) => {
         const totalQty = t.items.reduce((sum, i) => sum + Math.abs(i.quantity), 0);
         const isReceive = t.transaction_type === "Receive";
         return (
-          <div
-            key={t.id}
-            className="group bg-white border border-slate-200 rounded-md overflow-hidden flex flex-col hover:border-orange-300 hover:shadow-md transition-all duration-200"
-          >
-            {/* Header */}
-            <div className="px-4 pt-3 pb-2.5 flex items-center justify-between border-b border-slate-100">
-              <span className="text-[10px] font-black text-slate-400 tabular-nums">#{t.id}</span>
-              <span
-                className={`inline-flex items-center gap-1.5 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full ${
-                  isReceive ? "bg-green-50 text-green-600 border border-green-100" : "bg-red-50 text-red-500 border border-red-100"
-                }`}
-              >
-                <span className={`w-1 h-1 rounded-full ${isReceive ? "bg-green-500" : "bg-red-500"}`} />
-                {t.transaction_type}
-              </span>
-            </div>
-
-            {/* Body */}
-            <div className="px-4 py-4 flex-1 flex flex-col gap-3">
-              <div className="flex items-baseline gap-1.5">
-                <span className={`text-3xl font-black tabular-nums leading-none ${isReceive ? "text-green-600" : "text-red-500"}`}>
-                  {isReceive ? "+" : "-"}{totalQty}
-                </span>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">qty</span>
+          <div key={t.id} className="group relative bg-white border border-slate-200 rounded-sm overflow-hidden transition-all duration-300 hover:border-orange-400 hover:shadow-md hover:shadow-orange-500/10">
+            <button type="button" onClick={() => onView(t)} className="w-full text-left flex flex-col cursor-pointer p-4">
+              <div className="flex items-center justify-between mb-3 border-b border-slate-50 pb-2">
+                <span className="text-[10px] font-black text-slate-400 tabular-nums">#{t.id}</span>
+                <TypeBadge type={t.transaction_type} />
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded-full">
-                  x{t.items.length} {t.items.length === 1 ? "item" : "items"}
-                </span>
-                <span className="text-[10px] font-bold text-slate-400 tabular-nums" suppressHydrationWarning>
-                  {formatDateTime(t.transaction_date).split(" ")[0]}
-                </span>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-baseline gap-1.5">
+                  <span className={`text-4xl font-black tabular-nums leading-none ${isReceive ? "text-green-600" : "text-red-500"}`}>
+                    {isReceive ? "+" : "-"}{totalQty}
+                  </span>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">qty</span>
+                </div>
+                <div className="flex flex-col gap-1.5 pt-2 border-t border-slate-50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black text-slate-900 bg-slate-100 px-2.5 py-0.5 rounded-full uppercase">
+                      {t.items.length} {t.items.length === 1 ? "Product" : "Products"}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <Clock size={10} className="text-slate-300" />
+                      <span className="text-[10px] font-bold text-slate-400 tabular-nums" suppressHydrationWarning>
+                        {formatDateTime(t.transaction_date).split(" ")[0]}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <User size={10} className="text-slate-300" />
+                    <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest truncate">{t.performed_by_username}</span>
+                  </div>
+                </div>
               </div>
-            </div>
-
-            {/* Footer actions */}
-            <div className="px-3 pb-3 flex items-center gap-1.5 border-t border-slate-100 pt-2.5">
-              <button type="button" onClick={() => onView(t)} className="flex-1 flex items-center justify-center py-2 rounded-sm bg-slate-50 border border-slate-100 text-slate-400 hover:text-orange-500 hover:border-orange-200 hover:bg-orange-50 transition-all cursor-pointer" title="View">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-              </button>
-              {canEdit && (
-                <button type="button" onClick={() => onEdit(t)} className="flex-1 flex items-center justify-center py-2 rounded-sm bg-slate-50 border border-slate-100 text-slate-400 hover:text-orange-500 hover:border-orange-200 hover:bg-orange-50 transition-all cursor-pointer" title="Edit">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
-                </button>
-              )}
-              <button type="button" onClick={() => onPrint(t)} className="flex-1 flex items-center justify-center py-2 rounded-sm bg-slate-50 border border-slate-100 text-slate-400 hover:text-orange-500 hover:border-orange-200 hover:bg-orange-50 transition-all cursor-pointer" title="Print">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 3.99A.75.75 0 017.5 3.75h9a.75.75 0 01.75.75v3h-10.5v-3zM3 16.25v-3a3 3 0 013-3h12a3 3 0 013 3v3a.75.75 0 01-.75.75H18v3.75a.75.75 0 01-.75.75H6.75a.75.75 0 01-.75-.75V17H3.75a.75.75 0 01-.75-.75zM9 15.75v3h6v-3H9z" /></svg>
-              </button>
-              {canDelete && (
-                <button type="button" onClick={() => onDelete(t)} className="flex-1 flex items-center justify-center py-2 rounded-sm bg-slate-50 border border-slate-100 text-slate-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all cursor-pointer" title="Delete">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z" clipRule="evenodd" /></svg>
-                </button>
-              )}
+            </button>
+            <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+               <button onClick={() => onView(t)} className="p-2 bg-white/95 rounded-sm text-slate-600 hover:text-blue-500 shadow-sm transition-colors cursor-pointer" title="View"><Eye size={11} strokeWidth={2.5} /></button>
+               {canEdit && <button onClick={() => onEdit(t)} className="p-2 bg-white/95 rounded-sm text-slate-600 hover:text-orange-500 shadow-sm transition-colors cursor-pointer" title="Edit"><Edit2 size={11} strokeWidth={2.5} /></button>}
+               <button onClick={() => onPrint(t)} className="p-2 bg-white/95 rounded-sm text-slate-600 hover:text-green-500 shadow-sm transition-colors cursor-pointer" title="Print"><Printer size={11} strokeWidth={2.5} /></button>
+               {canDelete && <button onClick={() => onDelete(t)} className="p-2 bg-white/95 rounded-sm text-slate-600 hover:text-red-500 shadow-sm transition-colors cursor-pointer" title="Delete"><Trash2 size={11} strokeWidth={2.5} /></button>}
             </div>
           </div>
-        );
-      })}
+          );
+        })}
     </div>
   );
 
-  /* ── DESKTOP (lg+): list table or 3–4 col grid based on viewMode ─────── */
+  // ── Desktop: List Table ──
   const desktopList = (
-    <div className="hidden lg:block overflow-x-auto bg-white border border-slate-200 rounded-md">
+    <div className="hidden lg:block overflow-x-auto bg-white border border-slate-200 rounded-sm">
       <table className="w-full text-sm">
-        <thead className="bg-slate-50 border-b border-slate-100">
+        <thead className="bg-slate-50/50 border-b border-slate-100">
           <tr>
-            {["#", "Type", "Items", "Qty", "Date", "By", "Actions"].map((h) => (
-              <th key={h} className="px-5 py-3 text-left text-[9px] font-black tracking-widest text-slate-400 uppercase">{h}</th>
-            ))}
+            <Header label="#" field="id" ordering={ordering} handleSort={onSort} className="pl-6 w-16" />
+            <Header label="Type" field="transaction_type" ordering={ordering} handleSort={onSort} className="w-32" />
+            <Header label="Products" field="items_count" ordering={ordering} handleSort={onSort} className="w-32" />
+            <Header label="Total Qty" field="total_qty" ordering={ordering} handleSort={onSort} className="w-32" />
+            <Header label="Performed By" field="performed_by" ordering={ordering} handleSort={onSort} />
+            <Header label="Date" field="transaction_date" ordering={ordering} handleSort={onSort} className="w-44" />
+            <Header label="Actions" ordering={ordering} handleSort={onSort} className="pr-6 text-right w-36" />
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 bg-white">
@@ -222,53 +272,55 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
             const totalQty = t.items.reduce((sum, i) => sum + Math.abs(i.quantity), 0);
             const isReceive = t.transaction_type === "Receive";
             return (
-              <tr key={t.id} className="group hover:bg-slate-50/60 transition-colors">
-                <td className="px-5 py-3">
-                  <span className="text-[11px] font-black text-slate-500 tabular-nums">#{t.id}</span>
+              <tr key={t.id} className="group hover:bg-orange-50/60 transition-colors">
+                <td className="pl-6 px-5 py-5">
+                  <span className="text-[11px] font-black text-slate-500 tabular-nums group-hover:text-orange-600 transition-colors">#{t.id}</span>
                 </td>
-                <td className="px-5 py-3">
-                  <span className={`inline-flex items-center gap-1.5 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full ${
-                    isReceive ? "bg-green-50 text-green-600 border border-green-100" : "bg-red-50 text-red-500 border border-red-100"
-                  }`}>
-                    <span className={`w-1 h-1 rounded-full ${isReceive ? "bg-green-500" : "bg-red-500"}`} />
-                    {t.transaction_type}
+                <td className="px-5 py-5">
+                  <TypeBadge type={t.transaction_type} />
+                </td>
+                <td className="px-5 py-5">
+                   <div className="flex items-center gap-2">
+                     <span className="text-[10px] font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded-full uppercase tabular-nums">
+                       {t.items.length} {t.items.length === 1 ? "Item" : "Items"}
+                     </span>
+                   </div>
+                </td>
+                <td className="px-5 py-5">
+                  <span className={`text-[15px] font-black tabular-nums transition-colors ${isReceive ? 'text-green-600' : 'text-red-500'}`}>
+                    {isReceive ? "+" : "-"}{totalQty.toLocaleString()}
                   </span>
                 </td>
-                <td className="px-5 py-3">
-                  <span className="text-[10px] font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded-full">
-                    x{t.items.length} {t.items.length === 1 ? "item" : "items"}
-                  </span>
+                <td className="px-5 py-5">
+                   <div className="flex items-center gap-2">
+                     <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
+                        <User size={12} className="text-slate-400" strokeWidth={3} />
+                     </div>
+                     <span className="text-[11px] font-black text-slate-600 uppercase tracking-wider">{t.performed_by_username}</span>
+                   </div>
                 </td>
-                <td className="px-5 py-3">
-                  <span className={`text-[13px] font-black tabular-nums leading-none ${isReceive ? "text-green-600" : "text-red-500"}`}>
-                    {isReceive ? "+" : "-"}{totalQty}
-                  </span>
-                </td>
-                <td className="px-5 py-3" suppressHydrationWarning>
+                <td className="px-5 py-5 whitespace-nowrap" suppressHydrationWarning>
                   <div className="flex flex-col gap-0.5">
-                    <span className="text-[11px] font-black text-slate-700 tabular-nums">{formatDateTime(t.transaction_date).split(" ")[0]}</span>
-                    <span className="text-[10px] font-bold text-slate-400 tabular-nums">{formatDateTime(t.transaction_date).split(" ")[1]}</span>
+                    <span className="text-[11px] font-black text-slate-700 tabular-nums uppercase">{formatDateTime(t.transaction_date).split(' ')[0]}</span>
+                    <span className="text-[10px] font-bold text-slate-400 tabular-nums uppercase">{formatDateTime(t.transaction_date).split(' ')[1]}</span>
                   </div>
                 </td>
-                <td className="px-5 py-3">
-                  <span className="text-[10px] font-bold text-slate-500 truncate max-w-30 block">{t.performed_by_username ?? "—"}</span>
-                </td>
-                <td className="px-5 py-3">
-                  <div className="flex items-center gap-0.5 opacity-30 group-hover:opacity-100 transition-opacity">
-                    <button type="button" onClick={() => onView(t)} className="p-1.5 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded transition-all cursor-pointer" title="View Details">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <td className="pr-6 px-5 py-5 text-right">
+                  <div className="flex items-center justify-end gap-1 opacity-20 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => onView(t)} className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded transition-all cursor-pointer" title="View Details">
+                      <Eye size={16} strokeWidth={2.5} />
                     </button>
                     {canEdit && (
-                      <button type="button" onClick={() => onEdit(t)} className="p-1.5 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded transition-all cursor-pointer" title="Edit">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
+                      <button onClick={() => onEdit(t)} className="p-1.5 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded transition-all cursor-pointer" title="Edit">
+                        <Edit2 size={16} strokeWidth={2.5} />
                       </button>
                     )}
-                    <button type="button" onClick={() => onPrint(t)} className="p-1.5 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded transition-all cursor-pointer" title="Print PDF">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 3.99A.75.75 0 017.5 3.75h9a.75.75 0 01.75.75v3h-10.5v-3zM3 16.25v-3a3 3 0 013-3h12a3 3 0 013 3v3a.75.75 0 01-.75.75H18v3.75a.75.75 0 01-.75.75H6.75a.75.75 0 01-.75-.75V17H3.75a.75.75 0 01-.75-.75zM9 15.75v3h6v-3H9z" /></svg>
+                    <button onClick={() => onPrint(t)} className="p-1.5 text-slate-400 hover:text-green-500 hover:bg-green-50 rounded transition-all cursor-pointer" title="Print PDF">
+                      <Printer size={16} strokeWidth={2.5} />
                     </button>
                     {canDelete && (
-                      <button type="button" onClick={() => onDelete(t)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-all cursor-pointer" title="Delete">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z" clipRule="evenodd" /></svg>
+                      <button onClick={() => onDelete(t)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-all cursor-pointer" title="Delete">
+                        <Trash2 size={16} strokeWidth={2.5} />
                       </button>
                     )}
                   </div>
@@ -281,58 +333,55 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
     </div>
   );
 
+  // ── Desktop: Grid cards ──
   const desktopGrid = (
-    <div className="hidden lg:grid grid-cols-3 xl:grid-cols-4 gap-3">
+    <div className="hidden lg:grid grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
       {displayed.map((t) => {
         const totalQty = t.items.reduce((sum, i) => sum + Math.abs(i.quantity), 0);
         const isReceive = t.transaction_type === "Receive";
         return (
-          <div key={t.id} className="group bg-white border border-slate-200 rounded-md overflow-hidden flex flex-col hover:border-orange-300 hover:shadow-md transition-all duration-200">
-            <div className="px-4 pt-3 pb-2.5 flex items-center justify-between border-b border-slate-100">
-              <span className="text-[10px] font-black text-slate-400 tabular-nums">#{t.id}</span>
-              <span className={`inline-flex items-center gap-1.5 text-[9px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full ${
-                isReceive ? "bg-green-50 text-green-600 border border-green-100" : "bg-red-50 text-red-500 border border-red-100"
-              }`}>
-                <span className={`w-1 h-1 rounded-full ${isReceive ? "bg-green-500" : "bg-red-500"}`} />
-                {t.transaction_type}
-              </span>
-            </div>
-            <div className="px-4 py-4 flex-1 flex flex-col gap-3">
-              <div className="flex items-baseline gap-1.5">
-                <span className={`text-4xl font-black tabular-nums leading-none ${isReceive ? "text-green-600" : "text-red-500"}`}>
-                  {isReceive ? "+" : "-"}{totalQty}
-                </span>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">qty</span>
+          <div key={t.id} className="group relative bg-white border border-slate-200 rounded-sm overflow-hidden transition-all duration-300 hover:border-orange-400 hover:shadow-md hover:shadow-orange-500/10 hover:-translate-y-0.5 flex flex-col">
+            <button type="button" onClick={() => onView(t)} className="w-full text-left flex flex-col cursor-pointer flex-1 p-5">
+              <div className="flex items-center justify-between mb-4 border-b border-slate-50 pb-3">
+                <span className="text-[10px] font-black text-slate-400 tabular-nums">#{t.id}</span>
+                <TypeBadge type={t.transaction_type} />
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-slate-900 bg-slate-100 px-2 py-0.5 rounded-full">
-                  x{t.items.length} {t.items.length === 1 ? "item" : "items"}
-                </span>
-                <span className="text-[10px] font-bold text-slate-400 tabular-nums" suppressHydrationWarning>
-                  {formatDateTime(t.transaction_date).split(" ")[0]}
-                </span>
+              <div className="flex flex-col gap-4">
+                <div className="flex items-baseline gap-2">
+                  <span className={`text-5xl font-black tabular-nums tracking-tighter leading-none ${isReceive ? "text-green-600" : "text-red-500"}`}>
+                    {isReceive ? "+" : "-"}{totalQty}
+                  </span>
+                  <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">quantity</span>
+                </div>
+                <div className="space-y-3 pt-4 border-t border-slate-50">
+                   <div className="flex items-center justify-between">
+                     <span className="text-[11px] font-black text-slate-900 bg-slate-100 px-3 py-1 rounded-full uppercase tabular-nums">
+                       {t.items.length} {t.items.length === 1 ? "Item" : "Items"}
+                     </span>
+                     <div className="flex items-center gap-1.5">
+                       <Clock size={12} className="text-slate-300" />
+                       <span className="text-[11px] font-bold text-slate-400 tabular-nums" suppressHydrationWarning>
+                         {formatDateTime(t.transaction_date).split(" ")[0]}
+                       </span>
+                     </div>
+                   </div>
+                   <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
+                         <User size={10} className="text-slate-400" />
+                      </div>
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.1em] truncate">{t.performed_by_username}</span>
+                   </div>
+                </div>
               </div>
-            </div>
-            <div className="px-3 pb-3 flex items-center gap-1.5 border-t border-slate-100 pt-2.5">
-              <button type="button" onClick={() => onView(t)} className="flex-1 flex items-center justify-center py-2 rounded-sm bg-slate-50 border border-slate-100 text-slate-400 hover:text-orange-500 hover:border-orange-200 hover:bg-orange-50 transition-all cursor-pointer" title="View">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.644C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-              </button>
-              {canEdit && (
-                <button type="button" onClick={() => onEdit(t)} className="flex-1 flex items-center justify-center py-2 rounded-sm bg-slate-50 border border-slate-100 text-slate-400 hover:text-orange-500 hover:border-orange-200 hover:bg-orange-50 transition-all cursor-pointer" title="Edit">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
-                </button>
-              )}
-              <button type="button" onClick={() => onPrint(t)} className="flex-1 flex items-center justify-center py-2 rounded-sm bg-slate-50 border border-slate-100 text-slate-400 hover:text-orange-500 hover:border-orange-200 hover:bg-orange-50 transition-all cursor-pointer" title="Print">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 3.99A.75.75 0 017.5 3.75h9a.75.75 0 01.75.75v3h-10.5v-3zM3 16.25v-3a3 3 0 013-3h12a3 3 0 013 3v3a.75.75 0 01-.75.75H18v3.75a.75.75 0 01-.75.75H6.75a.75.75 0 01-.75-.75V17H3.75a.75.75 0 01-.75-.75zM9 15.75v3h6v-3H9z" /></svg>
-              </button>
-              {canDelete && (
-                <button type="button" onClick={() => onDelete(t)} className="flex-1 flex items-center justify-center py-2 rounded-sm bg-slate-50 border border-slate-100 text-slate-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all cursor-pointer" title="Delete">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z" clipRule="evenodd" /></svg>
-                </button>
-              )}
+            </button>
+            <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+               <button onClick={() => onView(t)} className="p-2 bg-white/95 rounded-sm text-slate-600 hover:text-blue-500 shadow-sm transition-colors cursor-pointer" title="View"><Eye size={13} strokeWidth={2.5} /></button>
+               {canEdit && <button onClick={() => onEdit(t)} className="p-2 bg-white/95 rounded-sm text-slate-600 hover:text-orange-500 shadow-sm transition-colors cursor-pointer" title="Edit"><Edit2 size={13} strokeWidth={2.5} /></button>}
+               <button onClick={() => onPrint(t)} className="p-2 bg-white/95 rounded-sm text-slate-600 hover:text-green-500 shadow-sm transition-colors cursor-pointer" title="Print"><Printer size={13} strokeWidth={2.5} /></button>
+               {canDelete && <button onClick={() => onDelete(t)} className="p-2 bg-white/95 rounded-sm text-slate-600 hover:text-red-500 shadow-sm transition-colors cursor-pointer" title="Delete"><Trash2 size={13} strokeWidth={2.5} /></button>}
             </div>
           </div>
-        );
+          );
       })}
     </div>
   );
@@ -344,6 +393,6 @@ const TransactionsTable: React.FC<TransactionsTableProps> = ({
       {viewMode === "list" ? desktopList : desktopGrid}
     </>
   );
-};
+}
 
 export default TransactionsTable;

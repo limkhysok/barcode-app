@@ -1,16 +1,21 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import type { TransactionStats } from "@/src/services/transaction.service";
 import {
   TrendingDown,
   TrendingUp,
   Zap,
+  Activity,
 } from "lucide-react";
 
 type StatsOverviewProps = {
   stats: TransactionStats | null;
 };
+
+function fmt(n: number) {
+  return n.toLocaleString();
+}
 
 const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
   const receiveCount = stats?.by_type?.Receive?.total_count || 0;
@@ -24,130 +29,175 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
   const total = stats?.total_transactions || 0;
   const today = stats?.today_transactions || 0;
 
+  const s = useMemo(() => {
+    const totalCount = receiveCount + saleCount;
+    const receiveShare = totalCount > 0 ? Math.round((receiveCount / totalCount) * 100) : 0;
+    const saleShare = 100 - receiveShare;
+    return { receiveShare, saleShare };
+  }, [receiveCount, saleCount]);
+
   return (
     <div className="w-full">
-      {/* ── Mobile Overview ── */}
-      <div className="block sm:hidden rounded-md border border-slate-200 bg-white overflow-hidden">
-
-        {/* Header: Lifetime Stats (With Vertical Dividers) */}
-        <div className="px-0 py-0 bg-white border-b border-slate-200">
-          <div className="px-3 py-2 border-b border-slate-200 flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-orange-500 shrink-0" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-black">Overview</span>
+      {/* ── MOBILE (< sm) ── */}
+      <div className="sm:hidden bg-white border border-slate-200 rounded-sm overflow-hidden">
+        <div className="grid grid-cols-3 divide-x divide-slate-100">
+          <div className="flex flex-col items-center gap-0.5 py-3">
+            <Zap size={14} className="text-orange-500" strokeWidth={2} />
+            <p className="text-[18px] font-black text-slate-900 leading-none tabular-nums">{fmt(total)}</p>
+            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Activity</p>
           </div>
-
-          <div className="grid grid-cols-3 gap-0 divide-x divide-slate-200">
-            {/* Receive */}
-            <div className="flex flex-col items-center gap-1 py-4">
-              <TrendingDown className="h-6 w-6 text-orange-600 scale-x-[-1]" strokeWidth={2} />
-              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter leading-none">Receive</p>
-              <p className="text-base font-black text-black leading-none">{receiveCount.toLocaleString()}</p>
-            </div>
-
-            {/* Sale */}
-            <div className="flex flex-col items-center gap-1 py-4">
-              <TrendingUp className="h-6 w-6 text-orange-600" strokeWidth={2} />
-              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter leading-none">Sale</p>
-              <p className="text-base font-black text-black leading-none">{saleCount.toLocaleString()}</p>
-            </div>
-
-            {/* Total */}
-            <div className="flex flex-col items-center gap-1 py-4">
-              <Zap className="h-6 w-6 text-orange-600" strokeWidth={2} />
-              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tighter leading-none">Total</p>
-              <p className="text-base font-black text-black leading-none">{total.toLocaleString()}</p>
-            </div>
+          <div className="flex flex-col items-center gap-0.5 py-3">
+            <TrendingDown size={14} className="text-orange-600 scale-x-[-1]" strokeWidth={2} />
+            <p className="text-[18px] font-black text-slate-900 leading-none tabular-nums">{fmt(receiveCount)}</p>
+            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Receive</p>
+          </div>
+          <div className="flex flex-col items-center gap-0.5 py-3">
+            <TrendingUp size={14} className="text-orange-300" strokeWidth={2} />
+            <p className="text-[18px] font-black text-slate-900 leading-none tabular-nums">{fmt(saleCount)}</p>
+            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Sales</p>
           </div>
         </div>
-
-        {/* Today's Activity: Horizontal Layout */}
-        <div className="bg-white">
-          <div className="px-3 py-2  flex items-center justify-between border-b border-slate-200">
-            <div className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-orange-500 shrink-0" />
-              <span className="text-[10px] font-black text-black uppercase tracking-widest">Today</span>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none" suppressHydrationWarning>
-                {new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Phnom_Penh" })}
-              </p>
-            </div>
-            <span className="text-[9px] font-bold text-slate-500 uppercase">{today} Total</span>
+        <div className="px-3 pb-3 flex flex-col gap-1">
+          <div className="flex h-1.5 rounded-full overflow-hidden bg-slate-100">
+            <div className="bg-orange-600 transition-all duration-700" style={{ width: `${s.receiveShare}%` }} />
+            <div className="bg-orange-300 transition-all duration-700" style={{ width: `${s.saleShare}%` }} />
           </div>
-
-          <div className="grid grid-cols-2">
-            {/* Today Receive */}
-            <div className="flex flex-col py-3 px-5 gap-1 border-r border-slate-200">
-              {/* Title row */}
-              <div className="flex items-center gap-1">
-                <TrendingDown size={12} strokeWidth={2.5} className="scale-x-[-1] text-green-500 shrink-0" />
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">Receive</p>
-              </div>
-              {/* Count left, Qty right */}
-              <div className="flex items-baseline justify-between">
-                <p className="text-xl font-black text-black leading-none tabular-nums">+{receiveToday}</p>
-                <p className="text-[11px] font-bold text-slate-700 uppercase leading-none">/ {receiveTodayQty}</p>
-              </div>
-            </div>
-
-            {/* Today Sale */}
-            <div className="flex flex-col py-3 px-5 gap-1">
-              {/* Title row */}
-              <div className="flex items-center gap-1">
-                <TrendingUp size={12} strokeWidth={2.5} className="text-red-500 shrink-0" />
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">Sale</p>
-              </div>
-              {/* Count left, Qty right */}
-              <div className="flex items-baseline justify-between">
-                <p className="text-xl font-black text-black leading-none tabular-nums">-{saleToday}</p>
-                <p className="text-[11px] font-bold text-slate-700 uppercase leading-none">/ {saleTodayQty}</p>
-              </div>
-            </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[8px] font-black text-orange-600 uppercase tracking-widest">REC {s.receiveShare}%</span>
+            <span className="text-[8px] font-black text-orange-300 uppercase tracking-widest">SALE {s.saleShare}%</span>
           </div>
         </div>
       </div>
 
-      {/* ── Desktop Overview (3 Card Layout) ── */}
-      <div className="hidden sm:grid grid-cols-3 gap-3">
-        {/* Box: Receive */}
-        <div className="rounded-md border border-slate-200 bg-white p-4">
-          <div className="flex items-start justify-between pb-2">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Total Receive</p>
-            <TrendingDown className="h-8 w-8 text-orange-600 scale-x-[-1]" strokeWidth={1.5} />
+      {/* ── TABLET (sm → lg) ── */}
+      <div className="hidden sm:grid lg:hidden grid-cols-3 gap-2">
+        <div className="bg-white border border-slate-200 rounded-sm p-3 flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-sm bg-orange-50 flex items-center justify-center">
+                <TrendingDown size={14} className="text-orange-600 scale-x-[-1]" strokeWidth={2} />
+              </div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Received</p>
+            </div>
+            <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-orange-50 text-orange-600">
+              +{receiveToday}
+            </span>
           </div>
-          <div className="space-y-1">
-            <p className="text-3xl font-black tracking-tighter text-black">{receiveCount.toLocaleString()}</p>
-            <div className="flex items-center justify-between pt-2 border-t border-gray-200 mt-3">
-              <span className="text-xs font-black text-orange-600">+{receiveToday} Today</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Quantity {receiveTodayQty}</span>
+          <p className="text-[26px] font-black text-slate-900 leading-none tabular-nums tracking-tighter">{fmt(receiveCount)}</p>
+          <div className="h-1 rounded-full bg-orange-100 overflow-hidden">
+            <div className="h-full bg-orange-600 rounded-full" style={{ width: `${s.receiveShare}%` }} />
+          </div>
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-sm p-3 flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-sm bg-orange-50 flex items-center justify-center">
+                <TrendingUp size={14} className="text-orange-500" strokeWidth={2} />
+              </div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sold out</p>
+            </div>
+            <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-orange-50 text-orange-500">
+              -{saleToday}
+            </span>
+          </div>
+          <p className="text-[26px] font-black text-slate-900 leading-none tabular-nums tracking-tighter">{fmt(saleCount)}</p>
+          <div className="h-1 rounded-full bg-orange-100 overflow-hidden">
+            <div className="h-full bg-orange-400 rounded-full" style={{ width: `${s.saleShare}%` }} />
+          </div>
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-sm p-3 flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-sm bg-orange-50 flex items-center justify-center">
+                <Zap size={14} className="text-orange-500" strokeWidth={2} />
+              </div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Activity</p>
+            </div>
+            <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Live</span>
+          </div>
+          <p className="text-[26px] font-black text-slate-900 leading-none tabular-nums tracking-tighter">{fmt(total)}</p>
+          <div className="h-1 rounded-full bg-slate-100 overflow-hidden flex">
+            <div className="h-full bg-orange-600 transition-all duration-700" style={{ width: `${s.receiveShare}%` }} />
+            <div className="h-full bg-orange-300 transition-all duration-700" style={{ width: `${s.saleShare}%` }} />
+          </div>
+        </div>
+      </div>
+
+      {/* ── DESKTOP (≥ lg) ── */}
+      <div className="hidden lg:grid grid-cols-3 gap-3">
+        {/* Card: Receive */}
+        <div className="bg-white border border-slate-200 rounded-sm p-4 flex flex-col gap-3 group transition-all duration-300 hover:border-orange-200">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-orange-400 transition-colors">Lifetime Receive</p>
+              <p className="text-3xl font-black text-slate-900 leading-none tabular-nums tracking-tighter mt-1">{fmt(receiveCount)}</p>
+            </div>
+            <div className="w-9 h-9 rounded-sm bg-orange-50 flex items-center justify-center group-hover:bg-orange-600 group-hover:rotate-12 transition-all">
+              <TrendingDown size={18} className="text-orange-600 scale-x-[-1] group-hover:text-white transition-colors" strokeWidth={1.5} />
+            </div>
+          </div>
+          <div className="flex flex-col gap-1.5 mt-auto">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-black text-orange-600 uppercase tracking-widest">Today's Entry</span>
+              <span className="text-[10px] font-black text-orange-400 uppercase">+{receiveToday} Tx · {receiveTodayQty} Qty</span>
+            </div>
+            <div className="h-1.5 rounded-full bg-orange-50 overflow-hidden relative">
+              <div className="h-full bg-orange-600 rounded-full" style={{ width: `${s.receiveShare}%` }} />
             </div>
           </div>
         </div>
 
-        {/* Box: Sale */}
-        <div className="rounded-md border border-slate-200 bg-white p-4">
-          <div className="flex items-start justify-between pb-2">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Total Sale</p>
-            <TrendingUp className="h-8 w-8 text-orange-600" strokeWidth={1.5} />
+        {/* Card: Sales */}
+        <div className="bg-white border border-slate-200 rounded-sm p-4 flex flex-col gap-3 group transition-all duration-300 hover:border-orange-200">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-orange-400 transition-colors">Lifetime Sales</p>
+              <p className="text-3xl font-black text-slate-900 leading-none tabular-nums tracking-tighter mt-1">{fmt(saleCount)}</p>
+            </div>
+            <div className="w-9 h-9 rounded-sm bg-orange-50 flex items-center justify-center group-hover:bg-orange-500 group-hover:-rotate-12 transition-all">
+              <TrendingUp size={18} className="text-orange-500 group-hover:text-white transition-colors" strokeWidth={1.5} />
+            </div>
           </div>
-          <div className="space-y-1">
-            <p className="text-3xl font-black tracking-tighter text-black">{saleCount.toLocaleString()}</p>
-            <div className="flex items-center justify-between pt-2 border-t border-gray-200 mt-3">
-              <span className="text-xs font-black text-orange-600">-{saleToday} Today</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Quantity {saleTodayQty}</span>
+          <div className="flex flex-col gap-1.5 mt-auto">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-black text-orange-400 uppercase tracking-widest">Today's Exit</span>
+              <span className="text-[10px] font-black text-orange-300 uppercase">-{saleToday} Tx · {saleTodayQty} Qty</span>
+            </div>
+            <div className="h-1.5 rounded-full bg-orange-50 overflow-hidden relative">
+              <div className="h-full bg-orange-300 rounded-full" style={{ width: `${s.saleShare}%` }} />
             </div>
           </div>
         </div>
 
-        {/* Box: Total */}
-        <div className="rounded-md border border-slate-200 bg-white p-4">
-          <div className="flex items-start justify-between pb-2">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">Total Activity</p>
-            <Zap className="h-8 w-8 text-orange-600" strokeWidth={1.5} />
+        {/* Card: Overall Activity */}
+        <div className="bg-white border border-slate-200 rounded-sm p-4 flex flex-col gap-3 group transition-all duration-300 hover:border-orange-200">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Live Activity</p>
+              <div className="flex items-baseline gap-2 mt-1">
+                <p className="text-3xl font-black text-slate-900 leading-none tabular-nums tracking-tighter">{fmt(total)}</p>
+                <div className="flex items-center gap-1 animate-pulse">
+                  <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                  <span className="text-[10px] font-black text-orange-500 uppercase tracking-widest">{today} Today</span>
+                </div>
+              </div>
+            </div>
+            <div className="w-9 h-9 rounded-sm bg-orange-50 flex items-center justify-center">
+              <Activity size={18} className="text-orange-600" strokeWidth={1.5} />
+            </div>
           </div>
-          <div className="space-y-1">
-            <p className="text-3xl font-black tracking-tighter text-black">{total.toLocaleString()}</p>
-            <div className="flex items-center justify-between pt-2 border-t border-gray-200 mt-3">
-              <span className="text-xs font-black text-black uppercase tracking-widest">{today} Today</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Processed</span>
+          <div className="flex flex-col gap-1.5 mt-auto">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Market Split</span>
+              <span className="text-[9px] font-black text-orange-600">
+                {s.receiveShare}% Rec · {s.saleShare}% Sale
+              </span>
+            </div>
+            <div className="h-1.5 rounded-full overflow-hidden bg-slate-100 flex">
+              <div className="h-full bg-orange-600 transition-all duration-700" style={{ width: `${s.receiveShare}%` }} />
+              <div className="h-full bg-orange-300 transition-all duration-700" style={{ width: `${s.saleShare}%` }} />
             </div>
           </div>
         </div>
