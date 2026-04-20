@@ -13,6 +13,7 @@ import { InventoryToolbar } from "./_components/InventoryToolbar";
 import { InventoryModal } from "./_components/InventoryModal";
 import { DeleteConfirmModal } from "./_components/DeleteConfirmModal";
 import { InventoryHeader } from "./_components/InventoryHeader";
+import { InventoryDetailModal } from "./_components/InventoryDetailModal";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 
@@ -89,6 +90,9 @@ export default function InventoryClient({
   const [deleteTarget, setDeleteTarget] = useState<InventoryRecord | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // -- View detail state --
+  const [detailTarget, setDetailTarget] = useState<InventoryRecord | null>(null);
+
   // -- Export dropdown state --
   const [exportOpen, setExportOpen] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
@@ -131,6 +135,10 @@ export default function InventoryClient({
     });
     setFormError("");
     setModalOpen(true);
+  }
+
+  function openView(r: InventoryRecord) {
+    setDetailTarget(r);
   }
 
   async function handleSave(e: React.SyntheticEvent) {
@@ -346,6 +354,7 @@ export default function InventoryClient({
         search={search}
         setSearch={setSearch}
         setOrdering={setOrdering}
+        totalResults={stats.total}
         filtersOpen={filtersOpen}
         setFiltersOpen={setFiltersOpen}
         filtersRef={filtersRef}
@@ -361,6 +370,7 @@ export default function InventoryClient({
           displayed={displayed}
           onEdit={openEdit}
           onDelete={setDeleteTarget}
+          onView={openView}
           canEdit={canEdit}
           canDelete={canDelete}
           ordering={ordering}
@@ -370,6 +380,11 @@ export default function InventoryClient({
       </div>
 
       {/* Modals */}
+      <InventoryDetailModal
+        open={!!detailTarget}
+        record={detailTarget}
+        onClose={() => setDetailTarget(null)}
+      />
       <InventoryModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}

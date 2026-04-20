@@ -46,19 +46,19 @@ export function StatsOverview({ stats }: Readonly<StatsOverviewProps>) {
             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Total Qty</p>
           </div>
           <div className="flex flex-col items-center gap-0.5 py-3">
-            <AlertCircle size={14} className={needsReorder > 0 ? "text-red-500" : "text-green-500"} strokeWidth={2} />
-            <p className={`text-[18px] font-black leading-none tabular-nums ${needsReorder > 0 ? "text-red-500" : "text-slate-900"}`}>{fmt(needsReorder)}</p>
+            <AlertCircle size={14} className={needsReorder > 0 ? "text-orange-600" : "text-orange-300"} strokeWidth={2} />
+            <p className={`text-[18px] font-black leading-none tabular-nums ${needsReorder > 0 ? "text-orange-600" : "text-slate-900"}`}>{fmt(needsReorder)}</p>
             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Low Stock</p>
           </div>
         </div>
         <div className="px-3 pb-3 flex flex-col gap-1">
           <div className="flex h-1.5 rounded-full overflow-hidden bg-slate-100">
-            <div className="bg-red-500 transition-all duration-700" style={{ width: `${s.lowShare}%` }} />
-            <div className="bg-green-500 transition-all duration-700" style={{ width: `${s.healthyShare}%` }} />
+            <div className="bg-orange-600 transition-all duration-700" style={{ width: `${s.lowShare}%` }} />
+            <div className="bg-orange-300 transition-all duration-700" style={{ width: `${s.healthyShare}%` }} />
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-[8px] font-black text-red-500 uppercase tracking-widest">LOW {s.lowShare}%</span>
-            <span className="text-[8px] font-black text-green-500 uppercase tracking-widest">HEALTHY {s.healthyShare}%</span>
+            <span className="text-[8px] font-black text-orange-600 uppercase tracking-widest">LOW {s.lowShare}%</span>
+            <span className="text-[8px] font-black text-orange-300 uppercase tracking-widest">HEALTHY {s.healthyShare}%</span>
           </div>
         </div>
       </div>
@@ -99,18 +99,18 @@ export function StatsOverview({ stats }: Readonly<StatsOverviewProps>) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-sm bg-orange-50 flex items-center justify-center">
-                <AlertCircle size={14} className={needsReorder > 0 ? "text-red-500" : "text-green-500"} strokeWidth={2} />
+                <AlertCircle size={14} className={needsReorder > 0 ? "text-orange-600" : "text-orange-300"} strokeWidth={2} />
               </div>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Low Stock</p>
             </div>
-            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${needsReorder > 0 ? "bg-red-50 text-red-500" : "bg-green-50 text-green-600"}`}>
+            <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${needsReorder > 0 ? "bg-orange-100 text-orange-600" : "bg-orange-50 text-orange-400"}`}>
                {s.lowShare}%
             </span>
           </div>
-          <p className={`text-[26px] font-black leading-none tabular-nums tracking-tighter ${needsReorder > 0 ? "text-red-500" : "text-slate-900"}`}>{fmt(needsReorder)}</p>
+          <p className={`text-[26px] font-black leading-none tabular-nums tracking-tighter ${needsReorder > 0 ? "text-orange-600" : "text-slate-900"}`}>{fmt(needsReorder)}</p>
           <div className="h-1 rounded-full bg-slate-100 overflow-hidden flex">
-            <div className="h-full bg-red-500 transition-all duration-700" style={{ width: `${s.lowShare}%` }} />
-            <div className="h-full bg-green-500 transition-all duration-700" style={{ width: `${s.healthyShare}%` }} />
+            <div className="h-full bg-orange-600 transition-all duration-700" style={{ width: `${s.lowShare}%` }} />
+            <div className="h-full bg-orange-300 transition-all duration-700" style={{ width: `${s.healthyShare}%` }} />
           </div>
         </div>
       </div>
@@ -130,10 +130,10 @@ export function StatsOverview({ stats }: Readonly<StatsOverviewProps>) {
           <div className="flex flex-col gap-1.5 mt-auto">
              <div className="flex items-center justify-between">
                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Status</span>
-                <span className="text-[10px] font-black text-green-600 uppercase">Live Database</span>
+                <span className="text-[10px] font-black text-orange-400 uppercase">Live Database</span>
              </div>
-             <div className="h-1.5 rounded-full bg-green-100 overflow-hidden">
-                <div className="h-full bg-green-500 rounded-full" style={{ width: "100%" }} />
+             <div className="h-1.5 rounded-full bg-orange-50 overflow-hidden">
+                <div className="h-full bg-orange-300 rounded-full" style={{ width: "100%" }} />
              </div>
           </div>
         </div>
@@ -163,22 +163,22 @@ export function StatsOverview({ stats }: Readonly<StatsOverviewProps>) {
           <div className="flex items-start justify-between">
             <div>
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Critical Stock</p>
-              <p className={`text-3xl font-black leading-none tabular-nums tracking-tighter mt-1 ${needsReorder > 0 ? "text-red-600" : "text-slate-900"}`}>{fmt(needsReorder)}</p>
+              <p className={`text-3xl font-black leading-none tabular-nums tracking-tighter mt-1 ${needsReorder > 0 ? "text-orange-600" : "text-slate-900"}`}>{fmt(needsReorder)}</p>
             </div>
-            <div className={`w-9 h-9 rounded-sm flex items-center justify-center ${needsReorder > 0 ? "bg-red-50" : "bg-green-50"}`}>
-              <Zap size={18} className={needsReorder > 0 ? "text-red-500" : "text-green-500"} strokeWidth={1.5} />
+            <div className="w-9 h-9 rounded-sm bg-orange-50 flex items-center justify-center">
+              <Zap size={18} className={needsReorder > 0 ? "text-orange-600" : "text-orange-300"} strokeWidth={1.5} />
             </div>
           </div>
           <div className="flex flex-col gap-1.5 mt-auto">
             <div className="flex items-center justify-between">
               <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Health Split</span>
-              <span className={`text-[9px] font-black ${needsReorder > 0 ? "text-red-500" : "text-green-500"}`}>
+              <span className={`text-[9px] font-black ${needsReorder > 0 ? "text-orange-600" : "text-orange-300"}`}>
                 {s.lowShare}% Low · {s.healthyShare}% Healthy
               </span>
             </div>
             <div className="h-1.5 rounded-full overflow-hidden bg-slate-100 flex">
-              <div className="h-full bg-red-500 transition-all duration-700" style={{ width: `${s.lowShare}%` }} />
-              <div className="h-full bg-green-500 transition-all duration-700" style={{ width: `${s.healthyShare}%` }} />
+              <div className="h-full bg-orange-600 transition-all duration-700" style={{ width: `${s.lowShare}%` }} />
+              <div className="h-full bg-orange-300 transition-all duration-700" style={{ width: `${s.healthyShare}%` }} />
             </div>
           </div>
         </div>

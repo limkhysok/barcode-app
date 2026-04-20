@@ -1,19 +1,18 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import {
-  Search,
-  X,
-  ArrowUpDown,
-  Filter,
-  ChevronDown,
-  MapPin,
-  Calendar,
-  Layers,
-  Activity,
-  BarChart3,
-  List,
+import { 
+  Search, 
+  X, 
+  ChevronDown, 
+  Filter, 
+  MapPin, 
+  Activity, 
+  List, 
   LayoutGrid,
+  BarChart3,
+  Calendar,
+  Layers
 } from "lucide-react";
 
 interface InventoryToolbarProps {
@@ -29,6 +28,7 @@ interface InventoryToolbarProps {
   setOrdering: (v: string) => void;
   search: string;
   setSearch: (v: string) => void;
+  totalResults: number;
   filtersOpen: boolean;
   setFiltersOpen: React.Dispatch<React.SetStateAction<boolean>>;
   filtersRef: React.RefObject<HTMLDivElement | null>;
@@ -36,12 +36,15 @@ interface InventoryToolbarProps {
   setViewMode: (v: "list" | "grid") => void;
 }
 
-function FilterDropdown({ label, value, options, onChange, icon: Icon }: Readonly<{ 
-  label: string; 
-  value: string; 
-  options: { key: string; label: string }[]; 
+function DropdownFilter({
+  label, value, onChange, options, icon: Icon, compact = false,
+}: Readonly<{
+  label: string;
+  value: string;
   onChange: (v: string) => void;
-  icon: any;
+  options: { key: string; label: string }[];
+  icon: React.ElementType;
+  compact?: boolean;
 }>) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -56,48 +59,47 @@ function FilterDropdown({ label, value, options, onChange, icon: Icon }: Readonl
 
   const activeLabel = options.find(o => o.key === value)?.label || label;
   const isActive = value !== "";
-
-  let buttonStyles = "border-slate-100 bg-slate-50/50 text-slate-400 hover:text-white hover:bg-orange-500 hover:border-orange-300";
-  if (isActive) {
-    buttonStyles = "border-orange-500 bg-orange-500 text-white font-black shadow-sm";
-  } else if (open) {
-    buttonStyles = "border-orange-500 bg-white text-slate-900 shadow-sm";
-  }
+  
+  let btnCls = "border-gray-100 bg-gray-50/50 text-gray-400 hover:text-white hover:bg-orange-500 hover:border-orange-300";
+  if (isActive) btnCls = "border-orange-500 bg-orange-500 text-white font-black shadow-sm";
+  else if (open) btnCls = "border-orange-500 bg-white text-gray-900 shadow-sm";
 
   return (
     <div className="relative" ref={ref}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`px-2.5 py-1 rounded-sm border text-[11px] font-black transition-all duration-150 focus:outline-none flex items-center gap-2.5 group ${buttonStyles} min-w-35 h-8`}
+        className={`px-2.5 py-1 rounded-sm border text-[11px] font-black transition-all duration-150 focus:outline-none flex items-center gap-2 group ${btnCls} h-8 ${compact ? "min-w-0" : "min-w-35"}`}
       >
-        <div className={`transition-colors duration-200 ${isActive ? "text-white" : "text-slate-400 group-hover:text-white"}`}>
-          <Icon size={14} strokeWidth={3} />
+        <div className={`transition-colors duration-200 shrink-0 ${isActive ? "text-white" : "text-gray-400 group-hover:text-white"}`}>
+          <Icon size={13} strokeWidth={3} />
         </div>
-        <span className="truncate flex-1 text-left uppercase tracking-wider">{activeLabel}</span>
-        <ChevronDown 
-          className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""} ${isActive ? "text-white" : "text-slate-400 group-hover:text-white"}`}
+        {!compact && (
+          <span className="truncate flex-1 text-left uppercase tracking-wider">
+            {activeLabel}
+          </span>
+        )}
+        {compact && isActive && (
+          <span className="truncate max-w-20 text-left uppercase tracking-wider text-[10px]">
+            {activeLabel}
+          </span>
+        )}
+        <ChevronDown
+          className={`w-3 h-3 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""} ${isActive ? "text-white" : "text-gray-400 group-hover:text-white"}`}
           strokeWidth={3}
         />
       </button>
 
       {open && (
-        <div className="absolute z-100 left-0 mt-1 min-w-50 bg-white border border-slate-100 rounded-sm shadow-xl animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden max-h-64 overflow-y-auto">
+        <div className="absolute z-50 left-0 mt-1 min-w-48 bg-white border border-gray-100 rounded-sm shadow-xl animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden max-h-64 overflow-y-auto">
           <ul className="divide-y divide-gray-50">
-            {options.map((o) => (
-              <li key={o.key}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onChange(o.key);
-                    setOpen(false);
-                  }}
-                  className={`w-full text-left px-4 py-2.5 text-[10px] font-black tracking-widest uppercase transition-colors flex items-center justify-between group/opt ${value === o.key ? "bg-slate-50 text-orange-500 border-l-2 border-orange-500" : "text-gray-500 hover:bg-orange-500 hover:text-white"
-                    }`}
-                >
-                  {o.label}
-                  {value === o.key && (
-                    <svg className="w-3 h-3 text-orange-500 group-hover/opt:text-white" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+            {options.map((opt) => (
+              <li key={opt.key}>
+                <button type="button" onClick={() => { onChange(opt.key); setOpen(false); }}
+                  className={`w-full text-left px-4 py-2.5 text-[10px] font-black tracking-widest uppercase transition-colors flex items-center justify-between ${value === opt.key ? "bg-slate-50 text-orange-500 border-l-2 border-orange-500" : "text-gray-500 hover:bg-orange-500 hover:text-white"}`}>
+                  {opt.label}
+                  {value === opt.key && (
+                    <svg className="w-3 h-3 text-orange-500" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                     </svg>
                   )}
@@ -111,169 +113,94 @@ function FilterDropdown({ label, value, options, onChange, icon: Icon }: Readonl
   );
 }
 
-function SortToggleButton({ label, dir, onToggle, icon }: Readonly<{ label: string; dir: string; onToggle: () => void; icon?: React.ReactNode }>) {
-  const isSelected = dir !== "";
-  const isDesc = dir === "desc";
-
+function ViewToggle({ viewMode, setViewMode }: Readonly<{ viewMode: "list" | "grid"; setViewMode: (v: "list" | "grid") => void }>) {
   return (
-    <button
-      type="button"
-      onClick={onToggle}
-      className={`px-3 py-1 rounded-sm border text-[11px] transition-all flex items-center gap-2.5 focus:outline-none group shrink-0 h-8 ${isSelected
-        ? "border-orange-500 bg-orange-500 text-white shadow-sm font-black"
-        : "border-slate-100 bg-slate-50/50 text-slate-400 hover:bg-orange-600 hover:border-orange-600 hover:text-white font-bold"
-      }`}
-    >
-      {icon && (
-        <div className={`transition-colors duration-200 shrink-0 ${isSelected ? "text-white" : "text-slate-400 group-hover:text-white/80"}`}>
-          {icon}
-        </div>
+    <div className="flex items-center gap-0 bg-slate-100 border border-gray-100 rounded-sm h-8 overflow-hidden shrink-0">
+      {(["list", "grid"] as const).map((mode) => (
+        <button
+          key={mode}
+          type="button"
+          onClick={() => setViewMode(mode)}
+          className={`flex items-center justify-center w-8 h-full transition-all duration-150 cursor-pointer ${viewMode === mode ? "bg-orange-500 text-white" : "text-gray-400 hover:text-orange-500"}`}
+          title={mode === "list" ? "List view" : "Grid view"}
+        >
+          {mode === "list" ? <List size={13} strokeWidth={2.5} /> : <LayoutGrid size={13} strokeWidth={2.5} />}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function SearchBar({ search, setSearch, placeholder = "Search record..." }: Readonly<{ search: string; setSearch: (v: string) => void; placeholder?: string }>) {
+  return (
+    <div className="flex items-center gap-2 bg-slate-50 border border-gray-100 rounded-sm px-2.5 h-8 focus-within:border-orange-200 focus-within:bg-white transition-all overflow-hidden flex-1">
+      <Search size={13} className="text-gray-400 shrink-0" strokeWidth={3} />
+      <input
+        type="text"
+        placeholder={placeholder}
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="bg-transparent border-none outline-none text-[11px] text-slate-900 placeholder:text-gray-300 w-full font-bold uppercase tracking-tight"
+      />
+      {search && (
+        <button onClick={() => setSearch("")} className="text-gray-300 hover:text-slate-900 transition-colors cursor-pointer shrink-0">
+          <X size={13} strokeWidth={2} />
+        </button>
       )}
-      <span className="truncate flex-1 tracking-widest uppercase font-black">{label}</span>
-      <div className={`transition-transform duration-300 shrink-0 ${isDesc && isSelected ? "rotate-180" : "rotate-0 opacity-40 group-hover:opacity-100"}`}>
-        <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={3.5} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-        </svg>
-      </div>
-    </button>
+    </div>
   );
 }
 
 export function InventoryToolbar({
-  siteFilter,
-  setSiteFilter,
-  siteOptions,
-  statusFilter,
-  setStatusFilter,
-  quantitySort,
-  setQuantitySort,
-  dateSort,
-  setDateSort,
+  siteFilter, setSiteFilter, siteOptions,
+  statusFilter, setStatusFilter,
+  quantitySort, setQuantitySort,
+  dateSort, setDateSort,
   setOrdering,
-  search,
-  setSearch,
-  filtersOpen,
-  setFiltersOpen,
-  filtersRef,
-  viewMode,
-  setViewMode,
+  search, setSearch,
+  totalResults,
+  filtersOpen, setFiltersOpen, filtersRef,
+  viewMode, setViewMode,
 }: Readonly<InventoryToolbarProps>) {
-  const activeCount = [siteFilter, statusFilter, quantitySort, dateSort].filter(Boolean).length;
-  const isFiltered = activeCount > 0 || search !== "";
+  const activeCount = [siteFilter, statusFilter, quantitySort, dateSort, search].filter(Boolean).length;
+  const isFiltered = activeCount > 0;
 
-  // Mobile Filter Button Style
-  let mobileFilterClass = "bg-white text-slate-400 border-slate-200 shadow-sm";
-  if (filtersOpen) {
-    mobileFilterClass = "bg-orange-500 text-white border-orange-500";
-  } else if (activeCount > 0) {
-    mobileFilterClass = "bg-orange-50 text-orange-500 border-orange-200";
-  }
+  const clearAll = () => {
+    setSiteFilter("");
+    setStatusFilter("");
+    setSearch("");
+    setQuantitySort("");
+    setDateSort("");
+    setOrdering("-updated_at");
+  };
+
+  const statusOptions = [
+    { key: "", label: "ALL STATUS" },
+    { key: "No", label: "GOOD" },
+    { key: "LOW", label: "LOW" },
+    { key: "no_stock", label: "NO STOCK" },
+  ];
+
+  const siteDropdownOptions = [
+    { key: "", label: "ALL SITES" },
+    ...siteOptions.map(s => ({ key: s, label: s.toUpperCase() }))
+  ];
+
+  let mobileFilterBtnClass = "bg-white text-gray-400 border-gray-200 shadow-sm";
+  if (filtersOpen) mobileFilterBtnClass = "bg-orange-500 text-white border-orange-500";
+  else if (activeCount > 0) mobileFilterBtnClass = "bg-orange-50 text-orange-500 border-orange-300";
 
   return (
-    <div className="flex flex-wrap items-center gap-3 transition-all">
-      
-      {/* Desktop Toolbar */}
-      <div className="hidden sm:flex items-center flex-1 gap-2">
-        <div className="flex items-center gap-1">
-           <FilterDropdown 
-             label="All Sites" 
-             value={siteFilter} 
-             onChange={setSiteFilter} 
-             icon={MapPin}
-             options={[
-               { key: "", label: "ALL SITES" },
-               ...siteOptions.map(s => ({ key: s, label: s.toUpperCase() }))
-             ]}
-           />
-           <FilterDropdown
-             label="All Status"
-             value={statusFilter}
-             onChange={setStatusFilter}
-             icon={Activity}
-             options={[
-               { key: "", label: "ALL STATUS" },
-               { key: "No", label: "GOOD" },
-               { key: "LOW", label: "LOW" },
-               { key: "no_stock", label: "NO STOCK" },
-             ]}
-           />
-        </div>
+    <div className="flex flex-col gap-2">
 
-        <div className="flex items-center gap-1 pl-1 border-l border-slate-100">
-            <SortToggleButton
-              label="Qty"
-              dir={quantitySort}
-              onToggle={() => {
-                if (!quantitySort) setQuantitySort("asc");
-                else if (quantitySort === "asc") setQuantitySort("desc");
-                else setQuantitySort("");
-              }}
-              icon={<BarChart3 size={13} strokeWidth={3} />}
-            />
-            <SortToggleButton
-              label="Date"
-              dir={dateSort}
-              onToggle={() => {
-                if (!dateSort) setDateSort("desc");
-                else if (dateSort === "desc") setDateSort("asc");
-                else setDateSort("");
-              }}
-              icon={<Calendar size={13} strokeWidth={3} />}
-            />
-        </div>
-
-        {isFiltered && (
-           <button 
-             onClick={() => { setSiteFilter(""); setStatusFilter(""); setOrdering("-updated_at"); setSearch(""); }}
-             className="px-3 h-8 text-[10px] font-black uppercase tracking-widest text-slate-300 hover:text-red-500 transition-colors border border-dashed border-slate-200 rounded-sm hover:border-red-200 hover:bg-red-50 cursor-pointer"
-           >
-             Clear All
-           </button>
-        )}
-
-        <div className="ml-auto flex items-center gap-2">
-          <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-sm px-2.5 h-8 focus-within:border-orange-200 focus-within:bg-white transition-all w-64 lg:w-80 overflow-hidden">
-            <Search size={14} className="text-slate-400 shrink-0" strokeWidth={3} />
-            <input
-              type="text"
-              placeholder="Search record..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="bg-transparent border-none outline-none text-[11px] text-slate-900 placeholder:text-slate-300 w-full font-bold uppercase tracking-tight"
-            />
-            {search && (
-              <button onClick={() => setSearch("")} className="text-slate-300 hover:text-slate-900 transition-colors cursor-pointer">
-                <X size={14} strokeWidth={3} />
-              </button>
-            )}
-          </div>
-          <div className="hidden lg:flex items-center border border-slate-200 rounded-sm overflow-hidden h-8">
-            <button
-              onClick={() => setViewMode("list")}
-              className={`px-2 h-full transition-colors cursor-pointer ${viewMode === "list" ? "bg-black text-white" : "text-slate-400 hover:text-slate-600"}`}
-              title="List view"
-            >
-              <List size={14} strokeWidth={2.5} />
-            </button>
-            <button
-              onClick={() => setViewMode("grid")}
-              className={`px-2 h-full transition-colors cursor-pointer ${viewMode === "grid" ? "bg-black text-white" : "text-slate-400 hover:text-slate-600"}`}
-              title="Grid view"
-            >
-              <LayoutGrid size={14} strokeWidth={2.5} />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Toolbar */}
-      <div className="sm:hidden flex items-center justify-between w-full gap-2">
+      {/* ── MOBILE (< sm) ── */}
+      <div className="flex sm:hidden items-center gap-2">
         <div className="relative" ref={filtersRef}>
           <button
             onClick={() => setFiltersOpen(!filtersOpen)}
-            className={`flex items-center gap-2 px-3 h-8 rounded-sm border transition-all cursor-pointer ${mobileFilterClass} text-[11px] font-black uppercase tracking-widest`}
+            className={`flex items-center gap-2 px-3 h-8 rounded-sm border text-[11px] font-black tracking-widest transition-all cursor-pointer ${mobileFilterBtnClass}`}
           >
-            <Filter size={14} strokeWidth={3} />
+            <Filter size={13} strokeWidth={3} />
             <span>Filter</span>
             {activeCount > 0 && (
               <span className="absolute -top-1.5 -right-1.5 h-4 w-4 bg-orange-600 text-white text-[8px] rounded-full flex items-center justify-center font-black border border-white">
@@ -283,111 +210,143 @@ export function InventoryToolbar({
           </button>
 
           {filtersOpen && (
-            <div className="absolute left-0 mt-3 z-50 w-72 bg-white border border-slate-200 rounded-sm shadow-2xl p-4 flex flex-col gap-6 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute left-0 mt-3 z-50 w-72 bg-white border border-gray-200 rounded-sm shadow-2xl p-4 flex flex-col gap-5 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest border-b border-slate-50 pb-2">
+                Showing {totalResults} Records
+              </div>
               
               <div className="space-y-2">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                   <Layers size={10} /> Filter By Site
-                </span>
-                <div className="flex flex-col gap-1 max-h-48 overflow-y-auto pr-1">
-                   {["All Sites", ...siteOptions].map((site) => {
-                     const isSelected = (site === "All Sites" ? "" : site) === siteFilter;
-                     return (
-                       <button
-                         key={site}
-                         onClick={() => { setSiteFilter(site === "All Sites" ? "" : site); setFiltersOpen(false); }}
-                         className={`w-full text-left px-3 py-2 text-[10px] font-black tracking-widest uppercase transition-colors flex items-center justify-between rounded-sm ${isSelected ? "bg-orange-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}
-                       >
-                         {site}
-                       </button>
-                     );
-                   })}
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><MapPin size={10} /> Site</span>
+                <div className="flex flex-col gap-1 max-h-40 overflow-y-auto pr-1">
+                  {siteDropdownOptions.map((opt) => (
+                    <button key={opt.key} onClick={() => { setSiteFilter(opt.key); setFiltersOpen(false); }}
+                      className={`w-full text-left px-3 py-2 text-[10px] font-black tracking-widest uppercase transition-colors rounded-sm ${siteFilter === opt.key ? "bg-orange-500 text-white" : "text-gray-500 hover:bg-slate-50"}`}>
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                   <Activity size={10} /> Reorder Status
-                </span>
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><Activity size={10} /> Status</span>
                 <div className="flex flex-col gap-1 pr-1">
-                   {[
-                     { key: "", label: "ALL STATUS" },
-                     { key: "No", label: "GOOD" },
-                     { key: "LOW", label: "LOW" },
-                     { key: "no_stock", label: "NO STOCK" },
-                   ].map((s) => {
-                     const isSelected = s.key === statusFilter;
-                     return (
-                       <button
-                         key={s.label}
-                         onClick={() => { setStatusFilter(s.key); setFiltersOpen(false); }}
-                         className={`w-full text-left px-3 py-2 text-[10px] font-black tracking-widest uppercase transition-colors flex items-center justify-between rounded-sm ${isSelected ? "bg-orange-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}
-                       >
-                         {s.label}
-                       </button>
-                     );
-                   })}
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                   <ArrowUpDown size={10} /> Sort By
-                </span>
-                <div className="flex flex-wrap gap-2">
-                    <SortToggleButton
-                      label="Qty"
-                      dir={quantitySort}
-                      onToggle={() => {
-                        if (!quantitySort) setQuantitySort("asc");
-                        else if (quantitySort === "asc") setQuantitySort("desc");
-                        else setQuantitySort("");
-                      }}
-                    />
-                    <SortToggleButton
-                      label="Date"
-                      dir={dateSort}
-                      onToggle={() => {
-                        if (!dateSort) setDateSort("desc");
-                        else if (dateSort === "desc") setDateSort("asc");
-                        else setDateSort("");
-                      }}
-                    />
+                  {statusOptions.map((opt) => (
+                    <button key={opt.key} onClick={() => { setStatusFilter(opt.key); setFiltersOpen(false); }}
+                      className={`w-full text-left px-3 py-2 text-[10px] font-black tracking-widest uppercase transition-colors rounded-sm ${statusFilter === opt.key ? "bg-orange-500 text-white" : "text-gray-500 hover:bg-slate-50"}`}>
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
               <div className="flex gap-2 pt-2 border-t border-slate-50">
-                <button
-                  onClick={() => { setSiteFilter(""); setStatusFilter(""); setOrdering("-updated_at"); setFiltersOpen(false); }}
-                  className="flex-1 py-2 border border-slate-100 text-slate-400 text-[10px] font-black uppercase rounded-sm hover:text-red-500"
-                >
-                  Reset
-                </button>
-                <button
-                  onClick={() => setFiltersOpen(false)}
-                  className="flex-1 py-2 bg-slate-900 text-white text-[10px] font-black uppercase rounded-sm"
-                >
-                  Done
-                </button>
+                <button onClick={clearAll} className="flex-1 py-2 text-[10px] font-black uppercase text-gray-400 hover:text-red-500 border border-gray-100 rounded-sm cursor-pointer">Reset</button>
+                <button onClick={() => setFiltersOpen(false)} className="flex-1 py-2 text-[10px] font-black uppercase bg-slate-900 text-white rounded-sm cursor-pointer">Done</button>
               </div>
             </div>
           )}
         </div>
 
-        {/* Mobile Search + View Toggle */}
-        <div className="flex-1 flex items-center gap-2">
-          <div className="flex-1 flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-sm px-2.5 h-8">
-            <Search size={14} className="text-slate-400 shrink-0" strokeWidth={3} />
-            <input
-              type="text"
-              placeholder="Search record..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="bg-transparent border-none outline-none text-[11px] text-slate-900 placeholder:text-slate-300 w-full font-bold uppercase tracking-tight"
-            />
-          </div>
+        <SearchBar search={search} setSearch={setSearch} placeholder="Search records..." />
+      </div>
+
+      {/* ── TABLET (sm → lg) ── */}
+      <div className="hidden sm:flex lg:hidden items-center gap-2">
+        <SearchBar search={search} setSearch={setSearch} />
+        <DropdownFilter label="Site" value={siteFilter} onChange={setSiteFilter} options={siteDropdownOptions} icon={MapPin} compact />
+        <DropdownFilter label="Status" value={statusFilter} onChange={setStatusFilter} options={statusOptions} icon={Activity} compact />
+        {isFiltered && (
+          <button onClick={clearAll} className="flex items-center gap-1.5 px-2.5 h-8 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-red-500 transition-colors border border-dashed border-gray-200 rounded-sm hover:border-red-200 hover:bg-red-50 shrink-0 cursor-pointer">
+            <X size={11} strokeWidth={3} />
+            Clear
+          </button>
+        )}
+        <span className="text-[10px] font-black text-slate-400 tabular-nums shrink-0 px-2.5 h-8 flex items-center bg-slate-50 border border-slate-100 rounded-sm">
+          {totalResults}
+        </span>
+      </div>
+
+      {/* ── DESKTOP (≥ lg) ── */}
+      <div className="hidden lg:flex items-center gap-2">
+        <DropdownFilter label="All Sites" value={siteFilter} onChange={setSiteFilter} options={siteDropdownOptions} icon={MapPin} />
+        <DropdownFilter label="All Status" value={statusFilter} onChange={setStatusFilter} options={statusOptions} icon={Activity} />
+        
+        <div className="flex items-center gap-1 pl-1 border-l border-slate-100">
+           <button 
+             onClick={() => {
+               if (!quantitySort) setQuantitySort("asc");
+               else if (quantitySort === "asc") setQuantitySort("desc");
+               else setQuantitySort("");
+             }}
+             className={`px-3 py-1 rounded-sm border text-[11px] transition-all flex items-center gap-2 focus:outline-none h-8 ${quantitySort ? "border-orange-500 bg-orange-500 text-white font-black" : "border-gray-100 bg-gray-50/50 text-gray-400 hover:bg-orange-500 hover:text-white"}`}
+           >
+              <BarChart3 size={13} strokeWidth={3} />
+              <span className="uppercase font-black tracking-widest">Qty</span>
+              {quantitySort && <ChevronDown size={10} className={`transition-transform duration-200 ${quantitySort === "desc" ? "rotate-180" : ""}`} strokeWidth={3} />}
+           </button>
+           <button 
+             onClick={() => {
+               if (!dateSort) setDateSort("desc");
+               else if (dateSort === "desc") setDateSort("asc");
+               else setDateSort("");
+             }}
+             className={`px-3 py-1 rounded-sm border text-[11px] transition-all flex items-center gap-2 focus:outline-none h-8 ${dateSort ? "border-orange-500 bg-orange-500 text-white font-black" : "border-gray-100 bg-gray-50/50 text-gray-400 hover:bg-orange-500 hover:text-white"}`}
+           >
+              <Calendar size={13} strokeWidth={3} />
+              <span className="uppercase font-black tracking-widest">Date</span>
+              {dateSort && <ChevronDown size={10} className={`transition-transform duration-200 ${dateSort === "desc" ? "rotate-180" : ""}`} strokeWidth={3} />}
+           </button>
+        </div>
+
+        {isFiltered && (
+          <button onClick={clearAll} className="flex items-center gap-2 px-3 h-8 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-red-500 transition-colors border border-dashed border-gray-200 rounded-sm hover:border-red-200 hover:bg-red-50 cursor-pointer">
+            <X size={12} strokeWidth={3} />
+            Clear All
+          </button>
+        )}
+        <div className="flex items-center gap-2 px-3 h-8 bg-slate-50 border border-slate-100 rounded-sm">
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{totalResults} Records found</span>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          <SearchBar search={search} setSearch={setSearch} placeholder="Search record..." />
+          <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
         </div>
       </div>
+
+      {/* ── Active Filter Pills (tablet + desktop) ── */}
+      {isFiltered && (
+        <div className="hidden sm:flex flex-wrap items-center gap-2 py-0.5">
+          <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] mr-1">Active:</span>
+          {search && (
+            <span className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 text-slate-900 text-[10px] font-bold border border-slate-200 rounded-sm">
+              <Search size={9} className="text-slate-400" />
+              &ldquo;{search}&rdquo;
+              <button onClick={() => setSearch("")} className="ml-0.5 text-slate-400 hover:text-red-500 transition-colors cursor-pointer"><X size={11} strokeWidth={3} /></button>
+            </span>
+          )}
+          {siteFilter && (
+            <span className="flex items-center gap-1.5 px-2 py-1 bg-orange-50 text-orange-600 text-[10px] font-bold border border-orange-100 rounded-sm">
+              <MapPin size={9} className="text-orange-400" />
+              {siteFilter}
+              <button onClick={() => setSiteFilter("")} className="ml-0.5 text-orange-400 hover:text-red-500 transition-colors cursor-pointer"><X size={11} strokeWidth={3} /></button>
+            </span>
+          )}
+          {statusFilter && (
+            <span className="flex items-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold border border-blue-100 rounded-sm">
+              <Activity size={9} className="text-blue-400" />
+              {statusOptions.find(o => o.key === statusFilter)?.label || statusFilter}
+              <button onClick={() => setStatusFilter("")} className="ml-0.5 text-blue-400 hover:text-red-500 transition-colors cursor-pointer"><X size={11} strokeWidth={3} /></button>
+            </span>
+          )}
+          {(quantitySort || dateSort) && (
+            <span className="flex items-center gap-1.5 px-2 py-1 bg-purple-50 text-purple-600 text-[10px] font-bold border border-purple-100 rounded-sm">
+              <Layers size={9} className="text-purple-400" />
+              Sorted
+              <button onClick={() => { setQuantitySort(""); setDateSort(""); setOrdering("-updated_at"); }} className="ml-0.5 text-purple-400 hover:text-red-500 transition-colors cursor-pointer"><X size={11} strokeWidth={3} /></button>
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }
