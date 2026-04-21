@@ -1,7 +1,7 @@
 export interface DashboardRange {
   label: string;
-  start: string;
-  end: string;
+  start: string | null;
+  end: string | null;
 }
 
 export interface CategoryStat {

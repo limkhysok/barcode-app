@@ -2,7 +2,7 @@ import api from "./api";
 import type { DashboardStats } from "@/src/types/dashboard.types";
 
 export interface DashboardFilters {
-  range?: "today" | "week" | "month" | "all_time" | "custom";
+  range?: "today" | "7_days" | "14_days" | "30_days" | "3_months" | "12_months" | "all_time" | "custom";
   start?: string;
   end?: string;
 }

@@ -124,7 +124,7 @@ function SidebarContent({
 
       {/* ── Brand Section ── */}
       <div
-        className="flex items-center px-4 h-12.5 border-b border-slate-100 overflow-hidden shrink-0 bg-white"
+        className="flex items-center px-4 h-12.5 border-b border-slate-400 overflow-hidden shrink-0 bg-white"
         style={{
           justifyContent: isCollapsed ? "center" : "flex-start",
           padding: isCollapsed ? "0" : "0 16px",
@@ -193,7 +193,7 @@ function CollapseToggle({
       className="
         absolute top-12.5 -right-3 z-30 hidden md:flex
         items-center justify-center w-6 h-6 rounded-full
-        bg-white text-slate-400 border border-slate-200
+        bg-white text-slate-800 border border-slate-500
         hover:text-orange-600 hover:border-orange-200
         active:scale-95 transition-all duration-300
         shadow-xl group/btn cursor-pointer
@@ -223,7 +223,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, onToggleCollapse
         className="hidden md:block h-full shrink-0 relative z-20"
         style={{ width: desktopW, minWidth: desktopW, transition: `width ${easing}, min-width ${easing}` }}
       >
-        <div className="h-full w-full overflow-hidden border-r border-slate-200">
+        <div className="h-full w-full overflow-hidden border-r border-slate-500">
           <SidebarContent isCollapsed={isCollapsed} onClose={onClose} />
         </div>
 

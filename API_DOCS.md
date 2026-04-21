@@ -10,17 +10,18 @@ This backend uses **Django Rest Framework** and **SimpleJWT** for secure authent
 
 All protected endpoints enforce the following permission rules based on the user's role:
 
-| Method | Staff | Boss | Superadmin |
-|--------|-------|------|------------|
-| `GET` — view/list | ✅ | ✅ | ✅ |
-| `POST` — create | ✅ | ✅ | ✅ |
-| `PUT` / `PATCH` — edit | ❌ 403 | ✅ | ✅ |
-| `DELETE` | ❌ 403 | ❌ 403 | ✅ |
+| Method | Regular user | Staff | Boss | Superadmin |
+|--------|-------------|-------|------|------------|
+| `GET` — view/list | ✅ | ✅ | ✅ | ✅ |
+| `POST` — create | ✅ | ✅ | ✅ | ✅ |
+| `PUT` / `PATCH` — edit | ❌ 403 | ✅ | ✅ | ✅ |
+| `DELETE` | ❌ 403 | ❌ 403 | ❌ 403 | ✅ |
 
 > **Role mapping:**
-> - **Staff** — any authenticated user (`is_boss: false`, `is_superuser: false`)
-> - **Boss** — user with `is_boss: true`
-> - **Superadmin** — user with `is_superuser: true`
+> - **Regular user** — authenticated user with no special flags (`is_staff: false`, `is_boss: false`, `is_superuser: false`)
+> - **Staff** — user with `is_staff: true` (can edit, cannot delete)
+> - **Boss** — user with `is_boss: true` (can edit, cannot delete)
+> - **Superadmin** — user with `is_superuser: true` (full access)
 
 > **Exception:** `PATCH /api/v1/users/me` is available to all authenticated users regardless of role (users can always update their own profile).
 
@@ -989,4 +990,270 @@ Same shape as `POST /api/transactions` — full transaction object with one item
 2. If **400 with inventory list** → show site picker → re-submit with `inventory_id`
 3. If **404** → show "Unknown barcode" or "Not in inventory" message
 4. If **201** → show success with `total_transaction_value` and updated stock
+
+---
+
+## 10. Dashboard Stats
+
+Aggregate stats scoped to a date range — used to power the main dashboard page.
+
+- **Endpoint:** `GET /api/v1/dashboard/stats/`
+- **Auth required:** Yes
+
+### Query Parameters
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `range` | string | `today` | Date range label (see table below) |
+| `start` | `YYYY-MM-DD` | — | Required only when `range=custom` |
+| `end` | `YYYY-MM-DD` | — | Required only when `range=custom` |
+
+### Supported `range` Values
+
+| Value | Window |
+|-------|--------|
+| `today` | Midnight → end of today (server timezone) |
+| `7_days` | Last 7 days including today |
+| `14_days` | Last 14 days including today |
+| `30_days` | Last 30 days including today |
+| `3_months` | Last 90 days including today |
+| `12_months` | Last 365 days including today |
+| `all_time` | No date filter — returns all-time totals |
+| `custom` | Requires `start` and `end` params (`YYYY-MM-DD`) |
+
+> All rolling windows are **inclusive of today** and count backwards. `7_days` = today + 6 previous days.
+
+### Examples
+
+```
+GET /api/v1/dashboard/stats/
+GET /api/v1/dashboard/stats/?range=7_days
+GET /api/v1/dashboard/stats/?range=30_days
+GET /api/v1/dashboard/stats/?range=12_months
+GET /api/v1/dashboard/stats/?range=all_time
+GET /api/v1/dashboard/stats/?range=custom&start=2026-01-01&end=2026-03-31
+```
+
+### Response (200 OK)
+
+```json
+{
+  "range": {
+    "label": "7_days",
+    "start": "2026-04-15T00:00:00+07:00",
+    "end": "2026-04-21T23:59:59.999999+07:00"
+  },
+  "products": {
+    "total": 12,
+    "by_category": [
+      { "category": "Fasteners", "count": 8 },
+      { "category": "Accessories", "count": 4 }
+    ],
+    "low_stock": 3,
+    "out_of_stock": 1
+  },
+  "inventory": {
+    "total_records": 42,
+    "total_quantity": 12500,
+    "total_stock_value": "13250.00",
+    "needs_reorder": 5,
+    "by_site": [
+      {
+        "site": "Warehouse A",
+        "records": 25,
+        "total_quantity": 8000,
+        "total_stock_value": "8500.00"
+      }
+    ]
+  },
+  "transactions": {
+    "total": 38,
+    "by_type": {
+      "Receive": { "count": 24, "total_quantity": 480 },
+      "Sale":    { "count": 14, "total_quantity": 120 }
+    },
+    "recent_activity": [
+      {
+        "id": 101,
+        "transaction_type": "Sale",
+        "transaction_date": "2026-04-21T09:15:00Z",
+        "performed_by": "staff_user",
+        "item_count": 2,
+        "total_quantity": 15
+      }
+    ]
+  }
+}
+```
+
+### Response Fields
+
+**`range`**
+| Field | Description |
+|-------|-------------|
+| `label` | Resolved label (echoes back the `range` param, or `"today"` if an unknown value was given) |
+| `start` | ISO 8601 datetime — start of the window (`null` for `all_time`) |
+| `end` | ISO 8601 datetime — end of the window (`null` for `all_time`) |
+
+**`products`** — scoped by `created_at`
+| Field | Description |
+|-------|-------------|
+| `total` | Products created within the range |
+| `by_category` | Array of `{ category, count }` — categories of products in range |
+| `low_stock` | Inventory records for in-range products where `reorder_status = "Yes"` |
+| `out_of_stock` | Inventory records for in-range products where `quantity_on_hand = 0` |
+
+**`inventory`** — scoped by `updated_at`
+| Field | Description |
+|-------|-------------|
+| `total_records` | Inventory records touched within the range |
+| `total_quantity` | Sum of `quantity_on_hand` across those records |
+| `total_stock_value` | Sum of `stock_value` (string — treat as decimal) |
+| `needs_reorder` | Count of records where `reorder_status = "Yes"` |
+| `by_site` | Breakdown per site with `records`, `total_quantity`, `total_stock_value` |
+
+**`transactions`** — scoped by `transaction_date`
+| Field | Description |
+|-------|-------------|
+| `total` | Total transactions in range |
+| `by_type` | `Receive` and `Sale` keys, each with `count` and `total_quantity` |
+| `recent_activity` | Last 10 transactions in range, newest first |
+| `recent_activity[].item_count` | Number of line items in the transaction |
+| `recent_activity[].total_quantity` | Absolute sum of all item quantities |
+
+### Error Responses
+
+| Status | Scenario | Response |
+|--------|----------|----------|
+| `400` | Unknown `range` value | `{ "detail": "Invalid range. Valid options: 12_months, 14_days, ..." }` |
+| `400` | `range=custom` with missing/invalid `start` or `end` | `{ "detail": "Invalid date format for custom range. Use YYYY-MM-DD for start and end." }` |
+| `400` | `start` is after `end` | `{ "detail": "start must be before or equal to end." }` |
+
+### Frontend Integration Notes
+
+- For `all_time`, `range.start` and `range.end` will both be `null` — guard against this before formatting dates.
+- `total_stock_value` is a string — parse with `parseFloat()` or a decimal library before arithmetic.
+- `by_type` may be missing a key entirely if no transactions of that type exist in the range — always default: `stats.by_type?.Sale ?? { count: 0, total_quantity: 0 }`.
+- The `recent_activity` list is already limited to 10 — no pagination needed.
+
+---
+
+## 11. Admin User Management
+
+Manage all users in the system. **Requires `is_staff`, `is_boss`, or `is_superuser`.**
+
+> **Field restriction:** `is_superuser` and `is_staff` fields are only writable by a superadmin. If a boss or staff user sends these fields, they are silently ignored.
+
+- **Base Endpoint:** `/api/v1/users/admin/`
+- **Methods:**
+  - `GET /api/v1/users/admin/users/` — List all users → `200 OK`
+  - `POST /api/v1/users/admin/users/` — Create a new user → `201 Created`
+  - `GET /api/v1/users/admin/users/<id>/` — Retrieve a user → `200 OK`
+  - `PUT /api/v1/users/admin/users/<id>/` — Full replace of a user → `200 OK`
+  - `PATCH /api/v1/users/admin/users/<id>/` — Partial update of a user → `200 OK`
+  - `DELETE /api/v1/users/admin/users/<id>/` — Delete a user → `204 No Content`
+  - `GET /api/v1/users/admin/users/<id>/logs/` — List activity logs for a user → `200 OK`
+  - `GET /api/v1/users/admin/logs/` — List all activity logs across all users → `200 OK`
+
+---
+
+### List Users (GET)
+`GET /api/v1/users/admin/users/` — returns all users, newest first.
+
+#### Response (200 OK)
+```json
+[
+  {
+    "id": 2,
+    "username": "john_doe",
+    "email": "john@example.com",
+    "name": "John Doe",
+    "is_boss": false,
+    "is_staff": false,
+    "is_superuser": false,
+    "is_active": true,
+    "date_joined": "2026-03-25T08:00:00Z",
+    "last_login": "2026-04-20T09:30:00Z"
+  }
+]
+```
+
+---
+
+### Create User (POST)
+`POST /api/v1/users/admin/users/`
+
+#### Payload
+```json
+{
+  "username": "new_user",
+  "email": "new@example.com",
+  "name": "New User",
+  "password": "secure_password",
+  "is_boss": false,
+  "is_active": true
+}
+```
+
+| Field | Required | Writable by | Description |
+|-------|----------|-------------|-------------|
+| `username` | Yes | All | Unique login name |
+| `email` | No | All | Email address |
+| `name` | No | All | Display name |
+| `password` | Yes | All | Password (write-only, never returned) |
+| `is_boss` | No | All | Grant boss-level edit rights |
+| `is_active` | No | All | Set to `false` to deactivate without deleting |
+| `is_staff` | No | **Superadmin only** | Grant staff-level edit rights |
+| `is_superuser` | No | **Superadmin only** | Grant full admin rights |
+
+#### Success (201 Created) — returns the created user object
+
+#### Errors
+| Status | Scenario | Response |
+|--------|----------|----------|
+| `400 Bad Request` | `username` missing or taken | `{ "username": ["A user with that username already exists."] }` |
+| `400 Bad Request` | `password` missing | `{ "password": ["This field is required."] }` |
+
+---
+
+### Retrieve / Update / Delete User
+- `GET /api/v1/users/admin/users/<id>/` — returns the user object
+- `PUT /api/v1/users/admin/users/<id>/` — full replace (same fields as POST)
+- `PATCH /api/v1/users/admin/users/<id>/` — partial update (send only fields to change)
+- `DELETE /api/v1/users/admin/users/<id>/` — deletes the user permanently
+
+> Deleting a user is **logged** before deletion. All their activity logs are also deleted (cascade).
+
+#### Errors
+| Status | Scenario | Response |
+|--------|----------|----------|
+| `404 Not Found` | User not found | `{ "detail": "No User matches the given query." }` |
+
+---
+
+### User Activity Logs (GET)
+`GET /api/v1/users/admin/users/<id>/logs/` — returns all activity logs for a specific user, newest first.
+
+`GET /api/v1/users/admin/logs/` — returns all activity logs across every user, newest first.
+
+#### Response (200 OK)
+```json
+[
+  {
+    "id": 12,
+    "user": 2,
+    "username": "john_doe",
+    "action": "login",
+    "timestamp": "2026-04-20T09:30:00Z",
+    "ip_address": "192.168.1.10",
+    "details": ""
+  }
+]
+```
+
+| Field | Description |
+|-------|-------------|
+| `action` | One of: `login`, `logout`, `register`, `profile_update`, `password_change`, `other` |
+| `ip_address` | IP of the request (supports `X-Forwarded-For` for proxied environments) |
+| `details` | Free-text context (e.g. `"Created by admin john_doe"`, `"Account deleted by admin ..."`) |
 
