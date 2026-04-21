@@ -23,14 +23,18 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function setSessionCookie(token: string) {
-  const exp = getTokenExpiry(token);
+function setSessionCookie(accessToken: string, refreshToken?: string) {
+  const exp = getTokenExpiry(accessToken);
   const maxAge = exp ? Math.max(0, Math.floor((exp - Date.now()) / 1000)) : 3600;
-  document.cookie = `access_token=${token}; path=/; max-age=${maxAge}; SameSite=Lax`;
+  document.cookie = `access_token=${accessToken}; path=/; max-age=${maxAge}; SameSite=Lax`;
+  if (refreshToken) {
+    document.cookie = `refresh_token=${refreshToken}; path=/; max-age=${7 * 24 * 3600}; SameSite=Lax`;
+  }
 }
 
 function clearSessionCookie() {
   document.cookie = "access_token=; path=/; max-age=0; SameSite=Lax";
+  document.cookie = "refresh_token=; path=/; max-age=0; SameSite=Lax";
 }
 
 /** Decode JWT expiry (ms). Returns null if unreadable. */
@@ -133,7 +137,7 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
     const tokens = await apiLogin(payload);
     localStorage.setItem("access_token", tokens.access);
     localStorage.setItem("refresh_token", tokens.refresh);
-    setSessionCookie(tokens.access);
+    setSessionCookie(tokens.access, tokens.refresh);
     const me = await getMe();
     setUser(me);
     localStorage.setItem("user_data", JSON.stringify(me));

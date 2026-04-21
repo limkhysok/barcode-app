@@ -35,7 +35,6 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login({ username: username.trim(), password });
-      router.push("/transactions");
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       setError(

@@ -409,7 +409,7 @@ const chartData = useMemo(() => {
       </div>
 
       {/* ── ANALYTICS + SIGNAL LOG ── */}
-      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-3 items-start transition-opacity duration-200 ${loading ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
+      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-3 items-stretch transition-opacity duration-200 ${loading ? "opacity-50 pointer-events-none" : "opacity-100"}`}>
         <div className="lg:col-span-2 bg-white border border-slate-200 rounded-sm p-5 sm:p-6 lg:p-8 flex flex-col overflow-hidden min-w-0">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div className="flex items-center gap-2">
@@ -428,9 +428,9 @@ const chartData = useMemo(() => {
             </div>
           </div>
 
-          <div className="w-full min-w-0 min-h-62.5 sm:min-h-75 relative">
+          <div className="w-full min-w-0 flex-1 min-h-62.5 sm:min-h-75 relative">
             {mounted && chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300} minWidth={0}>
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <AreaChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 900 }} dy={10} />
