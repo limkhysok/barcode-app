@@ -120,21 +120,21 @@ export function ProductsTable({
   // ── Mobile: compact rows ──
   const mobileRows = (
     <div className="sm:hidden">
-      <div className="px-3 py-1.5 flex items-center gap-2 border-b border-t border-gray-200 bg-white">
+      <div className="px-3 py-1.5 flex items-center gap-2 border-b border-t border-gray-400 bg-white">
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">#</span>
+          <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">#</span>
           <span className="text-slate-200">·</span>
-          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Category</span>
+          <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Category</span>
           <span className="text-slate-200">·</span>
-          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Name</span>
+          <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Name</span>
         </div>
         <div className="shrink-0 flex items-center gap-4">
-          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Reorder</span>
+          <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Reorder</span>
           <span className="w-7" />
         </div>
       </div>
 
-      <div className="divide-y divide-gray-100">
+      <div className="divide-y divide-slate-300">
         {displayed.map((p) => (
           <div
             key={p.id}
@@ -196,7 +196,7 @@ export function ProductsTable({
   const tabletGrid = (
     <div className="hidden sm:grid lg:hidden grid-cols-4 gap-2">
       {displayed.map((p) => (
-        <div key={p.id} className="group relative bg-white border border-slate-200 rounded-sm overflow-hidden transition-all duration-300 hover:border-orange-400 hover:shadow-md hover:shadow-orange-500/10 hover:-translate-y-0.5">
+        <div key={p.id} className="group relative bg-white border border-slate-500 rounded-sm overflow-hidden transition-all duration-300 hover:border-orange-400 hover:shadow-md hover:shadow-orange-500/10 hover:-translate-y-0.5">
           {/* Card button — click anywhere to view */}
           <button type="button" onClick={() => onView(p)} className="w-full text-left flex flex-col cursor-pointer">
             <div className="h-20 w-full bg-slate-50 flex items-center justify-center overflow-hidden group-hover:bg-orange-50 transition-colors relative">
@@ -210,7 +210,7 @@ export function ProductsTable({
             <div className="px-2 py-1.5 flex flex-col gap-1">
               <span className="text-[8px] font-black text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded-full border border-orange-100 uppercase tracking-widest self-start truncate max-w-full">{p.category}</span>
               <span className="text-[11px] font-black text-slate-900 leading-tight truncate group-hover:text-orange-600 transition-colors">{p.product_name}</span>
-              <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+              <div className="flex items-center justify-between pt-1 border-t border-slate-500">
                 <span className="text-[9px] text-slate-400 truncate">{p.supplier}</span>
                 <span className="text-[10px] font-black text-orange-600 tabular-nums shrink-0 ml-1">{p.reorder_level}</span>
               </div>
@@ -229,9 +229,9 @@ export function ProductsTable({
 
   // ── Desktop: List table ──
   const desktopList = (
-    <div className="hidden lg:block overflow-x-auto bg-white border border-slate-200 rounded-sm">
+    <div className="hidden lg:block overflow-x-auto bg-white border border-slate-500 rounded-sm">
       <table className="w-full text-sm">
-        <thead className="bg-slate-50/50 border-b border-slate-100">
+        <thead className="bg-slate-50/50 border-b border-slate-500">
           <tr>
             <Header label="#" field="id" sortField={sortField} sortDir={sortDir} handleSort={handleSort} />
             <Header label="Pic" sortField={sortField} sortDir={sortDir} handleSort={handleSort} />
@@ -250,7 +250,7 @@ export function ProductsTable({
                 <span className="text-[12px] font-black text-slate-500 tabular-nums group-hover:text-orange-600 transition-colors">#{p.id}</span>
               </td>
               <td className="px-5 py-4 whitespace-nowrap">
-                <div className="w-10 h-10 rounded-sm bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden">
+                <div className="w-10 h-10 rounded-sm bg-slate-50 border border-slate-500 flex items-center justify-center overflow-hidden">
                   {p.product_picture ? (
                     <img
                       src={`${BASE_URL}${p.product_picture}`}
@@ -319,9 +319,9 @@ export function ProductsTable({
 
   // ── Desktop: Grid cards ──
   const desktopGrid = (
-    <div className="hidden lg:grid grid-cols-6 gap-2">
+    <div className="hidden lg:grid grid-cols-6 gap-2 pt-1">
       {displayed.map((p) => (
-        <div key={p.id} className="group relative bg-white border border-slate-200 rounded-sm overflow-hidden transition-all duration-300 hover:border-orange-400 hover:shadow-md hover:shadow-orange-500/10 hover:-translate-y-0.5">
+        <div key={p.id} className="group relative bg-white border border-slate-500 rounded-sm overflow-hidden transition-all duration-300 hover:border-orange-400 hover:shadow-md hover:shadow-orange-500/10 hover:-translate-y-0.5">
           {/* Card button — click anywhere to view */}
           <button type="button" onClick={() => onView(p)} className="w-full text-left flex flex-col cursor-pointer">
             <div className="h-20 w-full bg-slate-50 flex items-center justify-center overflow-hidden group-hover:bg-orange-50 transition-colors relative">
@@ -335,7 +335,7 @@ export function ProductsTable({
             <div className="px-2 py-1.5 flex flex-col gap-1">
               <span className="text-[8px] font-black text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded-full border border-orange-100 uppercase tracking-widest self-start truncate max-w-full">{p.category}</span>
               <span className="text-[11px] font-black text-slate-900 leading-tight truncate group-hover:text-orange-600 transition-colors">{p.product_name}</span>
-              <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+              <div className="flex items-center justify-between pt-1 border-t border-slate-500">
                 <span className="text-[9px] text-slate-400 truncate">{p.supplier}</span>
                 <span className="text-[10px] font-black text-orange-600 tabular-nums shrink-0 ml-1">{p.reorder_level}</span>
               </div>

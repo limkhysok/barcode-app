@@ -14,7 +14,7 @@ interface InventoryDetailModalProps {
 
 function Row({ label, value }: Readonly<{ label: string; value: React.ReactNode }>) {
   return (
-    <div className="flex items-start gap-3 py-2.5 border-b border-gray-100 last:border-0">
+    <div className="flex items-start gap-3 py-2.5 border-b border-gray-300 last:border-0">
       <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 w-28 shrink-0 pt-0.5">{label}</span>
       <span className="text-[12px] font-semibold text-gray-800 break-all uppercase">{value}</span>
     </div>

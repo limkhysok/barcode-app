@@ -89,7 +89,7 @@ function ModalSelect({ label, id, value, options, onChange, placeholder, optiona
           <div className="absolute z-100 top-full left-0 right-0 mt-2 bg-white border border-slate-900 shadow-2xl rounded-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <ul className="max-h-64 overflow-y-auto no-scrollbar scrollbar-none divide-y divide-slate-100">
               {options.map((o) => (
-                <li key={String(o.value)} className="border-b border-slate-50 last:border-b-0">
+                <li key={String(o.value)} className="border-b border-slate-500 last:border-b-0">
                   <button
                     type="button"
                     onClick={() => {

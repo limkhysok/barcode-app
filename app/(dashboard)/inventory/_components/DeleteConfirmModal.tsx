@@ -28,7 +28,7 @@ export function DeleteConfirmModal({ target, onCancel, onConfirm, deleting }: Re
         </div>
         <div className="border-t border-black px-5 py-3 bg-gray-50/50 flex justify-end gap-2">
           <button onClick={onCancel} disabled={deleting}
-            className="w-20 py-1.5 rounded-sm text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition disabled:opacity-60 cursor-pointer">
+            className="w-20 py-1.5 rounded-sm text-[11px] font-black tracking-widest uppercase text-gray-500 bg-white border border-slate-400 hover:bg-gray-50 active:scale-[0.98] transition disabled:opacity-60 cursor-pointer">
             Cancel
           </button>
           <button onClick={onConfirm} disabled={deleting}

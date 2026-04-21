@@ -28,7 +28,7 @@ export function StatsOverview({ stats, products }: Readonly<StatsOverviewProps>)
     <div className="w-full">
 
       {/* ── MOBILE (< sm) ── */}
-      <div className="sm:hidden bg-white border border-slate-200 rounded-sm overflow-hidden">
+      <div className="sm:hidden bg-white border border-slate-500 rounded-sm overflow-hidden">
         <div className="grid grid-cols-3 divide-x divide-slate-100">
           <div className="flex flex-col items-center gap-0.5 py-3">
             <Package size={14} className="text-orange-500" strokeWidth={2} />
@@ -60,7 +60,7 @@ export function StatsOverview({ stats, products }: Readonly<StatsOverviewProps>)
 
       {/* ── TABLET (sm → lg) ── */}
       <div className="hidden sm:grid lg:hidden grid-cols-3 gap-2">
-        <div className="bg-white border border-slate-200 rounded-sm p-3 flex flex-col gap-2">
+        <div className="bg-white border border-slate-500 rounded-sm p-3 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-sm bg-orange-50 flex items-center justify-center">
@@ -76,7 +76,7 @@ export function StatsOverview({ stats, products }: Readonly<StatsOverviewProps>)
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-sm p-3 flex flex-col gap-2">
+        <div className="bg-white border border-slate-500 rounded-sm p-3 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-sm bg-orange-50 flex items-center justify-center">
@@ -92,7 +92,7 @@ export function StatsOverview({ stats, products }: Readonly<StatsOverviewProps>)
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-sm p-3 flex flex-col gap-2">
+        <div className="bg-white border border-slate-500 rounded-sm p-3 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-sm bg-orange-50 flex items-center justify-center">
@@ -110,7 +110,7 @@ export function StatsOverview({ stats, products }: Readonly<StatsOverviewProps>)
 
       {/* ── DESKTOP (≥ lg) ── */}
       <div className="hidden lg:grid grid-cols-3 gap-3">
-        <div className="bg-white border border-slate-200 rounded-sm p-4 flex flex-col gap-3">
+        <div className="bg-white border border-slate-500 rounded-sm p-4 flex flex-col gap-3">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Accessories</p>
@@ -131,7 +131,7 @@ export function StatsOverview({ stats, products }: Readonly<StatsOverviewProps>)
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-sm p-4 flex flex-col gap-3">
+        <div className="bg-white border border-slate-500 rounded-sm p-4 flex flex-col gap-3">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Fasteners</p>
@@ -152,7 +152,7 @@ export function StatsOverview({ stats, products }: Readonly<StatsOverviewProps>)
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-sm p-4 flex flex-col gap-3">
+        <div className="bg-white border border-slate-500 rounded-sm p-4 flex flex-col gap-3">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Total Products</p>
