@@ -108,7 +108,7 @@ function DropdownFilter({
 
 function ViewToggle({ viewMode, setViewMode }: Readonly<{ viewMode: "list" | "grid"; setViewMode: (v: "list" | "grid") => void }>) {
   return (
-    <div className="flex items-center gap-0 bg-slate-100 border border-gray-100 rounded-sm h-8 overflow-hidden shrink-0">
+    <div className="flex items-center gap-0 bg-slate-100 border border-slate-500 rounded-sm h-8 overflow-hidden shrink-0">
       {(["list", "grid"] as const).map((mode) => (
         <button
           key={mode}

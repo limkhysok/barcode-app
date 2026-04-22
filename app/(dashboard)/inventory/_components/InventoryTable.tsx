@@ -153,7 +153,7 @@ export function InventoryTable({
   // ── Mobile: compact rows ──
   const mobileRows = (
     <div className="sm:hidden">
-      <div className="px-3 py-1.5 flex items-center gap-2 border-b border-t border-slate-200 bg-white">
+      <div className="px-3 py-1.5 flex items-center gap-2 border-b border-t border-slate-500 bg-white">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">#</span>
           <span className="text-slate-200">·</span>
@@ -164,7 +164,7 @@ export function InventoryTable({
           <span className="w-7" />
         </div>
       </div>
-      <div className="divide-y divide-slate-100 bg-white">
+      <div className="divide-y divide-slate-400 bg-white">
         {displayed.map((r) => {
           const isOut = r.quantity_on_hand === 0;
           const isLow = r.reorder_status === "LOW" && !isOut;
@@ -188,7 +188,7 @@ export function InventoryTable({
                   </div>
                   <div className="flex items-center gap-1">
                     <MapPin size={9} className="text-slate-300 shrink-0" />
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter truncate max-w-[150px]">
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter truncate max-w-37.5">
                       {r.site} · {r.location}
                     </span>
                   </div>
@@ -225,7 +225,7 @@ export function InventoryTable({
   const tabletGrid = (
     <div className="hidden sm:grid lg:hidden grid-cols-2 gap-2 p-1">
       {displayed.map((r) => (
-        <div key={r.id} className="group relative bg-white border border-slate-200 rounded-sm overflow-hidden transition-all duration-300 hover:border-orange-400 hover:shadow-md hover:shadow-orange-500/10">
+        <div key={r.id} className="group relative bg-white border border-slate-500 rounded-sm overflow-hidden transition-all duration-300 hover:border-orange-400 hover:shadow-md hover:shadow-orange-500/10">
           <button type="button" onClick={() => onView(r)} className="w-full text-left flex flex-col cursor-pointer">
             <div className="h-20 w-full bg-slate-50 flex items-center justify-center overflow-hidden group-hover:bg-orange-50 transition-colors relative">
               {r.product_details.product_picture ? (
@@ -263,9 +263,9 @@ export function InventoryTable({
 
   // ── Desktop: List Table ──
   const desktopList = (
-    <div className="hidden lg:block overflow-x-auto bg-white border border-slate-200 rounded-sm">
+    <div className="hidden lg:block overflow-x-auto bg-white border border-slate-500 rounded-sm">
       <table className="w-full text-sm">
-        <thead className="bg-slate-50/50 border-b border-slate-100">
+        <thead className="bg-slate-50/50 border-b border-slate-500">
           <tr>
             <Header label="#" field="id" ordering={ordering} handleSort={onSort} className="pl-6 w-16" />
             <Header label="Pic" ordering={ordering} handleSort={onSort} className="w-16" />
@@ -278,14 +278,14 @@ export function InventoryTable({
             <Header label="Actions" ordering={ordering} handleSort={onSort} className="pr-6 text-right w-24" />
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 bg-white">
+        <tbody className="divide-y divide-slate-400 bg-white">
           {displayed.map((r) => (
             <tr key={r.id} className="group hover:bg-orange-50/60 transition-colors">
               <td className="pl-6 px-5 py-4">
                 <span className="text-[11px] font-black text-slate-500 tabular-nums group-hover:text-orange-600 transition-colors">#{r.id}</span>
               </td>
               <td className="px-5 py-4 whitespace-nowrap">
-                <div className="w-10 h-10 rounded-sm bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden">
+                <div className="w-10 h-10 rounded-sm bg-slate-50 border border-slate-500 flex items-center justify-center overflow-hidden">
                   {r.product_details.product_picture ? (
                     <img src={`${BASE_URL}${r.product_details.product_picture}`} alt={r.product_details.product_name} className="w-full h-full object-cover" />
                   ) : (
@@ -301,7 +301,7 @@ export function InventoryTable({
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{r.product_details.category}</span>
                 </div>
               </td>
-              <td className="px-5 py-4 text-[11px] font-mono font-bold text-slate-300 tracking-tighter tabular-nums group-hover:text-orange-400 transition-colors whitespace-nowrap">
+              <td className="px-5 py-4 text-[11px] font-mono font-bold text-slate-500 tracking-tighter tabular-nums group-hover:text-orange-400 transition-colors whitespace-nowrap">
                 {r.product_details.barcode || "—"}
               </td>
               <td className="px-5 py-4">
@@ -355,16 +355,16 @@ export function InventoryTable({
   const desktopGrid = (
     <div className="hidden lg:grid grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
       {displayed.map((r) => (
-        <div key={r.id} className="group relative bg-white border border-slate-200 rounded-sm overflow-hidden transition-all duration-300 hover:border-orange-400 hover:shadow-md hover:shadow-orange-500/10 hover:-translate-y-0.5 flex flex-col">
+        <div key={r.id} className="group relative bg-white border border-slate-500 rounded-sm overflow-hidden transition-all duration-300 hover:border-orange-400 hover:shadow-md hover:shadow-orange-500/10 hover:-translate-y-0.5 flex flex-col">
           <button type="button" onClick={() => onView(r)} className="w-full text-left flex flex-col cursor-pointer flex-1">
-            <div className="relative aspect-square w-full bg-slate-50 flex items-center justify-center overflow-hidden border-b border-slate-100 group-hover:bg-orange-50 transition-colors">
+            <div className="relative aspect-square w-full bg-slate-50 flex items-center justify-center overflow-hidden border-b border-slate-500 group-hover:bg-orange-50 transition-colors">
               {r.product_details.product_picture ? (
                 <img src={`${BASE_URL}${r.product_details.product_picture}`} alt={r.product_details.product_name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
               ) : (
                 <Package size={24} strokeWidth={1} className="opacity-20" />
               )}
               <div className="absolute top-2 left-2 flex flex-col gap-1.5">
-                <span className="text-[8px] font-black text-slate-500 tabular-nums bg-white/90 px-1.5 py-0.5 rounded-sm border border-slate-200 self-start">#{r.id}</span>
+                <span className="text-[8px] font-black text-slate-500 tabular-nums bg-white/90 px-1.5 py-0.5 rounded-sm border border-slate-500 self-start">#{r.id}</span>
                 <StockBadge r={r} />
               </div>
             </div>
@@ -378,7 +378,7 @@ export function InventoryTable({
                   <MapPin size={9} className="text-slate-300 shrink-0" />
                   <span className="text-[9px] font-bold text-slate-400 uppercase truncate tracking-tighter">{r.site} · {r.location}</span>
                 </div>
-                <div className="flex items-center justify-between pt-1.5 border-t border-slate-50">
+                <div className="flex items-center justify-between pt-1.5 border-t border-slate-500">
                   <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em]">Quantity</span>
                   <span className={`text-[14px] font-black tabular-nums transition-colors ${r.reorder_status === "No" ? "text-orange-600" : "text-red-500"}`}>
                     {r.quantity_on_hand}

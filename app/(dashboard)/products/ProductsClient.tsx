@@ -267,7 +267,7 @@ export default function ProductsClient({
       />
 
       {/* Table */}
-      <div className="overflow-hidden bg-white">
+      <div className="overflow-hidden ">
         <ProductsTable
           loading={loading}
           error={error}

@@ -51,7 +51,7 @@ function DropdownFilter({
   const activeLabel = options.find(o => o.key === value)?.label || label;
   const isActive = value !== "";
   
-  let btnCls = "border-gray-100 bg-gray-50/50 text-gray-400 hover:text-white hover:bg-orange-500 hover:border-orange-300";
+  let btnCls = "border-gray-500 bg-gray-50/50 text-gray-400 hover:text-white hover:bg-orange-500 hover:border-orange-300";
   if (isActive) btnCls = "border-orange-500 bg-orange-500 text-white font-black shadow-sm";
   else if (open) btnCls = "border-orange-500 bg-white text-gray-900 shadow-sm";
 
@@ -82,7 +82,7 @@ function DropdownFilter({
       </button>
 
       {open && (
-        <div className="absolute z-50 left-0 mt-1 min-w-48 bg-white border border-gray-100 rounded-sm shadow-xl animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden max-h-64 overflow-y-auto">
+        <div className="absolute z-50 left-0 mt-1 min-w-48 bg-white border border-slate-500 rounded-sm shadow-xl animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden max-h-64 overflow-y-auto">
           <ul className="divide-y divide-gray-50">
             {options.map((opt) => (
               <li key={opt.key}>
@@ -106,7 +106,7 @@ function DropdownFilter({
 
 function ViewToggle({ viewMode, setViewMode }: Readonly<{ viewMode: "list" | "grid"; setViewMode: (v: "list" | "grid") => void }>) {
   return (
-    <div className="flex items-center gap-0 bg-slate-100 border border-gray-100 rounded-sm h-8 overflow-hidden shrink-0">
+    <div className="flex items-center gap-0 bg-slate-100 border border-slate-500 rounded-sm h-8 overflow-hidden shrink-0">
       {(["list", "grid"] as const).map((mode) => (
         <button
           key={mode}
@@ -124,7 +124,7 @@ function ViewToggle({ viewMode, setViewMode }: Readonly<{ viewMode: "list" | "gr
 
 function SearchBar({ search, setSearch, placeholder = "Search record..." }: Readonly<{ search: string; setSearch: (v: string) => void; placeholder?: string }>) {
   return (
-    <div className="flex items-center gap-2 bg-slate-50 border border-gray-100 rounded-sm px-2.5 h-8 focus-within:border-orange-200 focus-within:bg-white transition-all overflow-hidden flex-1">
+    <div className="flex items-center gap-2 bg-slate-50 border border-slate-500 rounded-sm px-2.5 h-8 focus-within:border-orange-200 focus-within:bg-white transition-all overflow-hidden flex-1">
       <Search size={13} className="text-gray-400 shrink-0" strokeWidth={3} />
       <input
         type="text"

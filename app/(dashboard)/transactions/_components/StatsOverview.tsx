@@ -128,10 +128,10 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
       {/* ── DESKTOP (≥ lg) ── */}
       <div className="hidden lg:grid grid-cols-3 gap-3">
         {/* Card: Receive */}
-        <div className="bg-white border border-slate-200 rounded-sm p-4 flex flex-col gap-3 group transition-all duration-300 hover:border-orange-200">
+        <div className="bg-white border border-slate-500 rounded-sm p-4 flex flex-col gap-3 group transition-all duration-300 hover:border-orange-200">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-orange-400 transition-colors">Lifetime Receive</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-700 group-hover/hdr:text-orange-500 transition-colors duration-200">Lifetime Receive</p>
               <p className="text-3xl font-black text-slate-900 leading-none tabular-nums tracking-tighter mt-1">{fmt(receiveCount)}</p>
             </div>
             <div className="w-9 h-9 rounded-sm bg-orange-50 flex items-center justify-center group-hover:bg-orange-600 group-hover:rotate-12 transition-all">
@@ -150,10 +150,10 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
         </div>
 
         {/* Card: Sales */}
-        <div className="bg-white border border-slate-200 rounded-sm p-4 flex flex-col gap-3 group transition-all duration-300 hover:border-orange-200">
+        <div className="bg-white border border-slate-500 rounded-sm p-4 flex flex-col gap-3 group transition-all duration-300 hover:border-orange-200">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] group-hover:text-orange-400 transition-colors">Lifetime Sales</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-700 group-hover/hdr:text-orange-500 transition-colors duration-200">Lifetime Sales</p>
               <p className="text-3xl font-black text-slate-900 leading-none tabular-nums tracking-tighter mt-1">{fmt(saleCount)}</p>
             </div>
             <div className="w-9 h-9 rounded-sm bg-orange-50 flex items-center justify-center group-hover:bg-orange-500 group-hover:-rotate-12 transition-all">
@@ -172,10 +172,10 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
         </div>
 
         {/* Card: Overall Activity */}
-        <div className="bg-white border border-slate-200 rounded-sm p-4 flex flex-col gap-3 group transition-all duration-300 hover:border-orange-200">
+        <div className="bg-white border border-slate-500 rounded-sm p-4 flex flex-col gap-3 group transition-all duration-300 hover:border-orange-200">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Live Activity</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-700 group-hover/hdr:text-orange-500 transition-colors duration-200">Live Activity</p>
               <div className="flex items-baseline gap-2 mt-1">
                 <p className="text-3xl font-black text-slate-900 leading-none tabular-nums tracking-tighter">{fmt(total)}</p>
                 <div className="flex items-center gap-1 animate-pulse">
@@ -184,8 +184,8 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
                 </div>
               </div>
             </div>
-            <div className="w-9 h-9 rounded-sm bg-orange-50 flex items-center justify-center">
-              <Activity size={18} className="text-orange-600" strokeWidth={1.5} />
+            <div className="w-9 h-9 rounded-sm bg-orange-50 flex items-center justify-center group-hover:bg-orange-600 group-hover:scale-110 transition-all duration-200">
+              <Activity size={18} className="text-orange-600 group-hover:text-white transition-colors duration-200" strokeWidth={1.5} />
             </div>
           </div>
           <div className="flex flex-col gap-1.5 mt-auto">

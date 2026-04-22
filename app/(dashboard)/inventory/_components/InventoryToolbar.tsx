@@ -60,7 +60,7 @@ function DropdownFilter({
   const activeLabel = options.find(o => o.key === value)?.label || label;
   const isActive = value !== "";
   
-  let btnCls = "border-gray-100 bg-gray-50/50 text-gray-400 hover:text-white hover:bg-orange-500 hover:border-orange-300";
+  let btnCls = "border-slate-500 bg-gray-50/50 text-gray-400 hover:text-white hover:bg-orange-500 hover:border-orange-300";
   if (isActive) btnCls = "border-orange-500 bg-orange-500 text-white font-black shadow-sm";
   else if (open) btnCls = "border-orange-500 bg-white text-gray-900 shadow-sm";
 
@@ -91,8 +91,8 @@ function DropdownFilter({
       </button>
 
       {open && (
-        <div className="absolute z-50 left-0 mt-1 min-w-48 bg-white border border-gray-100 rounded-sm shadow-xl animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden max-h-64 overflow-y-auto">
-          <ul className="divide-y divide-gray-50">
+        <div className="absolute z-50 left-0 mt-1 min-w-48 bg-white border border-slate-500 rounded-sm shadow-xl animate-in fade-in slide-in-from-top-1 duration-150 overflow-hidden max-h-64 overflow-y-auto">
+          <ul className="divide-y divide-slate-500">
             {options.map((opt) => (
               <li key={opt.key}>
                 <button type="button" onClick={() => { onChange(opt.key); setOpen(false); }}
@@ -115,7 +115,7 @@ function DropdownFilter({
 
 function ViewToggle({ viewMode, setViewMode }: Readonly<{ viewMode: "list" | "grid"; setViewMode: (v: "list" | "grid") => void }>) {
   return (
-    <div className="flex items-center gap-0 bg-slate-100 border border-gray-100 rounded-sm h-8 overflow-hidden shrink-0">
+    <div className="flex items-center gap-0 bg-slate-100 border border-slate-500 rounded-sm h-8 overflow-hidden shrink-0">
       {(["list", "grid"] as const).map((mode) => (
         <button
           key={mode}
@@ -133,7 +133,7 @@ function ViewToggle({ viewMode, setViewMode }: Readonly<{ viewMode: "list" | "gr
 
 function SearchBar({ search, setSearch, placeholder = "Search record..." }: Readonly<{ search: string; setSearch: (v: string) => void; placeholder?: string }>) {
   return (
-    <div className="flex items-center gap-2 bg-slate-50 border border-gray-100 rounded-sm px-2.5 h-8 focus-within:border-orange-200 focus-within:bg-white transition-all overflow-hidden flex-1">
+    <div className="flex items-center gap-2 bg-slate-50 border border-slate-500 rounded-sm px-2.5 h-8 focus-within:border-orange-200 focus-within:bg-white transition-all overflow-hidden flex-1">
       <Search size={13} className="text-gray-400 shrink-0" strokeWidth={3} />
       <input
         type="text"
@@ -186,7 +186,7 @@ export function InventoryToolbar({
     ...siteOptions.map(s => ({ key: s, label: s.toUpperCase() }))
   ];
 
-  let mobileFilterBtnClass = "bg-white text-gray-400 border-gray-200 shadow-sm";
+  let mobileFilterBtnClass = "bg-white text-gray-400 border-slate-500 shadow-sm";
   if (filtersOpen) mobileFilterBtnClass = "bg-orange-500 text-white border-orange-500";
   else if (activeCount > 0) mobileFilterBtnClass = "bg-orange-50 text-orange-500 border-orange-300";
 
@@ -210,8 +210,8 @@ export function InventoryToolbar({
           </button>
 
           {filtersOpen && (
-            <div className="absolute left-0 mt-3 z-50 w-72 bg-white border border-gray-200 rounded-sm shadow-2xl p-4 flex flex-col gap-5 animate-in fade-in slide-in-from-top-2 duration-200">
-              <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest border-b border-slate-50 pb-2">
+            <div className="absolute left-0 mt-3 z-50 w-72 bg-white border border-slate-500 rounded-sm shadow-2xl p-4 flex flex-col gap-5 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest border-b border-slate-500 pb-2">
                 Showing {totalResults} Records
               </div>
               
@@ -239,8 +239,8 @@ export function InventoryToolbar({
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-2 border-t border-slate-50">
-                <button onClick={clearAll} className="flex-1 py-2 text-[10px] font-black uppercase text-gray-400 hover:text-red-500 border border-gray-100 rounded-sm cursor-pointer">Reset</button>
+              <div className="flex gap-2 pt-2 border-t border-slate-500">
+                <button onClick={clearAll} className="flex-1 py-2 text-[10px] font-black uppercase text-gray-400 hover:text-red-500 border border-slate-500 rounded-sm cursor-pointer">Reset</button>
                 <button onClick={() => setFiltersOpen(false)} className="flex-1 py-2 text-[10px] font-black uppercase bg-slate-900 text-white rounded-sm cursor-pointer">Done</button>
               </div>
             </div>
@@ -256,12 +256,12 @@ export function InventoryToolbar({
         <DropdownFilter label="Site" value={siteFilter} onChange={setSiteFilter} options={siteDropdownOptions} icon={MapPin} compact />
         <DropdownFilter label="Status" value={statusFilter} onChange={setStatusFilter} options={statusOptions} icon={Activity} compact />
         {isFiltered && (
-          <button onClick={clearAll} className="flex items-center gap-1.5 px-2.5 h-8 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-red-500 transition-colors border border-dashed border-gray-200 rounded-sm hover:border-red-200 hover:bg-red-50 shrink-0 cursor-pointer">
+          <button onClick={clearAll} className="flex items-center gap-1.5 px-2.5 h-8 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-red-500 transition-colors border border-dashed border-slate-500 rounded-sm hover:border-red-200 hover:bg-red-50 shrink-0 cursor-pointer">
             <X size={11} strokeWidth={3} />
             Clear
           </button>
         )}
-        <span className="text-[10px] font-black text-slate-400 tabular-nums shrink-0 px-2.5 h-8 flex items-center bg-slate-50 border border-slate-100 rounded-sm">
+        <span className="text-[10px] font-black text-slate-400 tabular-nums shrink-0 px-2.5 h-8 flex items-center bg-slate-50 border border-slate-500 rounded-sm">
           {totalResults}
         </span>
       </div>
@@ -271,14 +271,14 @@ export function InventoryToolbar({
         <DropdownFilter label="All Sites" value={siteFilter} onChange={setSiteFilter} options={siteDropdownOptions} icon={MapPin} />
         <DropdownFilter label="All Status" value={statusFilter} onChange={setStatusFilter} options={statusOptions} icon={Activity} />
         
-        <div className="flex items-center gap-1 pl-1 border-l border-slate-100">
+        <div className="flex items-center gap-1 pl-1 border-l border-slate-500">
            <button 
              onClick={() => {
                if (!quantitySort) setQuantitySort("asc");
                else if (quantitySort === "asc") setQuantitySort("desc");
                else setQuantitySort("");
              }}
-             className={`px-3 py-1 rounded-sm border text-[11px] transition-all flex items-center gap-2 focus:outline-none h-8 ${quantitySort ? "border-orange-500 bg-orange-500 text-white font-black" : "border-gray-100 bg-gray-50/50 text-gray-400 hover:bg-orange-500 hover:text-white"}`}
+             className={`px-3 py-1 rounded-sm border text-[11px] transition-all flex items-center gap-2 focus:outline-none h-8 ${quantitySort ? "border-orange-500 bg-orange-500 text-white font-black" : "border-slate-500 bg-slate-50/50 text-slate-400 hover:bg-orange-500 hover:text-white"}`}
            >
               <BarChart3 size={13} strokeWidth={3} />
               <span className="uppercase font-black tracking-widest">Qty</span>
@@ -290,7 +290,7 @@ export function InventoryToolbar({
                else if (dateSort === "desc") setDateSort("asc");
                else setDateSort("");
              }}
-             className={`px-3 py-1 rounded-sm border text-[11px] transition-all flex items-center gap-2 focus:outline-none h-8 ${dateSort ? "border-orange-500 bg-orange-500 text-white font-black" : "border-gray-100 bg-gray-50/50 text-gray-400 hover:bg-orange-500 hover:text-white"}`}
+             className={`px-3 py-1 rounded-sm border text-[11px] transition-all flex items-center gap-2 focus:outline-none h-8 ${dateSort ? "border-orange-500 bg-orange-500 text-white font-black" : "border-slate-500 bg-slate-50/50 text-slate-400 hover:bg-orange-500 hover:text-white"}`}
            >
               <Calendar size={13} strokeWidth={3} />
               <span className="uppercase font-black tracking-widest">Date</span>
@@ -299,12 +299,12 @@ export function InventoryToolbar({
         </div>
 
         {isFiltered && (
-          <button onClick={clearAll} className="flex items-center gap-2 px-3 h-8 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-red-500 transition-colors border border-dashed border-gray-200 rounded-sm hover:border-red-200 hover:bg-red-50 cursor-pointer">
+          <button onClick={clearAll} className="flex items-center gap-2 px-3 h-8 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-red-500 transition-colors border border-dashed border-slate-500 rounded-sm hover:border-red-200 hover:bg-red-50 cursor-pointer">
             <X size={12} strokeWidth={3} />
             Clear All
           </button>
         )}
-        <div className="flex items-center gap-2 px-3 h-8 bg-slate-50 border border-slate-100 rounded-sm">
+        <div className="flex items-center gap-2 px-3 h-8 bg-slate-50 border border-slate-500 rounded-sm">
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{totalResults} Records found</span>
         </div>
         <div className="ml-auto flex items-center gap-2">
@@ -318,7 +318,7 @@ export function InventoryToolbar({
         <div className="hidden sm:flex flex-wrap items-center gap-2 py-0.5">
           <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] mr-1">Active:</span>
           {search && (
-            <span className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 text-slate-900 text-[10px] font-bold border border-slate-200 rounded-sm">
+            <span className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 text-slate-900 text-[10px] font-bold border border-slate-500 rounded-sm">
               <Search size={9} className="text-slate-400" />
               &ldquo;{search}&rdquo;
               <button onClick={() => setSearch("")} className="ml-0.5 text-slate-400 hover:text-red-500 transition-colors cursor-pointer"><X size={11} strokeWidth={3} /></button>

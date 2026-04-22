@@ -49,7 +49,7 @@ function ReportDropdown({
     <div className="relative" ref={reportRef}>
       <button
         onClick={() => setOpen(!open)}
-        className={`flex items-center gap-2 rounded-sm text-[11px] font-black uppercase tracking-wider border transition-all cursor-pointer ${
+        className={`flex items-center gap-2 rounded-sm text-[11px] font-black uppercase tracking-wider border border-slate-500 transition-all cursor-pointer ${
           open ? "bg-black text-white border-black" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
         } ${compact ? "px-3 py-1.5" : "px-4 py-2"}`}
       >
@@ -91,7 +91,7 @@ function ReportDropdown({
                   <ChevronDown size={14} className={`text-slate-400 transition-transform duration-200 ${typeMenuOpen ? "rotate-180" : ""}`} />
                 </button>
                 {typeMenuOpen && (
-                  <div className="absolute top-full left-0 right-0 z-[60] mt-1.5 bg-white border border-slate-200 rounded-sm shadow-2xl overflow-hidden py-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="absolute top-full left-0 right-0 z-60 mt-1.5 bg-white border border-slate-200 rounded-sm shadow-2xl overflow-hidden py-1 animate-in fade-in slide-in-from-top-1 duration-200">
                     {(["Receive", "Sale"] as const).map((cat) => (
                       <button
                         key={cat}
@@ -226,7 +226,7 @@ export function TransactionsHeader({
           />
           <button
             onClick={onNew}
-            className="flex items-center gap-2.5 px-5 py-2 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer shadow-lg shadow-orange-500/10"
+            className="flex items-center gap-2.5 px-5 py-2 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer"
           >
             <Plus size={16} strokeWidth={3} />
             <span>New Transaction</span>

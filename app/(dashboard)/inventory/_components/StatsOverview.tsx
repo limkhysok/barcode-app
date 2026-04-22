@@ -33,20 +33,26 @@ export function StatsOverview({ stats }: Readonly<StatsOverviewProps>) {
   return (
     <div className="w-full">
       {/* ── MOBILE (< sm) ── */}
-      <div className="sm:hidden bg-white border border-slate-200 rounded-sm overflow-hidden">
+      <div className="sm:hidden bg-white border border-slate-500 rounded-sm overflow-hidden">
         <div className="grid grid-cols-3 divide-x divide-slate-100">
           <div className="flex flex-col items-center gap-0.5 py-3">
-            <Database size={14} className="text-orange-500" strokeWidth={2} />
+            <div className="group/icon cursor-default">
+              <Database size={14} className="text-orange-500 transition-all duration-200 group-hover/icon:text-orange-700 group-hover/icon:scale-125" strokeWidth={2} />
+            </div>
             <p className="text-[18px] font-black text-slate-900 leading-none tabular-nums">{fmt(total)}</p>
             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Products</p>
           </div>
           <div className="flex flex-col items-center gap-0.5 py-3">
-            <Package size={14} className="text-orange-500" strokeWidth={2} />
+            <div className="group/icon cursor-default">
+              <Package size={14} className="text-orange-500 transition-all duration-200 group-hover/icon:text-orange-700 group-hover/icon:scale-125" strokeWidth={2} />
+            </div>
             <p className="text-[18px] font-black text-slate-900 leading-none tabular-nums">{fmt(totalQty)}</p>
             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Total Qty</p>
           </div>
           <div className="flex flex-col items-center gap-0.5 py-3">
-            <AlertCircle size={14} className={needsReorder > 0 ? "text-orange-600" : "text-orange-300"} strokeWidth={2} />
+            <div className="group/icon cursor-default">
+              <AlertCircle size={14} className={`transition-all duration-200 group-hover/icon:scale-125 ${needsReorder > 0 ? "text-orange-600 group-hover/icon:text-orange-800" : "text-orange-300 group-hover/icon:text-orange-500"}`} strokeWidth={2} />
+            </div>
             <p className={`text-[18px] font-black leading-none tabular-nums ${needsReorder > 0 ? "text-orange-600" : "text-slate-900"}`}>{fmt(needsReorder)}</p>
             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Low Stock</p>
           </div>
@@ -65,11 +71,11 @@ export function StatsOverview({ stats }: Readonly<StatsOverviewProps>) {
 
       {/* ── TABLET (sm → lg) ── */}
       <div className="hidden sm:grid lg:hidden grid-cols-3 gap-2">
-        <div className="bg-white border border-slate-200 rounded-sm p-3 flex flex-col gap-2">
+        <div className="bg-white border border-slate-500 rounded-sm p-3 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-sm bg-orange-50 flex items-center justify-center">
-                <Database size={14} className="text-orange-500" strokeWidth={2} />
+              <div className="group/icon w-7 h-7 rounded-sm bg-orange-50 flex items-center justify-center transition-all duration-200 hover:bg-orange-100 hover:scale-110 cursor-default">
+                <Database size={14} className="text-orange-500 transition-all duration-200 group-hover/icon:text-orange-700 group-hover/icon:scale-110" strokeWidth={2} />
               </div>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tracked Products</p>
             </div>
@@ -80,11 +86,11 @@ export function StatsOverview({ stats }: Readonly<StatsOverviewProps>) {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-sm p-3 flex flex-col gap-2">
+        <div className="bg-white border border-slate-500 rounded-sm p-3 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-sm bg-orange-50 flex items-center justify-center">
-                <Package size={14} className="text-orange-500" strokeWidth={2} />
+              <div className="group/icon w-7 h-7 rounded-sm bg-orange-50 flex items-center justify-center transition-all duration-200 hover:bg-orange-100 hover:scale-110 cursor-default">
+                <Package size={14} className="text-orange-500 transition-all duration-200 group-hover/icon:text-orange-700 group-hover/icon:scale-110" strokeWidth={2} />
               </div>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Quantity</p>
             </div>
@@ -95,11 +101,11 @@ export function StatsOverview({ stats }: Readonly<StatsOverviewProps>) {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-sm p-3 flex flex-col gap-2">
+        <div className="bg-white border border-slate-500 rounded-sm p-3 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-sm bg-orange-50 flex items-center justify-center">
-                <AlertCircle size={14} className={needsReorder > 0 ? "text-orange-600" : "text-orange-300"} strokeWidth={2} />
+              <div className="group/icon w-7 h-7 rounded-sm bg-orange-50 flex items-center justify-center transition-all duration-200 hover:bg-orange-100 hover:scale-110 cursor-default">
+                <AlertCircle size={14} className={`transition-all duration-200 group-hover/icon:scale-110 ${needsReorder > 0 ? "text-orange-600 group-hover/icon:text-orange-800" : "text-orange-300 group-hover/icon:text-orange-500"}`} strokeWidth={2} />
               </div>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Low Stock</p>
             </div>
@@ -117,14 +123,14 @@ export function StatsOverview({ stats }: Readonly<StatsOverviewProps>) {
 
       {/* ── DESKTOP (≥ lg) ── */}
       <div className="hidden lg:grid grid-cols-3 gap-3">
-        <div className="bg-white border border-slate-200 rounded-sm p-4 flex flex-col gap-3">
+        <div className="bg-white border border-slate-500 rounded-sm p-4 flex flex-col gap-3">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Total Products</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-700 group-hover/hdr:text-orange-500 transition-colors duration-200">Total Products</p>
               <p className="text-3xl font-black text-slate-900 leading-none tabular-nums tracking-tighter mt-1">{fmt(total)}</p>
             </div>
-            <div className="w-9 h-9 rounded-sm bg-orange-50 flex items-center justify-center">
-              <Database size={18} className="text-orange-500" strokeWidth={1.5} />
+            <div className="group/icon w-9 h-9 rounded-sm bg-orange-50 flex items-center justify-center transition-all duration-200 hover:bg-orange-100 hover:scale-110 cursor-default">
+              <Database size={18} className="text-orange-500 transition-all duration-200 group-hover/icon:text-orange-700 group-hover/icon:scale-110" strokeWidth={1.5} />
             </div>
           </div>
           <div className="flex flex-col gap-1.5 mt-auto">
@@ -138,14 +144,14 @@ export function StatsOverview({ stats }: Readonly<StatsOverviewProps>) {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-sm p-4 flex flex-col gap-3">
+        <div className="bg-white border border-slate-500 rounded-sm p-4 flex flex-col gap-3">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Total Quantity</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-700 group-hover/hdr:text-orange-500 transition-colors duration-200">Total Quantity</p>
               <p className="text-3xl font-black text-slate-900 leading-none tabular-nums tracking-tighter mt-1">{fmt(totalQty)}</p>
             </div>
-            <div className="w-9 h-9 rounded-sm bg-orange-50 flex items-center justify-center">
-              <Package size={18} className="text-orange-500" strokeWidth={1.5} />
+            <div className="group/icon w-9 h-9 rounded-sm bg-orange-50 flex items-center justify-center transition-all duration-200 hover:bg-orange-100 hover:scale-110 cursor-default">
+              <Package size={18} className="text-orange-500 transition-all duration-200 group-hover/icon:text-orange-700 group-hover/icon:scale-110" strokeWidth={1.5} />
             </div>
           </div>
           <div className="flex flex-col gap-1.5 mt-auto">
@@ -159,14 +165,14 @@ export function StatsOverview({ stats }: Readonly<StatsOverviewProps>) {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-sm p-4 flex flex-col gap-3">
+        <div className="bg-white border border-slate-500 rounded-sm p-4 flex flex-col gap-3">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Critical Stock</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-700 group-hover/hdr:text-orange-500 transition-colors duration-200">Critical Stock</p>
               <p className={`text-3xl font-black leading-none tabular-nums tracking-tighter mt-1 ${needsReorder > 0 ? "text-orange-600" : "text-slate-900"}`}>{fmt(needsReorder)}</p>
             </div>
-            <div className="w-9 h-9 rounded-sm bg-orange-50 flex items-center justify-center">
-              <Zap size={18} className={needsReorder > 0 ? "text-orange-600" : "text-orange-300"} strokeWidth={1.5} />
+            <div className="group/icon w-9 h-9 rounded-sm bg-orange-50 flex items-center justify-center transition-all duration-200 hover:bg-orange-100 hover:scale-110 cursor-default">
+              <Zap size={18} className={`transition-all duration-200 group-hover/icon:scale-110 ${needsReorder > 0 ? "text-orange-600 group-hover/icon:text-orange-800" : "text-orange-300 group-hover/icon:text-orange-500"}`} strokeWidth={1.5} />
             </div>
           </div>
           <div className="flex flex-col gap-1.5 mt-auto">

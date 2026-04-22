@@ -194,7 +194,7 @@ export function ProductsTable({
 
   // ── Tablet: 4-col cards ──
   const tabletGrid = (
-    <div className="hidden sm:grid lg:hidden grid-cols-4 gap-2">
+    <div className="hidden sm:grid lg:hidden grid-cols-4 gap-2 pt-1">
       {displayed.map((p) => (
         <div key={p.id} className="group relative bg-white border border-slate-500 rounded-sm overflow-hidden transition-all duration-300 hover:border-orange-400 hover:shadow-md hover:shadow-orange-500/10 hover:-translate-y-0.5">
           {/* Card button — click anywhere to view */}
@@ -249,7 +249,7 @@ export function ProductsTable({
               <td className="px-5 py-4">
                 <span className="text-[12px] font-black text-slate-500 tabular-nums group-hover:text-orange-600 transition-colors">#{p.id}</span>
               </td>
-              <td className="px-5 py-4 whitespace-nowrap">
+              <td className="px-5 py-4 whitespace-nowrap ">
                 <div className="w-10 h-10 rounded-sm bg-slate-50 border border-slate-500 flex items-center justify-center overflow-hidden">
                   {p.product_picture ? (
                     <img
@@ -263,7 +263,7 @@ export function ProductsTable({
                 </div>
               </td>
               <td className="px-5 py-4 whitespace-nowrap">
-                <span className="text-[12px] font-mono font-bold text-slate-300 tracking-tighter tabular-nums group-hover:text-orange-400 transition-colors">{p.barcode}</span>
+                <span className="text-[12px] font-mono font-bold text-slate-500 tracking-tighter tabular-nums group-hover:text-orange-400 transition-colors">{p.barcode}</span>
               </td>
               <td className="px-5 py-4">
                 <span className="text-[12px] font-black text-slate-900 tracking-tight group-hover:text-orange-600 transition-colors">

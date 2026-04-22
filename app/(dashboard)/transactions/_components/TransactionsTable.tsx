@@ -254,9 +254,9 @@ export function TransactionsTable({
 
   // ── Desktop: List Table ──
   const desktopList = (
-    <div className="hidden lg:block overflow-x-auto bg-white border border-slate-200 rounded-sm">
+    <div className="hidden lg:block overflow-x-auto bg-white border border-slate-500 rounded-sm">
       <table className="w-full text-sm">
-        <thead className="bg-slate-50/50 border-b border-slate-100">
+        <thead className="bg-slate-50/50 border-b border-slate-500">
           <tr>
             <Header label="#" field="id" ordering={ordering} handleSort={onSort} className="pl-6 w-16" />
             <Header label="Type" field="transaction_type" ordering={ordering} handleSort={onSort} className="w-32" />
@@ -267,7 +267,7 @@ export function TransactionsTable({
             <Header label="Actions" ordering={ordering} handleSort={onSort} className="pr-6 text-right w-36" />
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 bg-white">
+        <tbody className="divide-y divide-slate-400 bg-white">
           {displayed.map((t) => {
             const totalQty = t.items.reduce((sum, i) => sum + Math.abs(i.quantity), 0);
             const isReceive = t.transaction_type === "Receive";
@@ -369,7 +369,7 @@ export function TransactionsTable({
                       <div className="w-6 h-6 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
                          <User size={10} className="text-slate-400" />
                       </div>
-                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.1em] truncate">{t.performed_by_username}</span>
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest truncate">{t.performed_by_username}</span>
                    </div>
                 </div>
               </div>

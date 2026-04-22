@@ -23,7 +23,7 @@ function ExportDropdown({ open, setOpen, exportRef, onExport, compact = false }:
     <div className="relative" ref={exportRef}>
       <button
         onClick={() => setOpen(!open)}
-        className={`flex items-center gap-2 rounded-sm text-[11px] font-black uppercase tracking-wider border transition-all cursor-pointer ${
+        className={`flex items-center gap-2 rounded-sm text-[11px] font-black uppercase tracking-wider border border-slate-400 transition-all cursor-pointer ${
           open ? "bg-black text-white border-black" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
         } ${compact ? "px-3 py-1.5" : "px-4 py-2"}`}
       >
@@ -111,7 +111,7 @@ export function InventoryHeader({ onNew, canEdit, exportOpen, setExportOpen, exp
           )}
           <button
             onClick={onNew}
-            className="flex items-center gap-2.5 px-5 py-2 rounded-sm text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer shadow-lg shadow-orange-500/10"
+            className="flex items-center gap-2.5 px-5 py-2 rounded-sm border  text-[11px] font-black uppercase tracking-wider bg-orange-500 text-white hover:bg-orange-600 active:scale-[0.96] transition-all cursor-pointer"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

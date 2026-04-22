@@ -113,7 +113,7 @@ export function StatsOverview({ stats, products }: Readonly<StatsOverviewProps>)
         <div className="bg-white border border-slate-500 rounded-sm p-4 flex flex-col gap-3">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Accessories</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-700 group-hover/hdr:text-orange-500 transition-colors duration-200">Accessories</p>
               <p className="text-3xl font-black text-slate-900 leading-none tabular-nums tracking-tighter mt-1">{fmt(s.accCount)}</p>
             </div>
             <div className="w-9 h-9 rounded-sm bg-orange-50 flex items-center justify-center">
@@ -134,7 +134,7 @@ export function StatsOverview({ stats, products }: Readonly<StatsOverviewProps>)
         <div className="bg-white border border-slate-500 rounded-sm p-4 flex flex-col gap-3">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Fasteners</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-700 group-hover/hdr:text-orange-500 transition-colors duration-200">Fasteners</p>
               <p className="text-3xl font-black text-slate-900 leading-none tabular-nums tracking-tighter mt-1">{fmt(s.fasCount)}</p>
             </div>
             <div className="w-9 h-9 rounded-sm bg-orange-50 flex items-center justify-center">
@@ -155,7 +155,7 @@ export function StatsOverview({ stats, products }: Readonly<StatsOverviewProps>)
         <div className="bg-white border border-slate-500 rounded-sm p-4 flex flex-col gap-3">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Total Products</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-700 group-hover/hdr:text-orange-500 transition-colors duration-200">Total Products</p>
               <p className="text-3xl font-black text-slate-900 leading-none tabular-nums tracking-tighter mt-1">{fmt(s.total)}</p>
             </div>
             <div className="w-9 h-9 rounded-sm bg-orange-50 flex items-center justify-center">
