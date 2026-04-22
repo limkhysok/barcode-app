@@ -146,7 +146,7 @@ export function TransactionsTable({
   // ── Mobile: compact rows ──
   const mobileRows = (
     <div className="sm:hidden">
-      <div className="px-3 py-1.5 flex items-center gap-2 border-b border-t border-slate-200 bg-white">
+      <div className="px-3 py-1.5 flex items-center gap-2 border-b border-t border-slate-500 bg-white">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">#</span>
           <span className="text-slate-200">·</span>
@@ -157,7 +157,7 @@ export function TransactionsTable({
           <span className="w-7" />
         </div>
       </div>
-      <div className="divide-y divide-slate-100 bg-white">
+      <div className="divide-y divide-slate-400 bg-white">
         {displayed.map((t) => {
           const totalQty = t.items.reduce((sum, i) => sum + Math.abs(i.quantity), 0);
           const isReceive = t.transaction_type === "Receive";
@@ -203,12 +203,12 @@ export function TransactionsTable({
 
   // ── Tablet: 2-col Grid ──
   const tabletGrid = (
-    <div className="hidden sm:grid lg:hidden grid-cols-2 gap-3 p-1">
+    <div className="hidden sm:grid lg:hidden grid-cols-2 gap-3 pt-1">
       {displayed.map((t) => {
         const totalQty = t.items.reduce((sum, i) => sum + Math.abs(i.quantity), 0);
         const isReceive = t.transaction_type === "Receive";
         return (
-          <div key={t.id} className="group relative bg-white border border-slate-200 rounded-sm overflow-hidden transition-all duration-300 hover:border-orange-400 hover:shadow-md hover:shadow-orange-500/10">
+          <div key={t.id} className="group relative bg-white border border-slate-500 rounded-sm overflow-hidden transition-all duration-300 hover:border-orange-400 hover:shadow-md hover:shadow-orange-500/10">
             <button type="button" onClick={() => onView(t)} className="w-full text-left flex flex-col cursor-pointer p-4">
               <div className="flex items-center justify-between mb-3 border-b border-slate-50 pb-2">
                 <span className="text-[10px] font-black text-slate-400 tabular-nums">#{t.id}</span>
@@ -335,12 +335,12 @@ export function TransactionsTable({
 
   // ── Desktop: Grid cards ──
   const desktopGrid = (
-    <div className="hidden lg:grid grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+    <div className="hidden lg:grid grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 pt-1">
       {displayed.map((t) => {
         const totalQty = t.items.reduce((sum, i) => sum + Math.abs(i.quantity), 0);
         const isReceive = t.transaction_type === "Receive";
         return (
-          <div key={t.id} className="group relative bg-white border border-slate-200 rounded-sm overflow-hidden transition-all duration-300 hover:border-orange-400 hover:shadow-md hover:shadow-orange-500/10 hover:-translate-y-0.5 flex flex-col">
+          <div key={t.id} className="group relative border border-slate-500 rounded-sm overflow-hidden transition-all duration-300 hover:border-orange-400 hover:shadow-md hover:shadow-orange-500/10 hover:-translate-y-0.5 flex flex-col">
             <button type="button" onClick={() => onView(t)} className="w-full text-left flex flex-col cursor-pointer flex-1 p-5">
               <div className="flex items-center justify-between mb-4 border-b border-slate-50 pb-3">
                 <span className="text-[10px] font-black text-slate-400 tabular-nums">#{t.id}</span>

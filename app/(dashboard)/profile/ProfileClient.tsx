@@ -5,11 +5,11 @@ import { toast } from "sonner";
 import type { User } from "@/src/types/auth.types";
 import { useAuth } from "@/src/context/AuthContext";
 import {
-  User as UserIcon,
   Mail,
   ShieldCheck,
   LogOut,
   BadgeCheck,
+  AtSign,
 } from "lucide-react";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -47,120 +47,88 @@ export default function ProfileClient({ initialUser }: Readonly<{ initialUser: U
     .toUpperCase();
 
   return (
-    <div className="px-4 py-5 sm:px-5 sm:py-5 space-y-3">
+    <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-4 py-8">
+      
 
-      {/* ── Header ── */}
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-[12px] font-black text-slate-950 uppercase tracking-[0.2em] leading-none">
-            Profile
-          </h1>
-        </div>
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="flex items-center gap-2 px-3.5 py-1.5 text-[11px] font-black uppercase tracking-wider border border-slate-200 rounded-sm text-slate-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-colors cursor-pointer"
-        >
-          <LogOut size={13} strokeWidth={2.5} />
-          <span>Sign Out</span>
-        </button>
-      </div>
+      {/* ── Profile Card ── */}
+      <div className="w-full max-w-xs sm:max-w-sm border border-slate-500 rounded-none bg-white overflow-hidden">
 
-      {/* ── Identity Card ── */}
-      <div className="rounded-md border border-slate-200 bg-white overflow-hidden">
+       
 
-        {/* Avatar + Name header */}
-        <div className="p-5 sm:p-6 flex flex-col sm:flex-row items-center sm:items-start gap-4 border-b border-slate-100 bg-slate-50/50">
-          {/* Avatar */}
-          <div className="w-14 h-14 rounded-md bg-orange-500 flex items-center justify-center shrink-0">
-            <span className="text-lg font-black text-white leading-none">{initials}</span>
+        {/* Avatar + identity */}
+        <div className="flex flex-col items-center gap-3 pt-8 pb-6 px-6 border-b border-slate-100">
+          <div className="w-16 h-16 rounded-full bg-orange-500 flex items-center justify-center ring-4 ring-orange-100">
+            <span className="text-xl font-black text-white leading-none">{initials}</span>
           </div>
-
-          {/* Name + role */}
-          <div className="text-center sm:text-left space-y-2">
-            <h2 className="text-[14px] font-black text-slate-950 uppercase tracking-widest leading-none">
+          <div className="text-center space-y-2">
+            <p className="text-[14px] font-black text-slate-900 uppercase tracking-widest leading-none">
               {initialUser.name || initialUser.username}
-            </h2>
-            <div className="flex items-center justify-center sm:justify-start gap-2">
-              <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-sm ${roleColor}`}>
+            </p>
+            <div className="flex items-center justify-center gap-2">
+              <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-sm ${roleColor}`}>
                 {roleLabel}
               </span>
               {initialUser.is_staff && (
-                <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-green-600">
-                  <BadgeCheck size={11} strokeWidth={3} />
-                  Verified
+                <span className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest text-green-600">
+                  <BadgeCheck size={10} strokeWidth={3} />
+                  Staff
                 </span>
               )}
             </div>
           </div>
         </div>
 
-        {/* Info Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-          <InfoItem
-            icon={<UserIcon size={14} className="text-orange-500" strokeWidth={2.5} />}
+        {/* Info rows */}
+        <div className="divide-y divide-slate-100">
+          <InfoRow
+            icon={<AtSign size={12} className="text-slate-400" strokeWidth={2.5} />}
             label="Username"
-            value={`@${initialUser.username}`}
+            value={initialUser.username}
           />
-          <InfoItem
-            icon={<Mail size={14} className="text-orange-500" strokeWidth={2.5} />}
+          <InfoRow
+            icon={<Mail size={12} className="text-slate-400" strokeWidth={2.5} />}
             label="Email"
             value={initialUser.email || "—"}
           />
-          <InfoItem
-            icon={<ShieldCheck size={14} className="text-orange-500" strokeWidth={2.5} />}
+          <InfoRow
+            icon={<ShieldCheck size={12} className="text-slate-400" strokeWidth={2.5} />}
             label="Access Level"
             value={roleLabel}
           />
+        </div>
+
+        {/* Sign out */}
+        <div className="p-4 border-t border-slate-100 bg-slate-50/50">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-red-500 hover:bg-red-50 border border-slate-200 hover:border-red-200 rounded-sm transition-colors cursor-pointer"
+          >
+            <LogOut size={12} strokeWidth={2.5} />
+            Sign Out
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-// ─── InfoItem ─────────────────────────────────────────────────────────────────
-
-function InfoItem({ icon, label, value }: Readonly<{
+function InfoRow({ icon, label, value }: Readonly<{
   icon: React.ReactNode;
   label: string;
   value: string;
 }>) {
   return (
-    <div className="flex items-start gap-3 p-4 sm:p-5">
-      <div className="mt-0.5 shrink-0">{icon}</div>
-      <div className="min-w-0">
-        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1.5">
+    <div className="flex items-center gap-3 px-5 py-3.5">
+      <div className="shrink-0">{icon}</div>
+      <div className="flex-1 min-w-0 flex items-center justify-between gap-3">
+        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 shrink-0">
           {label}
-        </p>
-        <p className="text-[12px] font-black text-slate-900 uppercase tracking-wide truncate">
+        </span>
+        <span className="text-[11px] font-black text-slate-700 uppercase tracking-wide truncate text-right">
           {value}
-        </p>
+        </span>
       </div>
-    </div>
-  );
-}
-
-// ─── PermissionItem ───────────────────────────────────────────────────────────
-
-function PermissionItem({ label, granted }: Readonly<{ label: string; granted: boolean }>) {
-  return (
-    <div className={`flex items-center justify-between p-3 rounded-sm border ${
-      granted
-        ? "border-green-100 bg-green-50"
-        : "border-slate-100 bg-slate-50"
-    }`}>
-      <span className={`text-[10px] font-black uppercase tracking-widest ${
-        granted ? "text-green-700" : "text-slate-400"
-      }`}>
-        {label}
-      </span>
-      <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-sm ${
-        granted
-          ? "bg-green-500 text-white"
-          : "bg-slate-200 text-slate-400"
-      }`}>
-        {granted ? "On" : "Off"}
-      </span>
     </div>
   );
 }

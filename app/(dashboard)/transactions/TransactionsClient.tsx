@@ -410,7 +410,7 @@ const TransactionsClient: React.FC<TransactionsClientProps> = ({
         />
       </div>
 
-      <div className=" overflow-hidden bg-white ">
+      <div className=" overflow-hidden">
         <TransactionsTable
           displayed={displayed}
           loading={loading}

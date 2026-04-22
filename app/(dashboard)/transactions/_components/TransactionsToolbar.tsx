@@ -194,7 +194,7 @@ export function TransactionsToolbar({
     { key: "total_qty", label: "QUANTITY (LOW)" },
   ];
 
-  let mobileFilterBtnClass = "bg-white text-gray-400 border-gray-200 shadow-sm";
+  let mobileFilterBtnClass = "bg-white text-gray-400 border-slate-500 shadow-sm";
   if (filtersOpen) mobileFilterBtnClass = "bg-orange-500 text-white border-orange-500";
   else if (activeCount > 0) mobileFilterBtnClass = "bg-orange-50 text-orange-500 border-orange-300";
 

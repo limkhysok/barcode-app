@@ -71,7 +71,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
 
       {/* ── TABLET (sm → lg) ── */}
       <div className="hidden sm:grid lg:hidden grid-cols-3 gap-2">
-        <div className="bg-white border border-slate-200 rounded-sm p-3 flex flex-col gap-2">
+        <div className="bg-white border border-slate-500 rounded-sm p-3 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-sm bg-orange-50 flex items-center justify-center">
@@ -89,7 +89,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-sm p-3 flex flex-col gap-2">
+        <div className="bg-white border border-slate-500 rounded-sm p-3 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-sm bg-orange-50 flex items-center justify-center">
@@ -107,7 +107,7 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ stats }) => {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-sm p-3 flex flex-col gap-2">
+        <div className="bg-white border border-slate-500 rounded-sm p-3 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-sm bg-orange-50 flex items-center justify-center">
