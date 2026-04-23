@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "/proxy",
   timeout: 10000,
 });
 
@@ -19,13 +19,13 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config;
-    if (error.response?.status === 401 && !original._retry && !original.url?.includes("/users/login")) {
+    if (error.response?.status === 401 && !original._retry && !original.url?.includes("/auth/login/")) {
       original._retry = true;
       try {
         const refresh = localStorage.getItem("refresh_token");
         if (!refresh) throw new Error("No refresh token");
         const { data } = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/token/refresh/`,
+          `${process.env.NEXT_PUBLIC_API_URL || "/proxy"}/v1/auth/token/refresh/`,
           { refresh }
         );
         localStorage.setItem("access_token", data.access);

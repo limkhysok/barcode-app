@@ -1,7 +1,7 @@
 import api from "./api";
 import { User } from "../types/auth.types";
 
-const BASE_URL = "/api/v1/users/boss/staff-users";
+const BASE_URL = "/v1/admin/staff";
 
 export const getStaffUsers = async (): Promise<User[]> => {
   const { data } = await api.get<User[]>(`${BASE_URL}/`);
@@ -9,7 +9,7 @@ export const getStaffUsers = async (): Promise<User[]> => {
 };
 
 export const createStaffUser = async (userData: Partial<User>): Promise<User> => {
-  const { data } = await api.post<User>("/api/v1/users/boss/staff-users/", userData);
+  const { data } = await api.post<User>("/v1/admin/staff/", userData);
   return data;
 };
 

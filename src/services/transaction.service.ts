@@ -14,7 +14,7 @@ export async function getTransactions(params?: {
   if (params?.search) query.set("search", params.search);
   if (params?.ordering) query.set("ordering", params.ordering);
 
-  const path = `/api/v1/transactions/?${query.toString()}`;
+  const path = `/v1/transactions/?${query.toString()}`;
   const raw: unknown = fetcher
     ? await fetcher(path)
     : (await api.get<unknown>(path)).data;
@@ -41,7 +41,7 @@ export interface TransactionStats {
 }
 
 export async function getTransactionStats(fetcher?: <T>(path: string) => Promise<T>): Promise<TransactionStats | null> {
-  const path = "/api/v1/transactions/stats/";
+  const path = "/v1/transactions/stats/";
   try {
     if (fetcher) {
       const res = await fetcher(path);
@@ -57,15 +57,15 @@ export async function getTransactionStats(fetcher?: <T>(path: string) => Promise
 }
 
 export async function createTransaction(payload: TransactionPayload): Promise<Transaction> {
-  const { data } = await api.post<Transaction>("/api/v1/transactions/", payload);
+  const { data } = await api.post<Transaction>("/v1/transactions/", payload);
   return data;
 }
 
 export async function updateTransaction(id: number, payload: TransactionPayload): Promise<Transaction> {
-  const { data } = await api.patch<Transaction>(`/api/v1/transactions/${id}/`, payload);
+  const { data } = await api.patch<Transaction>(`/v1/transactions/${id}/`, payload);
   return data;
 }
 
 export async function deleteTransaction(id: number): Promise<void> {
-  await api.delete(`/api/v1/transactions/${id}/`);
+  await api.delete(`/v1/transactions/${id}/`);
 }

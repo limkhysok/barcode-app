@@ -16,7 +16,7 @@ export async function getDashboardStats(
   if (filters?.start) params.set("start", filters.start);
   if (filters?.end) params.set("end", filters.end);
 
-  const path = `/api/v1/dashboard/stats/?${params.toString()}`;
+  const path = `/v1/dashboard/stats/?${params.toString()}`;
   try {
     if (fetcher) return await fetcher<DashboardStats>(path);
     const { data } = await api.get<DashboardStats>(path);

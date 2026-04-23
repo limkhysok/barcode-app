@@ -22,7 +22,7 @@ function isTokenValid(token: string | undefined): boolean {
 
 async function tryRefresh(refreshToken: string, request: NextRequest): Promise<NextResponse> {
   try {
-    const res = await fetch(`${DJANGO}/api/v1/users/token/refresh/`, {
+    const res = await fetch(`${DJANGO}/api/v1/auth/token/refresh/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refresh: refreshToken }),
@@ -38,7 +38,7 @@ async function tryRefresh(refreshToken: string, request: NextRequest): Promise<N
     response.cookies.set("access_token", access, { path: "/", maxAge, sameSite: "lax", httpOnly: false });
     return response;
   } catch {
-    const response = NextResponse.redirect(new URL("/login", request.url));
+    const response = NextResponse.redirect(new URL("/login/", request.url));
     response.cookies.delete("access_token");
     response.cookies.delete("refresh_token");
     return response;
@@ -54,7 +54,7 @@ async function handleProtectedRoute(request: NextRequest): Promise<NextResponse 
 
   if (isTokenValid(accessToken)) return NextResponse.next();
 
-  if (!refreshToken) return NextResponse.redirect(new URL("/login", request.url));
+  if (!refreshToken) return NextResponse.redirect(new URL("/login/", request.url));
 
   return tryRefresh(refreshToken, request);
 }
@@ -64,39 +64,68 @@ function handleAuthPageRedirect(request: NextRequest): NextResponse | null {
   if (pathname !== "/login" && pathname !== "/register") return null;
 
   const token = request.cookies.get("access_token")?.value;
-  if (isTokenValid(token)) return NextResponse.redirect(new URL("/transactions", request.url));
+  if (isTokenValid(token)) return NextResponse.redirect(new URL("/transactions/", request.url));
 
   return null;
 }
 
+function getUpstreamUrl(pathname: string, search: string): string {
+  const isProxy = pathname.startsWith("/proxy/");
+  if (isProxy) {
+    let relativePath = pathname.replace(/^\/proxy/, "");
+    if (!relativePath.endsWith("/") && !relativePath.includes(".")) {
+      relativePath += "/";
+    }
+    return `${DJANGO}/api${relativePath}${search}`;
+  }
+  return `${DJANGO}${pathname}${search}`;
+}
+
+function rewriteRedirect(location: string, requestUrl: string, targetOrigin: string, targetHost: string): string | null {
+  if (!location.includes(targetHost) && !location.startsWith("/")) {
+    return null;
+  }
+  const frontendUrl = new URL(requestUrl);
+  return location.startsWith("/")
+    ? `${frontendUrl.origin}${location}`
+    : location.replace(targetOrigin, frontendUrl.origin);
+}
+
 async function handleApiProxy(request: NextRequest): Promise<Response | null> {
   const { pathname, search } = request.nextUrl;
-  if (!pathname.startsWith("/api/")) return null;
+  const isProxyPath = pathname.startsWith("/proxy/") || pathname.startsWith("/static/") || pathname.startsWith("/media/");
+  
+  if (!isProxyPath) return null;
 
-  let relativePath = pathname.replace(/^\/api/, "");
-  if (!relativePath.endsWith("/") && !relativePath.includes("/users") && !relativePath.includes(".")) {
-    relativePath += "/";
-  }
-
-  const target = `${DJANGO}/api${relativePath}${search}`;
-  console.log(`[UNIFIED-PROXY] ${request.method} ${pathname} -> ${target}`);
-
+  const target = getUpstreamUrl(pathname, search);
+  const targetUrl = new URL(DJANGO);
+  
   const headers = new Headers(request.headers);
-  headers.set("host", "localhost");
+  headers.delete("host");
+  headers.set("X-Forwarded-Host", request.headers.get("host") || "");
+  headers.set("X-Forwarded-Proto", request.nextUrl.protocol.replace(":", ""));
+  
   const hasBody = request.method !== "GET" && request.method !== "HEAD";
+  console.log(`[UNIFIED-PROXY] ${request.method} ${pathname} -> ${target}`);
 
   try {
     const upstream = await fetch(target, {
       method: request.method,
       headers,
       ...(hasBody ? { body: request.body, duplex: "half" } : {}),
+      redirect: "manual", 
     } as RequestInit);
 
     const resHeaders = new Headers(upstream.headers);
     resHeaders.delete("transfer-encoding");
     resHeaders.delete("connection");
 
-    console.log(`[UNIFIED-PROXY] ${upstream.status} from ${target}`);
+    const location = resHeaders.get("Location");
+    if (location) {
+      const newLocation = rewriteRedirect(location, request.url, targetUrl.origin, targetUrl.host);
+      if (newLocation) resHeaders.set("Location", newLocation);
+    }
+
     return new Response(upstream.body, { status: upstream.status, headers: resHeaders });
   } catch (error) {
     console.error("[PROXY-ERROR]", error);
@@ -105,8 +134,7 @@ async function handleApiProxy(request: NextRequest): Promise<Response | null> {
 }
 
 /**
- * Next.js 16 Unified Proxy
- * Handles Auth Redirects (with silent token refresh) and API Forwarding.
+ * Next.js 16 Unified Proxy Boundary
  */
 export async function proxy(request: NextRequest) {
   return (
@@ -126,6 +154,8 @@ export const config = {
     "/dashboard/:path*",
     "/login",
     "/register",
-    "/api/:path*",
+    "/proxy/:path*",
+    "/static/:path*",
+    "/media/:path*",
   ],
 };
