@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useAuth } from "@/src/context/AuthContext";
-import { getStaffUsers } from "@/src/services/user.service";
 import type { User } from "@/src/types/auth.types";
+import { getStaffUsers, createStaffUser, updateStaffUser, deleteStaffUser } from "@/src/services/user.service";
+import { toast } from "sonner";
 import { 
   Users, 
   Mail, 
@@ -11,7 +12,14 @@ import {
   ShieldCheck, 
   Search,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Plus,
+  Edit2,
+  Trash2,
+  X as CloseIcon,
+  Loader2,
+  Eye,
+  EyeOff
 } from "lucide-react";
 
 type SortDir = "asc" | "desc" | "";
@@ -67,13 +75,28 @@ export default function StaffClient() {
 
   const hasAccess = role === "boss" || role === "superadmin";
 
-  useEffect(() => {
-    if (authLoading) return;
-    if (!hasAccess) {
+  // Modal State
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Form State
+  const [formData, setFormData] = useState({
+    username: "",
+    name: "",
+    email: "",
+    password: "",
+    is_boss: false,
+    is_staff: true,
+  });
+
+  const loadStaff = useCallback(() => {
+    if (authLoading || !hasAccess) {
       setLoading(false);
       return;
     }
-
     setLoading(true);
     getStaffUsers()
       .then(setStaff)
@@ -86,6 +109,77 @@ export default function StaffClient() {
       })
       .finally(() => setLoading(false));
   }, [hasAccess, authLoading]);
+
+  useEffect(() => {
+    loadStaff();
+  }, [loadStaff]);
+
+  const openCreateModal = () => {
+    setModalMode("create");
+    setFormData({
+      username: "",
+      name: "",
+      email: "",
+      password: "",
+      is_boss: false,
+      is_staff: true,
+    });
+    setModalOpen(true);
+  };
+
+  const openEditModal = (user: User) => {
+    setModalMode("edit");
+    setSelectedUser(user);
+    setFormData({
+      username: user.username,
+      name: user.name,
+      email: user.email,
+      password: "", // Keep password empty on edit unless user wants to change it
+      is_boss: user.is_boss,
+      is_staff: user.is_staff,
+    });
+    setModalOpen(true);
+  };
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      if (modalMode === "create") {
+        await createStaffUser(formData);
+        toast.success("Staff member created successfully.");
+      } else if (selectedUser) {
+        // Only send password if it was changed
+        const updateData: any = { ...formData };
+        if (!updateData.password) {
+          delete updateData.password;
+        }
+        await updateStaffUser(selectedUser.id, updateData);
+        toast.success("Staff member updated successfully.");
+      }
+      setModalOpen(false);
+      loadStaff();
+    } catch (err: any) {
+      const msg = err?.response?.data?.detail || "An error occurred. Please check your data.";
+      toast.error(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    const confirmed = globalThis.confirm?.("Are you sure you want to delete this staff member? This action is permanent.");
+    if (!confirmed) return;
+
+    try {
+      await deleteStaffUser(id);
+      toast.success("Staff member deleted successfully.");
+      loadStaff();
+    } catch (err) {
+      console.error("Delete error:", err);
+      toast.error("Failed to delete staff member.");
+    }
+  };
 
   const displayed = useMemo(() => {
     let list = [...staff];
@@ -142,6 +236,8 @@ export default function StaffClient() {
     );
   }
 
+  const submitText = modalMode === "create" ? "Create Member" : "Save Changes";
+
   return (
     <div className="px-4 py-5 sm:px-5 sm:py-5 space-y-4">
       {/* Header Section */}
@@ -156,16 +252,27 @@ export default function StaffClient() {
           </p>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative group w-full sm:w-64">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors" />
-          <input
-            type="text"
-            placeholder="SEARCH STAFF..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white border border-slate-500 pl-9 pr-4 py-2 text-[11px] font-bold uppercase tracking-widest placeholder:text-slate-300 focus:outline-none focus:border-orange-500 transition-all rounded-sm shadow-sm"
-          />
+        {/* Actions Section */}
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          {/* Search Bar */}
+          <div className="relative group flex-1 sm:w-64">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors" />
+            <input
+              type="text"
+              placeholder="SEARCH STAFF..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-white border border-slate-500 pl-9 pr-4 py-2 text-[11px] font-bold uppercase tracking-widest placeholder:text-slate-300 focus:outline-none focus:border-orange-500 transition-all rounded-sm shadow-sm"
+            />
+          </div>
+
+          <button
+            onClick={openCreateModal}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-950 text-white text-[11px] font-black uppercase tracking-widest hover:bg-orange-600 transition-all rounded-sm shadow-md active:scale-95 shrink-0"
+          >
+            <Plus size={14} strokeWidth={3} />
+            Add Staff
+          </button>
         </div>
       </div>
 
@@ -196,7 +303,8 @@ export default function StaffClient() {
                   <Header label="Username" field="username" ordering={ordering} handleSort={handleSort} />
                   <Header label="Email" field="email" ordering={ordering} handleSort={handleSort} />
                   <Header label="Role" ordering={ordering} handleSort={handleSort} className="w-32" />
-                  <Header label="Status" ordering={ordering} handleSort={handleSort} className="w-32 pr-6 text-right" />
+                  <Header label="Status" ordering={ordering} handleSort={handleSort} className="w-24 text-center" />
+                  <Header label="Actions" ordering={ordering} handleSort={handleSort} className="w-32 pr-6 text-right" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-400 bg-white">
@@ -225,14 +333,42 @@ export default function StaffClient() {
                       </div>
                     </td>
                     <td className="px-5 py-4">
-                      <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">
-                        <ShieldCheck size={10} /> STAFF
-                      </span>
+                      {u.is_boss ? (
+                        <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-100">
+                          <ShieldCheck size={10} /> BOSS
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">
+                          <ShieldCheck size={10} /> STAFF
+                        </span>
+                      )}
                     </td>
-                    <td className="pr-6 px-5 py-4 text-right">
+                    <td className="px-5 py-4 text-center">
                       <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-green-50 text-green-600 border border-green-100">
                         <span className="w-1 h-1 rounded-full bg-green-500" /> ACTIVE
                       </span>
+                    </td>
+                    <td className="pr-6 px-5 py-4 text-right">
+                      {u.is_superuser ? (
+                        <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest italic pr-2">System Admin</span>
+                      ) : (
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => openEditModal(u)}
+                            className="p-2 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-sm transition-all"
+                            title="Edit Staff"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(u.id)}
+                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-sm transition-all"
+                            title="Delete Staff"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -245,12 +381,152 @@ export default function StaffClient() {
       {/* Footer Info */}
       <div className="flex items-center justify-between px-1">
         <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-          Showing {displayed.length} staff member{displayed.length === 1 ? "" : "s"}
+          Showing {displayed.length} {displayed.length === 1 ? "staff member" : "staff members"}
         </p>
         <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em]">
           Total Staff: {staff.length}
         </p>
       </div>
+      {/* Staff Management Modal */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-white border border-slate-500 shadow-2xl rounded-sm overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="px-6 py-4 bg-slate-50 border-b border-slate-500 flex items-center justify-between">
+              <h3 className="text-[13px] font-black uppercase tracking-widest text-slate-950 flex items-center gap-2">
+                {modalMode === "create" ? <Plus size={16} strokeWidth={3} className="text-orange-500" /> : <Edit2 size={16} strokeWidth={3} className="text-orange-500" />}
+                {modalMode === "create" ? "Add New Staff Member" : "Edit Staff Member"}
+              </h3>
+              <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-950 transition-colors">
+                <CloseIcon size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div className="space-y-4">
+                {/* Username & Name */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label htmlFor="staff-username" className="text-[9px] font-black uppercase tracking-widest text-slate-400">Username</label>
+                    <input
+                      id="staff-username"
+                      required
+                      type="text"
+                      value={formData.username}
+                      onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                      className="w-full bg-white border border-slate-300 px-3 py-2 text-[11px] font-bold tracking-tight focus:border-orange-500 focus:outline-none transition-all rounded-sm"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label htmlFor="staff-name" className="text-[9px] font-black uppercase tracking-widest text-slate-400">Full Name</label>
+                    <input
+                      id="staff-name"
+                      required
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full bg-white border border-slate-300 px-3 py-2 text-[11px] font-bold tracking-tight focus:border-orange-500 focus:outline-none transition-all rounded-sm"
+                    />
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div className="space-y-1">
+                  <label htmlFor="staff-email" className="text-[9px] font-black uppercase tracking-widest text-slate-400">Email Address</label>
+                  <input
+                    id="staff-email"
+                    required
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full bg-white border border-slate-300 px-3 py-2 text-[11px] font-bold lowercase tracking-tight focus:border-orange-500 focus:outline-none transition-all rounded-sm"
+                  />
+                </div>
+
+                {/* Password */}
+                <div className="space-y-1">
+                  <label htmlFor="staff-password" className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                    {modalMode === "create" ? "Initial Password" : "Change Password (optional)"}
+                  </label>
+                  <div className="relative group/pass">
+                    <input
+                      id="staff-password"
+                      required={modalMode === "create"}
+                      type={showPassword ? "text" : "password"}
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      placeholder={modalMode === "edit" ? "LEAVE BLANK TO KEEP CURRENT" : ""}
+                      className="w-full bg-white border border-slate-300 pl-3 pr-10 py-2 text-[11px] font-bold tracking-tight focus:border-orange-500 focus:outline-none transition-all rounded-sm placeholder:text-[8px] placeholder:text-slate-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-orange-500 transition-colors"
+                    >
+                      {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Roles */}
+                <div className="pt-2">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Assigned Role</span>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <input
+                        id="role-staff"
+                        type="radio"
+                        name="role"
+                        checked={!formData.is_boss}
+                        onChange={() => setFormData({ ...formData, is_boss: false, is_staff: true })}
+                        className="w-3.5 h-3.5 accent-orange-500"
+                      />
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-600 group-hover:text-slate-950 transition-colors">Staff</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <input
+                        id="role-boss"
+                        type="radio"
+                        name="role"
+                        checked={formData.is_boss}
+                        onChange={() => setFormData({ ...formData, is_boss: true, is_staff: true })}
+                        className="w-3.5 h-3.5 accent-orange-500"
+                      />
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-600 group-hover:text-slate-950 transition-colors">Boss</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="pt-4 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setModalOpen(false)}
+                  className="flex-1 px-4 py-2.5 border border-slate-300 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-950 hover:border-slate-500 transition-all rounded-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex-1 px-4 py-2.5 bg-orange-500 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-orange-600 transition-all rounded-sm shadow-lg active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 size={12} className="animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    submitText
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
