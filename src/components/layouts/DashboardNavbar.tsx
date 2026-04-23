@@ -5,16 +5,23 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/src/context/AuthContext";
+import { User, LogOut, Menu } from "lucide-react";
 
 interface Props {
   onMenuClick: () => void;
 }
 
 export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
-  const { user, logout } = useAuth();
+  const { user, role, logout } = useAuth();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const ROLE_LABEL: Record<string, string> = {
+    superadmin: "Super Admin",
+    boss: "Boss",
+    staff: "Staff",
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -34,94 +41,87 @@ export default function DashboardNavbar({ onMenuClick }: Readonly<Props>) {
   }
 
   const displayName = user?.name || user?.username || "User";
-  const initial = displayName.charAt(0).toUpperCase();
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-black-80">
+    <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl ">
+      <div className="h-12.5 px-2 md:px-6 flex items-center justify-between gap-4 border-b border-slate-500">
 
-
-
-      <div className="h-14 px-3 md:px-6 flex items-center justify-between gap-4">
-
-        {/* Left — logo + title + mobile hamburger */}
+        {/* Left Section */}
         <div className="flex items-center gap-0">
-          {/* Hamburger — mobile only */}
           <button
             onClick={onMenuClick}
-            className="md:hidden p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition"
+            className="md:hidden p-2 rounded-md text-slate-500 hover:text-slate-950 hover:bg-slate-50 transition-all active:scale-90"
             aria-label="Toggle sidebar"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-            </svg>
+            <Menu size={20} strokeWidth={2.5} />
           </button>
 
-          {/* Logo + title — always visible */}
-          <Link href="/transactions" className="flex items-center gap-0 shrink-0">
-            <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-
-            >
-              <Image src="/ctk.svg" alt="CTK" width={18} height={18} priority />
+          <Link href="/dashboard" className="md:hidden flex items-center gap-2 shrink-0">
+            <div className="flex items-center justify-center shrink-0 w-6">
+              <Image src="/ctk.svg" alt="CTK" width={16} height={22} priority style={{ height: "auto" }} />
             </div>
-            <div>
-              <p className="text-sm font-bold tracking-[0.2em] uppercase text-gray-900 leading-none">CTK</p>
-              <p className="text-[9px] font-medium tracking-[0.15em] uppercase leading-none mt-0.5" style={{ color: "#FA4900" }}>
-                Spare Parts
-              </p>
+            <div className="flex flex-col leading-none">
+              <p className="text-[17px] font-black tracking-tight uppercase text-slate-950">CTK</p>
+              <p className="text-[7px] font-bold tracking-[0.4em] uppercase text-orange-600 mt-0.1 opacity-90">Spare Parts</p>
             </div>
           </Link>
         </div>
 
         <div className="flex-1" />
 
-        {/* Right — greeting + user avatar dropdown */}
-        <div className="flex items-center gap-2.5" ref={dropdownRef}>
-          {/* Greeting text */}
-          <p className="hidden sm:block text-xs font-medium text-gray-500">
-            Hello, <span className="font-bold text-gray-900">{displayName}</span>
-          </p>
+        {/* Right Section */}
+        <div className="flex items-center gap-4" ref={dropdownRef}>
+          <div className="hidden sm:flex flex-col items-end leading-none gap-1 shrink-0">
+            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-[0.2em]">Hello!</p>
+            <p className="text-[11px] font-black text-slate-950 uppercase tracking-tight truncate max-w-40">
+              {displayName}
+            </p>
+          </div>
 
-          {/* Avatar button */}
           <div className="relative">
             <button
               onClick={() => setOpen((v) => !v)}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 ring-2 ring-transparent hover:ring-orange-300 transition"
-              style={{ background: "linear-gradient(135deg, #FA4900, #b91c1c)" }}
-              aria-label="User menu"
+              className="group flex items-center gap-1 p-0.5 rounded-full hover:bg-slate-50 transition-all duration-300 cursor-pointer"
             >
-              {initial}
+              <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 flex items-center justify-center">
+                <Image src="/albert-einstein.png" alt="User Avatar" width={32} height={32} className="object-cover" />
+              </div>
             </button>
 
-            {/* Dropdown */}
             {open && (
-              <div className="absolute right-0 mt-2 w-38 bg-white rounded-sm border border-gray-800 shadow-xl overflow-hidden z-50">
-                {/* Profile */}
-                <div className="py-0">
+              <div className="absolute right-0 mt-3 w-56 bg-white border border-slate-500 shadow-2xl overflow-hidden z-50 rounded-sm animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="px-5 py-4 bg-slate-50/50 border-b border-slate-500 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-sm overflow-hidden shadow-lg shrink-0 border border-slate-500">
+                    <Image src="/albert-einstein.png" alt="User Avatar" width={40} height={40} className="object-cover" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[12px] font-black text-slate-950 truncate leading-none mb-1">@{user?.username || "user"}</p>
+                    <span className="text-[8px] font-black tracking-widest uppercase text-orange-600">
+                      {ROLE_LABEL[role] ?? "Standard Access"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-1.5">
                   <Link
                     href="/profile"
                     onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition"
+                    className="flex items-center gap-3 px-3 py-2 rounded-sm text-slate-600 hover:bg-slate-50 hover:text-slate-950 transition-all group"
                   >
-                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round"
-                        d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                    </svg>
-                    <span className="text-xs font-medium">Profile</span>
+                    <div className="w-7 h-7 rounded-sm flex items-center justify-center bg-slate-100 group-hover:bg-white border border-transparent group-hover:border-slate-500 transition-all">
+                      <User size={14} strokeWidth={2.5} />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest">Account Details</span>
                   </Link>
-                </div>
 
-                {/* Logout */}
-                <div className="border-t border-gray-100 py-0">
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-red-500 hover:bg-red-50 transition"
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-sm text-red-500 hover:bg-red-50 transition-all group mt-0.5 cursor-pointer"
                   >
-                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round"
-                        d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                    </svg>
-                    <span className="text-xs font-bold">Logout</span>
+                    <div className="w-7 h-7 rounded-sm flex items-center justify-center bg-red-50 group-hover:bg-white border border-transparent group-hover:border-red-200 transition-all">
+                      <LogOut size={14} strokeWidth={2.5} />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest">Sign Out</span>
                   </button>
                 </div>
               </div>

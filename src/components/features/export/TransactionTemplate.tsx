@@ -1,6 +1,7 @@
 import React from "react";
 
 const BORDER_COLOR = "#000000";
+export const ROWS_PER_PAGE = 25;
 
 const CELL_BASE: React.CSSProperties = {
   border: `1px solid ${BORDER_COLOR}`,
@@ -33,90 +34,152 @@ const TITLE: Record<"Sale" | "Receive", string> = {
   Receive: "ប័ណ្ណស្នើបញ្ចូលគ្រឿងបន្លាស់",
 };
 
-const TransactionTemplate = ({ transaction }: {
+const TableHead = () => (
+  <thead>
+    <tr>
+      <th style={{ ...CELL_HEADER, width: "35px" }}>ល.រ</th>
+      <th style={{ ...CELL_HEADER, width: "22%" }}>លេខកូដ</th>
+      <th style={{ ...CELL_HEADER }}>បរិយាយមុខទំនិញ</th>
+      <th style={{ ...CELL_HEADER, width: "12%" }}>ឯកតា</th>
+      <th style={{ ...CELL_HEADER, width: "12%" }}>បរិមាណ</th>
+      <th style={{ ...CELL_HEADER, width: "15%" }}>ផ្សេងៗ</th>
+    </tr>
+  </thead>
+);
+
+const TransactionTemplate = ({ transaction, autoDate, date }: {
   transaction: {
     transaction_type: "Sale" | "Receive";
     items: { barcode: string; product_name: string; unit?: string; quantity: number }[];
   };
+  autoDate?: boolean;
+  date?: string;
 }) => {
   const title = TITLE[transaction.transaction_type];
+  const displayDate = autoDate && date
+    ? (() => {
+        const d = new Date(date);
+        const dd = String(d.getDate()).padStart(2, "0");
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const yy = String(d.getFullYear());
+        return `ថ្ងៃទី ${dd} ខែ ${mm} ឆ្នាំ ${yy}`;
+      })()
+    : "ថ្ងៃទី....... ខែ....... ឆ្នាំ ........";
+  const items = transaction.items;
+
+  // Split items into pages
+  const chunks: typeof items[] = [];
+  if (items.length === 0) {
+    chunks.push([]);
+  } else {
+    for (let i = 0; i < items.length; i += ROWS_PER_PAGE) {
+      chunks.push(items.slice(i, i + ROWS_PER_PAGE));
+    }
+  }
+
   return (
-    <div
-      id="invoice-receipt"
-      style={{
-        width: "148mm",
-        minHeight: "210mm",
-        padding: "20mm 12mm",
-        backgroundColor: "#ffffff",
-        color: "#000000",
-        fontFamily: "var(--font-kantumruy, 'KantumruyPro', sans-serif)",
-        boxSizing: "border-box",
-        margin: "auto",
-      }}
-    >
-      {/* Header Section */}
-      <div style={{ textAlign: "center", marginBottom: "30px" }}>
-        <h1 style={{ fontSize: "22px", fontWeight: "bold", margin: "0 0 8px 0" }}>
-          {title}
-        </h1>
-        <p style={{ fontSize: "14px", margin: 0 }}>
-          ថ្ងៃទី....... ខែ....... ឆ្នាំ ........
-        </p>
-      </div>
+    <>
+      {chunks.map((chunk, pageIndex) => {
+        const isFirst = pageIndex === 0;
+        const isLast = pageIndex === chunks.length - 1;
+        const startIndex = pageIndex * ROWS_PER_PAGE;
 
-      {/* Table Section */}
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          tableLayout: "fixed",
-        }}
-      >
-        <thead>
-          <tr>
-            <th style={{ ...CELL_HEADER, width: "35px" }}>ល.រ</th>
-            <th style={{ ...CELL_HEADER, width: "22%" }}>លេខកូដ</th>
-            <th style={{ ...CELL_HEADER }}>បរិយាយមុខទំនិញ</th>
-            <th style={{ ...CELL_HEADER, width: "12%" }}>ឯកតា</th>
-            <th style={{ ...CELL_HEADER, width: "12%" }}>បរិមាណ</th>
-            <th style={{ ...CELL_HEADER, width: "15%" }}>ផ្សេងៗ</th>
-          </tr>
-        </thead>
-        <tbody>
-          {transaction.items.map((item, index) => (
-            <tr key={`${item.barcode}-${item.product_name}`}> 
-              <td style={CELL_CENTER}>{index + 1}</td>
-              <td style={{ ...CELL_BODY, paddingLeft: "8px" }}>{item.barcode}</td>
-              <td style={{ ...CELL_BODY, paddingLeft: "8px" }}>{item.product_name}</td>
-              <td style={CELL_CENTER}>{item.unit ?? "Pcs"}</td>
-              <td style={CELL_CENTER}>{Math.abs(item.quantity)}</td>
-              <td style={CELL_BODY}></td>
-            </tr>
-          ))}
-          {transaction.items.length < 5 && Array.from({ length: 5 - transaction.items.length }).map((_, i) => (
-            <tr key={`empty-${transaction.items.length}-${i}`}> 
-              <td style={{ ...CELL_BODY, height: "32px" }}>&nbsp;</td>
-              <td style={CELL_BODY}></td>
-              <td style={CELL_BODY}></td>
-              <td style={CELL_BODY}></td>
-              <td style={CELL_BODY}></td>
-              <td style={CELL_BODY}></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        return (
+          <div
+            key={`page-${startIndex}`}
+            id={`pdf-page-${startIndex}`}
+            style={{
+              width: "794px",
+              minHeight: "1123px",
+              padding: "90px 68px",
+              backgroundColor: "#ffffff",
+              color: "#000000",
+              fontFamily: "var(--font-kantumruy, 'KantumruyPro', sans-serif)",
+              boxSizing: "border-box",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {/* Header — first page only */}
+            {isFirst && (
+              <div style={{ textAlign: "center", marginBottom: "30px" }}>
+                <h1 style={{ fontSize: "22px", fontWeight: "bold", margin: "0 0 8px 0" }}>
+                  {title}
+                </h1>
+                <p style={{ fontSize: "14px", margin: 0 }}>
+                  {displayDate}
+                </p>
+              </div>
+            )}
 
-      {/* Footer Section — signature blocks */}
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "60px", padding: "0 20px" }}>
-        {(["ផ្នែក QC", "ផ្នែកជាង", "ប្រធានឃ្លាំង"] as const).map((label) => (
-          <div key={label} style={{ textAlign: "center", width: "120px" }}>
-            <p style={{ fontSize: "13px", fontWeight: "bold", margin: "0 0 60px 0" }}>{label}</p>
-            <div style={{ borderBottom: "1px solid black", width: "100%" }} />
-            <p style={{ fontSize: "11px", color: "#666", marginTop: "4px" }}>ហត្ថលេខា</p>
+            {/* Continuation label */}
+            {!isFirst && (
+              <div style={{ textAlign: "right", marginBottom: "8px", fontSize: "11px", color: "#666" }}>
+                (បន្ត) ទំព័រទី {pageIndex + 1}/{chunks.length}
+              </div>
+            )}
+
+            {/* Table */}
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                tableLayout: "fixed",
+              }}
+            >
+              <TableHead />
+              <tbody>
+                {chunk.map((item, idx) => (
+                  <tr key={`${startIndex + idx}-${item.barcode}`}>
+                    <td style={CELL_CENTER}>{startIndex + idx + 1}</td>
+                    <td style={{ ...CELL_BODY, paddingLeft: "8px" }}>{item.barcode}</td>
+                    <td style={{ ...CELL_BODY, paddingLeft: "8px" }}>{item.product_name}</td>
+                    <td style={CELL_CENTER}>{item.unit ?? "Pcs"}</td>
+                    <td style={CELL_CENTER}>{Math.abs(item.quantity)}</td>
+                    <td style={CELL_BODY}></td>
+                  </tr>
+                ))}
+                {/* Pad last page with empty rows if fewer than 5 items */}
+                {isLast && chunk.length < 5 && (["r0","r1","r2","r3","r4"] as const).slice(chunk.length).map((rowKey) => (
+                  <tr key={`empty-${startIndex}-${rowKey}`}>
+                    <td style={{ ...CELL_BODY, height: "32px" }}>&nbsp;</td>
+                    <td style={CELL_BODY}></td>
+                    <td style={CELL_BODY}></td>
+                    <td style={CELL_BODY}></td>
+                    <td style={CELL_BODY}></td>
+                    <td style={CELL_BODY}></td>
+                  </tr>
+                ))}
+                {/* Summary rows — last page only */}
+                {isLast && (
+                  <tr>
+                    <td style={CELL_BODY}></td>
+                    <td style={{ ...CELL_BODY, textAlign: "right", fontWeight: "bold", paddingRight: "6px" }}>មុខទំនិញសរុប</td>
+                    <td style={{ ...CELL_CENTER, fontWeight: "bold" }}>{items.length}</td>
+                    <td style={{ ...CELL_BODY, textAlign: "right", fontWeight: "bold", paddingRight: "6px" }}>បរិមាណសរុប</td>
+                    <td style={{ ...CELL_CENTER, fontWeight: "bold" }}>{items.reduce((sum, i) => sum + Math.abs(i.quantity), 0)}</td>
+                    <td style={CELL_BODY}></td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+
+            {/* Footer — last page only */}
+            {isLast && (
+              <div style={{ display: "flex", justifyContent: "space-evenly", marginTop: "60px", padding: "0 20px" }}>
+                {(["ផ្នែកជាង", "ប្រធានឃ្លាំង"] as const).map((label) => (
+                  <div key={label} style={{ textAlign: "center", width: "120px" }}>
+                    <p style={{ fontSize: "13px", fontWeight: "bold", margin: "0 0 60px 0" }}>{label}</p>
+                    <div style={{ borderBottom: "1px solid black", width: "100%" }} />
+                    <p style={{ fontSize: "11px", color: "#666", marginTop: "4px" }}>ហត្ថលេខា</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        ))}
-      </div>
-    </div>
+        );
+      })}
+    </>
   );
 };
 
