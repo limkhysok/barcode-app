@@ -5,11 +5,10 @@ import { useAuth } from "@/src/context/AuthContext";
 import type { User } from "@/src/types/auth.types";
 import { getStaffUsers, createStaffUser, updateStaffUser, deleteStaffUser } from "@/src/services/user.service";
 import { toast } from "sonner";
-import { 
-  Users, 
-  Mail, 
-  User as UserIcon, 
-  ShieldCheck, 
+import {
+  Users,
+  Mail,
+  User as UserIcon,
   Search,
   ArrowUp,
   ArrowDown,
@@ -53,9 +52,8 @@ const Header = ({
   return (
     <th
       onClick={() => isSortable && field && handleSort(field)}
-      className={`px-5 py-4 text-left text-[9px] font-black tracking-widest uppercase transition-all duration-200 select-none ${
-        isSortable ? "cursor-pointer hover:bg-slate-100/50" : ""
-      } ${isActive ? "text-orange-600 bg-orange-50/30" : "text-slate-400"} ${className || ""}`}
+      className={`px-5 py-4 text-left text-[9px] font-black tracking-widest uppercase transition-all duration-200 select-none ${isSortable ? "cursor-pointer hover:bg-slate-100/50" : ""
+        } ${isActive ? "text-orange-600 bg-orange-50/30" : "text-slate-400"} ${className || ""}`}
     >
       <div className={`flex items-center ${className?.includes('center') ? 'justify-center' : ''} ${className?.includes('right') ? 'justify-end' : ''}`}>
         {label}
@@ -135,8 +133,8 @@ export default function StaffClient() {
       name: user.name,
       email: user.email,
       password: "", // Keep password empty on edit unless user wants to change it
-      is_boss: user.is_boss,
-      is_staff: user.is_staff,
+      is_boss: false,
+      is_staff: true,
     });
     setModalOpen(true);
   };
@@ -187,9 +185,9 @@ export default function StaffClient() {
     // Search
     if (search.trim()) {
       const s = search.toLowerCase();
-      list = list.filter(u => 
-        u.username.toLowerCase().includes(s) || 
-        u.name.toLowerCase().includes(s) || 
+      list = list.filter(u =>
+        u.username.toLowerCase().includes(s) ||
+        u.name.toLowerCase().includes(s) ||
         u.email.toLowerCase().includes(s)
       );
     }
@@ -302,7 +300,6 @@ export default function StaffClient() {
                   <Header label="Name" field="name" ordering={ordering} handleSort={handleSort} />
                   <Header label="Username" field="username" ordering={ordering} handleSort={handleSort} />
                   <Header label="Email" field="email" ordering={ordering} handleSort={handleSort} />
-                  <Header label="Role" ordering={ordering} handleSort={handleSort} className="w-32" />
                   <Header label="Status" ordering={ordering} handleSort={handleSort} className="w-24 text-center" />
                   <Header label="Actions" ordering={ordering} handleSort={handleSort} className="w-32 pr-6 text-right" />
                 </tr>
@@ -331,17 +328,6 @@ export default function StaffClient() {
                         <Mail size={12} />
                         <span className="text-[11px] font-bold lowercase tracking-tight">{u.email}</span>
                       </div>
-                    </td>
-                    <td className="px-5 py-4">
-                      {u.is_boss ? (
-                        <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-100">
-                          <ShieldCheck size={10} /> BOSS
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">
-                          <ShieldCheck size={10} /> STAFF
-                        </span>
-                      )}
                     </td>
                     <td className="px-5 py-4 text-center">
                       <span className="inline-flex items-center gap-1.5 text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-full bg-green-50 text-green-600 border border-green-100">
@@ -469,34 +455,6 @@ export default function StaffClient() {
                   </div>
                 </div>
 
-                {/* Roles */}
-                <div className="pt-2">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Assigned Role</span>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer group">
-                      <input
-                        id="role-staff"
-                        type="radio"
-                        name="role"
-                        checked={!formData.is_boss}
-                        onChange={() => setFormData({ ...formData, is_boss: false, is_staff: true })}
-                        className="w-3.5 h-3.5 accent-orange-500"
-                      />
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-600 group-hover:text-slate-950 transition-colors">Staff</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer group">
-                      <input
-                        id="role-boss"
-                        type="radio"
-                        name="role"
-                        checked={formData.is_boss}
-                        onChange={() => setFormData({ ...formData, is_boss: true, is_staff: true })}
-                        className="w-3.5 h-3.5 accent-orange-500"
-                      />
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-600 group-hover:text-slate-950 transition-colors">Boss</span>
-                    </label>
-                  </div>
-                </div>
               </div>
 
               {/* Modal Footer */}
