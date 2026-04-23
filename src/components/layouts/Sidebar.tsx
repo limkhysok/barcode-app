@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
+import { useAuth } from "@/src/context/AuthContext";
 import {
   LayoutDashboard,
   Package,
   Database,
   ArrowLeftRight,
   ChevronLeft,
+  Users,
 } from "lucide-react";
 
 const navItems = [
@@ -16,6 +18,10 @@ const navItems = [
   { label: "Transactions", href: "/transactions", icon: <ArrowLeftRight size={17} /> },
   { label: "Products",     href: "/products",     icon: <Package size={17} /> },
   { label: "Inventory",    href: "/inventory",    icon: <Database size={17} /> },
+];
+
+const bossItems = [
+  { label: "Staff",        href: "/staff",        icon: <Users size={17} /> },
 ];
 
 interface Props {
@@ -92,6 +98,9 @@ function SidebarContent({
   isCollapsed,
   onClose,
 }: Readonly<{ isCollapsed: boolean; onClose: () => void }>) {
+  const { user } = useAuth();
+  const isBoss = user?.is_boss === true || user?.is_superuser === true;
+
   return (
     <div className="flex flex-col h-full w-full bg-white">
 
@@ -141,6 +150,31 @@ function SidebarContent({
               onClick={onClose}
             />
           ))}
+
+          {isBoss && (
+            <>
+              <p
+                className={`
+                  text-[8px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-4 mt-8 px-5
+                  overflow-hidden whitespace-nowrap
+                  transition-all duration-400 ease-in-out
+                  ${isCollapsed ? "max-w-0 opacity-0" : "max-w-40 opacity-100"}
+                `}
+              >
+                Management
+              </p>
+              {bossItems.map(({ label, href, icon }) => (
+                <NavItem
+                  key={href}
+                  label={label}
+                  href={href}
+                  icon={icon}
+                  isCollapsed={isCollapsed}
+                  onClick={onClose}
+                />
+              ))}
+            </>
+          )}
         </div>
       </div>
 

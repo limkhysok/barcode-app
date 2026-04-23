@@ -47,6 +47,22 @@ function getTokenExpiry(token: string): number | null {
   }
 }
 
+/** Decode JWT claims for roles and user info. */
+function decodeToken(token: string): Partial<User> | null {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return {
+      id: payload.user_id,
+      username: payload.username,
+      is_boss: !!payload.is_boss,
+      is_staff: !!payload.is_staff,
+      is_superuser: !!payload.is_superuser,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: Readonly<{ children: React.ReactNode }>) {
   const [user, setUser] = useState<User | null>(() => {
     if (globalThis.window === undefined) return null;
@@ -89,10 +105,18 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
       setIsLoading(false);
       return;
     }
+    const decoded = decodeToken(access);
+    if (decoded) {
+      // Early state from token for faster UI gating
+      setUser(prev => ({ ...(prev || {} as User), ...decoded }));
+    }
+
     getMe()
       .then((me) => {
-        setUser(me);
-        localStorage.setItem("user_data", JSON.stringify(me));
+        if (me) {
+          setUser(me);
+          localStorage.setItem("user_data", JSON.stringify(me));
+        }
       })
       .catch((err: unknown) => {
         const status = (err as { response?: { status?: number } })?.response?.status;
@@ -138,9 +162,18 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
     localStorage.setItem("access_token", tokens.access);
     localStorage.setItem("refresh_token", tokens.refresh);
     setSessionCookie(tokens.access, tokens.refresh);
+    
+    // Decode and set partial user state immediately for faster UI update
+    const decoded = decodeToken(tokens.access);
+    if (decoded) {
+      setUser(prev => ({ ...(prev || {} as User), ...decoded }));
+    }
+
     const me = await getMe();
-    setUser(me);
-    localStorage.setItem("user_data", JSON.stringify(me));
+    if (me) {
+      setUser(me);
+      localStorage.setItem("user_data", JSON.stringify(me));
+    }
   }, []);
 
   const register = useCallback(async (payload: RegisterPayload) => {
