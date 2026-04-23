@@ -4,12 +4,13 @@ import { createContext, useContext, useEffect, useMemo, useState, useCallback } 
 import type { User, LoginPayload, RegisterPayload } from "@/src/types/auth.types";
 import { login as apiLogin, register as apiRegister, getMe } from "@/src/services/auth.service";
 
-export type Role = "staff" | "boss" | "superadmin";
+export type Role = "user" | "staff" | "boss" | "superadmin";
 
 function getRole(user: User | null): Role {
   if (user?.is_superuser) return "superadmin";
   if (user?.is_boss) return "boss";
-  return "staff";
+  if (user?.is_staff) return "staff";
+  return "user";
 }
 
 interface AuthContextValue {

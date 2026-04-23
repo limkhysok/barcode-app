@@ -99,7 +99,7 @@ function SidebarContent({
   onClose,
 }: Readonly<{ isCollapsed: boolean; onClose: () => void }>) {
   const { user } = useAuth();
-  const isBoss = user?.is_boss === true || user?.is_superuser === true;
+  const showManagement = user?.is_boss === true || user?.is_superuser === true;
 
   return (
     <div className="flex flex-col h-full w-full bg-white">
@@ -151,7 +151,7 @@ function SidebarContent({
             />
           ))}
 
-          {isBoss && (
+          {showManagement && (
             <>
               <p
                 className={`

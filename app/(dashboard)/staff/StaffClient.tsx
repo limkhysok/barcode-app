@@ -65,11 +65,11 @@ export default function StaffClient() {
   const [search, setSearch] = useState("");
   const [ordering, setOrdering] = useState("username");
 
-  const isBoss = role === "boss" || role === "superadmin";
+  const hasAccess = role === "boss" || role === "superadmin";
 
   useEffect(() => {
     if (authLoading) return;
-    if (!isBoss) {
+    if (!hasAccess) {
       setLoading(false);
       return;
     }
@@ -85,7 +85,7 @@ export default function StaffClient() {
         }
       })
       .finally(() => setLoading(false));
-  }, [isBoss, authLoading]);
+  }, [hasAccess, authLoading]);
 
   const displayed = useMemo(() => {
     let list = [...staff];
@@ -132,11 +132,11 @@ export default function StaffClient() {
     );
   }
 
-  if (!isBoss) {
+  if (!hasAccess) {
     return (
       <div className="flex items-center justify-center py-20 px-4">
         <p className="max-w-md text-center py-4 text-[10px] font-black text-red-500 bg-red-50/50 rounded-sm border border-red-100 uppercase tracking-[0.2em] leading-loose">
-          UNAUTHORIZED ACCESS. THIS PAGE IS RESTRICTED TO BOSS USERS ONLY.
+          UNAUTHORIZED ACCESS. THIS PAGE IS RESTRICTED TO BOSS AND ADMINISTRATORS ONLY.
         </p>
       </div>
     );
